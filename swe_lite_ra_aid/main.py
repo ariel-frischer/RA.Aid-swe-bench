@@ -29,6 +29,10 @@ def ra_aid_prediction(task):
 
 # Function to process a single task
 def process_task(task):
+    # Debug print to see task structure
+    print("Task keys:", task.keys())
+    print("Task content:", task)
+    
     prediction = ra_aid_prediction(task)
     return {"id": task["id"], "prediction": prediction}
 
