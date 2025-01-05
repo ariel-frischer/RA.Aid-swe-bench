@@ -10,11 +10,28 @@ agent = create_agent(model=model, tools=[])
 
 def ra_aid_prediction(task):
     # Extract relevant information from the task
-    task_description = task['prompt']
-    code_context = task['context']
+    problem_statement = task['problem_statement']
+    repo = task['repo']
+    base_commit = task['base_commit']
+    patch = task['patch']
+    test_patch = task['test_patch']
+    hints = task.get('hints_text', '')  # Optional field
     
-    # Combine task description and code context
-    full_prompt = f"Task: {task_description}\n\nCode Context:\n{code_context}"
+    # Combine all relevant information into a comprehensive prompt
+    full_prompt = f"""
+Repository: {repo}
+Problem Statement: {problem_statement}
+Base Commit: {base_commit}
+
+Code Changes (Patch):
+{patch}
+
+Test Changes:
+{test_patch}
+
+Additional Hints:
+{hints}
+"""
     
     # Use RA.Aid to generate a prediction
     result = run_research_agent(
