@@ -8,7 +8,7 @@ packages = [{include = "your_project_name"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-ra-aid = "^0.1.0"
+ra-aid = "^0.12.0"
 swebench = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
