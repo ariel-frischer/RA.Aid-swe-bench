@@ -33,12 +33,17 @@ Additional Hints:
 {hints}
 """
     
-    # Use RA.Aid to generate a prediction
+    # Use RA.Aid to generate a prediction with configuration
+    config = {
+        'web_research_enabled': False,
+        'expert_enabled': True,
+        'research_only': True
+    }
+    
     result = run_research_agent(
         base_task_or_query=full_prompt,
         model=model,
-        expert_enabled=True,
-        research_only=True
+        config=config
     )
     
     # The result is already the prediction
