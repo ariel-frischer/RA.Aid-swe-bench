@@ -1,10 +1,12 @@
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datasets import load_dataset
-from ra_aid.agent import RAAgent
+from ra_aid.agent_utils import create_agent, run_research_agent
+from ra_aid.llm import initialize_llm
 
-# Initialize the RA.Aid agent
-ra_agent = RAAgent()
+# Initialize the model and agent
+model = initialize_llm(provider='openai', model_name='gpt-4')
+agent = create_agent(model=model, tools=[])
 
 def ra_aid_prediction(task):
     # Extract relevant information from the task
@@ -15,12 +17,15 @@ def ra_aid_prediction(task):
     full_prompt = f"Task: {task_description}\n\nCode Context:\n{code_context}"
     
     # Use RA.Aid to generate a prediction
-    response = ra_agent.run(full_prompt)
+    result = run_research_agent(
+        base_task_or_query=full_prompt,
+        model=model,
+        expert_enabled=True,
+        research_only=True
+    )
     
-    # Extract the relevant part of the response (assuming it's the last message)
-    prediction = response['messages'][-1]['content']
-    
-    return prediction
+    # The result is already the prediction
+    return result
 
 # Function to process a single task
 def process_task(task):
