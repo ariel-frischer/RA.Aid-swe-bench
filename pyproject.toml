@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "swe-lite-ra-aid"
+version = "0.1.0"
+description = "SWE Bench Lite for ra-aid agent"
+authors = ["Ariel Frischer arielfrischer@gmail.com"]
+readme = "README.md"
+packages = [{include = "your_project_name"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+ra-aid = "^0.1.0"
+swebench = "^0.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
