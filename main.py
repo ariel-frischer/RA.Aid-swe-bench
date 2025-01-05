@@ -7,7 +7,7 @@ from ra_aid.agent import RAAgent
 # Initialize the RA.Aid agent
 ra_agent = RAAgent()
 
-def your_agent_prediction(task):
+def ra_aid_prediction(task):
     # Extract relevant information from the task
     task_description = task['prompt']
     code_context = task['context']
@@ -25,7 +25,7 @@ def your_agent_prediction(task):
 
 # Function to process a single task
 def process_task(task):
-    prediction = your_agent_prediction(task)
+    prediction = ra_aid_prediction(task)
     return {"id": task["id"], "prediction": prediction}
 
 # Generate predictions for SWE-bench Lite
