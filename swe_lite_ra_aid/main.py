@@ -41,7 +41,7 @@ def ra_aid_prediction(task):
 
     # Setup configuration
     config = {
-        "expert_enabled": True,
+        "expert_enabled": False,
         "hil": False,
         "web_research_enabled": True,
         "configurable": {"thread_id": str(uuid.uuid4())},
@@ -93,6 +93,8 @@ def ra_aid_prediction(task):
 def process_task(task):
     # Debug print to see task structure
     print("Task keys:", task.keys())
+    # Task keys: dict_keys(['repo', 'instance_id', 'base_commit', 'patch', 'test_patch', 
+    # 'problem_statement', 'hints_text', 'created_at', 'version', 'FAIL_TO_PASS', 'PASS_TO_PASS', 'environment_setup_commit'])
     # print("Task content:", task)
 
     prediction = ra_aid_prediction(task)
@@ -116,6 +118,12 @@ def main():
     # Set the number of workers
     max_workers = 1
 
+    for i, example in enumerate(dataset):
+        if i >= 3:  # Only print the first 5 examples
+            break
+        print(example)
+
+    # exit(0)
     predictions = generate_predictions(dataset, max_workers)
 
     # Save predictions to a file
