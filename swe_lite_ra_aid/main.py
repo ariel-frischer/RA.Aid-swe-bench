@@ -134,7 +134,7 @@ def process_task(task):
         os.chdir(repo_path)
 
         # Checkout the base commit
-        repo = Repo(repo_path)
+        repo = Repo(".")  # Use current directory since we already changed to it
         repo.git.checkout(task["base_commit"])
 
         # Run prediction
