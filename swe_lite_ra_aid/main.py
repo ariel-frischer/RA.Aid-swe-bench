@@ -127,7 +127,8 @@ def ra_aid_prediction(task, out_dname):
             #     config=config,
             # )
 
-            # Get the diff between current state and original commit
+            # Stage all changes and get the diff
+            repo.git.add('-A')  # Add all changes including new/deleted files
             model_patch = diff_versus_commit(repo_path, base_commit)
             print(f"model_patch={model_patch}")
             edited_files = files_in_patch(model_patch)
