@@ -192,37 +192,6 @@ def checkout_repo(git_tempdir, entry):
 
     print(f"Cloning {repo_url} at commit {commit}")
     return checkout_repo_url_commit(git_tempdir, repo_url, commit)
-    """Clone a GitHub repository and return the local path with thread-safe locking"""
-    repo_url = f"https://github.com/{repo_name}.git"
-    REPOS_DNAME.mkdir(exist_ok=True)
-    clone_dir = REPOS_DNAME / repo_name.replace("/", "_")
-
-    # Use a lock file to prevent multiple workers from cloning the same repo
-    lock_file = clone_dir.with_suffix(".lock")
-    lock_file.touch()
-
-    with open(lock_file, "r+") as f:
-        try:
-            # Acquire an exclusive lock
-            fcntl.flock(f, fcntl.LOCK_EX)
-
-            if not clone_dir.exists():
-                print(f"Cloning repository: {repo_url}")
-                repo = Repo.clone_from(repo_url, clone_dir)
-                # Set git config to suppress detached HEAD warning
-                repo.config_writer().set_value(
-                    "advice", "detachedHead", "false"
-                ).release()
-            else:
-                print(f"Using existing repository: {clone_dir}")
-                repo = Repo(clone_dir)
-
-        finally:
-            # Release the lock
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-    return str(clone_dir)
-
 
 def process_task(task, out_dname):
     """Process one task with proper error handling and result tracking"""
