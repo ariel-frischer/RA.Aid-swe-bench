@@ -97,43 +97,44 @@ def clone_repository(repo_name):
     """Clone a GitHub repository and return the local path"""
     repo_url = f"https://github.com/{repo_name}.git"
     clone_dir = f"repos/{repo_name.replace('/', '_')}"
-    
+
     # Create repos directory if it doesn't exist
     os.makedirs("repos", exist_ok=True)
-    
+
     # Only clone if directory doesn't exist
     if not os.path.exists(clone_dir):
         print(f"Cloning repository: {repo_url}")
         Repo.clone_from(repo_url, clone_dir)
     else:
         print(f"Using existing repository: {clone_dir}")
-    
+
     return clone_dir
+
 
 def process_task(task):
     # Debug print to see task structure
     print("Task keys:", task.keys())
-    
+
     # Clone the repository
     repo_path = clone_repository(task["repo"])
-    
+
     try:
         # Change to the cloned repository directory
         original_dir = os.getcwd()
         os.chdir(repo_path)
-        
+
         # Checkout the base commit
         repo = Repo(repo_path)
         repo.git.checkout(task["base_commit"])
-        
+
         # Run prediction
         prediction = ra_aid_prediction(task)
-        
+
         # Return to original directory
         os.chdir(original_dir)
-        
+
         return {"id": task["id"], "prediction": prediction}
-    
+
     finally:
         # Just return to original directory, don't clean up
         os.chdir(original_dir)
@@ -156,12 +157,6 @@ def main():
     # Set the number of workers
     max_workers = 1
 
-    for i, example in enumerate(dataset):
-        if i >= 3:  # Only print the first 5 examples
-            break
-        print(example)
-
-    # exit(0)
     predictions = generate_predictions(dataset, max_workers)
 
     # Save predictions to a file
@@ -174,6 +169,7 @@ def main():
 
     # Note: The evaluation part has been removed as it relied on swebench.
     # You may need to implement a custom evaluation function or use a different evaluation method.
+
 
 if __name__ == "__main__":
     main()
