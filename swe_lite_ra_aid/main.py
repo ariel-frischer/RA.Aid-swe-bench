@@ -47,8 +47,11 @@ model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
     instance_id = task["instance_id"]
+    print(f"instance_id={instance_id}")
     base_commit = task["base_commit"]
+    print(f"base_commit={base_commit}")
     problem_statement = task["problem_statement"]
+    print(f"problem_statement={problem_statement}")
 
     results = []
     cost = 0
