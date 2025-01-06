@@ -109,21 +109,25 @@ def generate_predictions(dataset, max_workers):
     return predictions
 
 
-# Load the dataset
-dataset = load_dataset("princeton-nlp/SWE-bench", split="test")
+def main():
+    # Load the dataset
+    dataset = load_dataset("princeton-nlp/SWE-bench", split="test")
 
-# Set the number of workers
-max_workers = 1
+    # Set the number of workers
+    max_workers = 1
 
-predictions = generate_predictions(dataset, max_workers)
+    predictions = generate_predictions(dataset, max_workers)
 
-# Save predictions to a file
-predictions_path = "ra_aid_predictions.jsonl"
-with open(predictions_path, "w") as f:
-    for pred in predictions:
-        f.write(json.dumps(pred) + "\n")
+    # Save predictions to a file
+    predictions_path = "ra_aid_predictions.jsonl"
+    with open(predictions_path, "w") as f:
+        for pred in predictions:
+            f.write(json.dumps(pred) + "\n")
 
-print(f"Predictions saved to {predictions_path}")
+    print(f"Predictions saved to {predictions_path}")
 
-# Note: The evaluation part has been removed as it relied on swebench.
-# You may need to implement a custom evaluation function or use a different evaluation method.
+    # Note: The evaluation part has been removed as it relied on swebench.
+    # You may need to implement a custom evaluation function or use a different evaluation method.
+
+if __name__ == "__main__":
+    main()
