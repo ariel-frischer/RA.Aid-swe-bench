@@ -1,6 +1,9 @@
 import json
 import uuid
+import os
+import shutil
 from concurrent.futures import ThreadPoolExecutor
+from git import Repo
 from datasets import load_dataset
 from ra_aid.agent_utils import (
     run_research_agent,
@@ -90,15 +93,46 @@ def ra_aid_prediction(task):
 
 
 # Function to process a single task
+def clone_repository(repo_name):
+    """Clone a GitHub repository and return the local path"""
+    repo_url = f"https://github.com/{repo_name}.git"
+    clone_dir = f"/tmp/{repo_name.replace('/', '_')}"
+    
+    # Clean up if directory exists
+    if os.path.exists(clone_dir):
+        shutil.rmtree(clone_dir)
+    
+    print(f"Cloning repository: {repo_url}")
+    Repo.clone_from(repo_url, clone_dir)
+    return clone_dir
+
 def process_task(task):
     # Debug print to see task structure
     print("Task keys:", task.keys())
-    # Task keys: dict_keys(['repo', 'instance_id', 'base_commit', 'patch', 'test_patch', 
-    # 'problem_statement', 'hints_text', 'created_at', 'version', 'FAIL_TO_PASS', 'PASS_TO_PASS', 'environment_setup_commit'])
-    # print("Task content:", task)
-
-    prediction = ra_aid_prediction(task)
-    return {"id": task["id"], "prediction": prediction}
+    
+    # Clone the repository
+    repo_path = clone_repository(task["repo"])
+    
+    try:
+        # Change to the cloned repository directory
+        original_dir = os.getcwd()
+        os.chdir(repo_path)
+        
+        # Checkout the base commit
+        repo = Repo(repo_path)
+        repo.git.checkout(task["base_commit"])
+        
+        # Run prediction
+        prediction = ra_aid_prediction(task)
+        
+        # Return to original directory
+        os.chdir(original_dir)
+        
+        return {"id": task["id"], "prediction": prediction}
+    
+    finally:
+        # Clean up the cloned repository
+        shutil.rmtree(repo_path)
 
 
 # Generate predictions for SWE-bench Lite
