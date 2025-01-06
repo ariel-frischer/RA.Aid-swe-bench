@@ -240,28 +240,51 @@ def generate_predictions(dataset, threads, out_dname):
     else:
         process_task_func = process_task
 
-    # Process all tasks
-    for task in dataset:
-        process_task_func(task, out_dname)
+    try:
+        # Process all tasks
+        for task in dataset:
+            try:
+                process_task_func(task, out_dname)
+            except KeyboardInterrupt:
+                print("\nInterrupted by user. Cleaning up...")
+                raise
+            except Exception as e:
+                print(f"Error processing task: {e}")
+                continue
 
-    if threads > 1:
-        gather()
+        if threads > 1:
+            try:
+                gather()
+            except KeyboardInterrupt:
+                print("\nInterrupted by user during gather. Cleaning up...")
+                raise
+    except KeyboardInterrupt:
+        print("\nGracefully shutting down...")
+        return
 
 
 def main():
-    # Load the dataset
-    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+    try:
+        # Load the dataset
+        dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
-    # Create output directory with timestamp
-    out_dname = PREDS_DNAME / "ra_aid_predictions"
+        # Create output directory with timestamp
+        out_dname = PREDS_DNAME / "ra_aid_predictions"
 
-    # Set the number of threads (1 for now)
-    threads = 1
+        # Set the number of threads (1 for now)
+        threads = 1
 
-    # Generate and save predictions
-    generate_predictions(dataset, threads, out_dname)
+        # Generate and save predictions
+        generate_predictions(dataset, threads, out_dname)
 
-    print(f"Predictions saved to {predictions_path}")
+        print(f"Predictions saved to {out_dname}")
+    except KeyboardInterrupt:
+        print("\nProgram terminated by user")
+        return 1
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
