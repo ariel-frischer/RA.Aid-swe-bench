@@ -6,7 +6,7 @@ import lox
 import tempfile
 import shutil
 from pathlib import Path
-from git import Repo
+from .git import diff_versus_commit, files_in_patch, checkout_repo, checkout_repo_url_commit
 from datasets import load_dataset
 from ra_aid.agent_utils import (
     run_research_agent,
@@ -19,27 +19,6 @@ REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_RETRIES = 3
 
-
-def diff_versus_commit(git_dname, commit):
-    """
-    Take a diff of `git_dname` current contents versus the `commit`.
-    """
-    repo = Repo(git_dname)
-    diff = repo.git.diff(commit)
-    return diff
-
-
-def files_in_patch(patch):
-    """
-    Extract the list of modified files from a unified diff patch string.
-    """
-    files = []
-    for line in patch.split("\n"):
-        if line.startswith("--- a/") or line.startswith("+++ b/"):
-            fname = line.split("/", 1)[1]
-            if fname not in files:
-                files.append(fname)
-    return files
 
 
 # Initialize the model
@@ -173,25 +152,6 @@ def ra_aid_prediction(task, out_dname):
     return winner
 
 
-def checkout_repo_url_commit(git_tempdir, repo_url, commit):
-    """
-    Clone the git repo from url into tempdir at specific commit.
-    """
-    repo = Repo.clone_from(repo_url, git_tempdir)
-    repo.git.checkout(commit)
-    return repo
-
-def checkout_repo(git_tempdir, entry):
-    """
-    Clone the SWE Bench entry's git `repo` into `dname` at the `base_commit`.
-    Make a tempdir if no `dname` provided.
-    """
-    github_url = "https://github.com/"
-    repo_url = github_url + entry["repo"]
-    commit = entry["base_commit"]
-
-    print(f"Cloning {repo_url} at commit {commit}")
-    return checkout_repo_url_commit(git_tempdir, repo_url, commit)
 
 def process_task(task, out_dname):
     """Process one task with proper error handling and result tracking"""
