@@ -65,7 +65,9 @@ def ra_aid_prediction(task, out_dname):
             repo_path = clone_repository(task["repo"])
             repo = Repo(repo_path)
 
-            # Checkout base commit
+            # Clean up any existing changes and checkout base commit
+            repo.git.reset('--hard')  # Discard any changes
+            repo.git.clean('-fd')     # Remove untracked files and directories
             repo.git.checkout(base_commit)
 
             # Change working directory to the repo
