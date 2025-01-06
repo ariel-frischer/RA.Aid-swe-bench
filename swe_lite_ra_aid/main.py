@@ -1,9 +1,7 @@
 import json
 import uuid
-import os
-import shutil
+import fcntl
 import subprocess
-import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from git import Repo
@@ -19,6 +17,7 @@ REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_RETRIES = 3
 
+
 def diff_versus_commit(git_dname, commit):
     """
     Take a diff of `git_dname` current contents versus the `commit`.
@@ -26,6 +25,7 @@ def diff_versus_commit(git_dname, commit):
     diff_cmd = f"git -C {git_dname} diff {commit}"
     diff_output = subprocess.check_output(diff_cmd.split()).decode()
     return diff_output
+
 
 def files_in_patch(patch):
     """
@@ -39,6 +39,7 @@ def files_in_patch(patch):
                 files.append(fname)
     return files
 
+
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
 
@@ -48,137 +49,136 @@ def ra_aid_prediction(task, out_dname):
     instance_id = task["instance_id"]
     base_commit = task["base_commit"]
     problem_statement = task["problem_statement"]
-    
+
     results = []
     cost = 0
-    
+
     # Do MAX_RETRIES tries until we find a solution with changes
     for attempt in range(1, MAX_RETRIES + 1):
         print(f"Attempt {attempt} for {instance_id}")
-        
+
         try:
             # Get or create repo clone
             repo_path = clone_repository(task["repo"])
             repo = Repo(repo_path)
-            
+
             # Checkout base commit
             repo.git.checkout(base_commit)
 
-                # Prepare the full prompt
-                full_prompt = f"""
-                Repository: {task["repo"]}
-                Problem Statement: {problem_statement}
-                Base Commit: {base_commit}
+            # Prepare the full prompt
+            full_prompt = f"""
+            Repository: {task["repo"]}
+            Problem Statement: {problem_statement}
+            Base Commit: {base_commit}
 
-                Code Changes (Patch):
-                {task["patch"]}
+            Code Changes (Patch):
+            {task["patch"]}
 
-                Test Changes:
-                {task["test_patch"]}
+            Test Changes:
+            {task["test_patch"]}
 
-                Additional Hints:
-                {task.get("hints_text", "")}
-                """
+            Additional Hints:
+            {task.get("hints_text", "")}
+            """
 
-                # Setup configuration
-                config = {
-                    "expert_enabled": False,
-                    "hil": False,
-                    "web_research_enabled": True,
-                    "configurable": {"thread_id": str(uuid.uuid4())},
-                    "recursion_limit": 100,
-                    "research_only": False,
-                    "cowboy_mode": False,
-                }
+            # Setup configuration
+            config = {
+                "expert_enabled": False,
+                "hil": False,
+                "web_research_enabled": True,
+                "configurable": {"thread_id": str(uuid.uuid4())},
+                "recursion_limit": 100,
+                "research_only": False,
+                "cowboy_mode": False,
+            }
 
-                # Run all agents
-                research_result = run_research_agent(
-                    base_task_or_query=full_prompt,
-                    model=model,
-                    expert_enabled=config["expert_enabled"],
-                    research_only=config["research_only"],
-                    hil=config["hil"],
-                    web_research_enabled=config["web_research_enabled"],
-                    config=config,
-                )
+            # Run all agents
+            research_result = run_research_agent(
+                base_task_or_query=full_prompt,
+                model=model,
+                expert_enabled=config["expert_enabled"],
+                research_only=config["research_only"],
+                hil=config["hil"],
+                web_research_enabled=config["web_research_enabled"],
+                config=config,
+            )
 
-                planning_result = run_planning_agent(
-                    base_task=full_prompt,
-                    model=model,
-                    expert_enabled=config["expert_enabled"],
-                    hil=config["hil"],
-                    config=config,
-                )
+            planning_result = run_planning_agent(
+                base_task=full_prompt,
+                model=model,
+                expert_enabled=config["expert_enabled"],
+                hil=config["hil"],
+                config=config,
+            )
 
-                implementation_result = run_task_implementation_agent(
-                    base_task=full_prompt,
-                    model=model,
-                    expert_enabled=config["expert_enabled"],
-                    config=config,
-                )
+            implementation_result = run_task_implementation_agent(
+                base_task=full_prompt,
+                model=model,
+                expert_enabled=config["expert_enabled"],
+                config=config,
+            )
 
-                # Get the diff between current state and original commit
-                model_patch = diff_versus_commit(repo_path, base_commit)
-                edited_files = files_in_patch(model_patch)
+            # Get the diff between current state and original commit
+            model_patch = diff_versus_commit(repo_path, base_commit)
+            edited_files = files_in_patch(model_patch)
 
-                # Record the results
-                result = {
-                    "instance_id": instance_id,
-                    "model_patch": model_patch,
-                    "edited_files": edited_files,
-                    "research": research_result,
-                    "planning": planning_result,
-                    "implementation": implementation_result,
-                    "attempt": attempt,
-                }
-                results.append(result)
+            # Record the results
+            result = {
+                "instance_id": instance_id,
+                "model_patch": model_patch,
+                "edited_files": edited_files,
+                "research": research_result,
+                "planning": planning_result,
+                "implementation": implementation_result,
+                "attempt": attempt,
+            }
+            results.append(result)
 
-                # If we got changes, return the result
-                if model_patch:
-                    break
+            # If we got changes, return the result
+            if model_patch:
+                break
 
-            except Exception as e:
-                print(f"Error processing {instance_id}: {str(e)}")
-                continue
+        except Exception as e:
+            print(f"Error processing {instance_id}: {str(e)}")
+            continue
 
     # Pick the result with most changes as the winner
     winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
-    
+
     # Save results
     out_fname = out_dname / (instance_id + ".json")
     out_fname.write_text(json.dumps(winner, indent=4))
-    
+
     return winner
 
 
-# Function to process a single task
-import fcntl
+
 
 def clone_repository(repo_name):
     """Clone a GitHub repository and return the local path with thread-safe locking"""
     repo_url = f"https://github.com/{repo_name}.git"
     REPOS_DNAME.mkdir(exist_ok=True)
     clone_dir = REPOS_DNAME / repo_name.replace("/", "_")
-    
+
     # Use a lock file to prevent multiple workers from cloning the same repo
     lock_file = clone_dir.with_suffix(".lock")
     lock_file.touch()
-    
+
     with open(lock_file, "r+") as f:
         try:
             # Acquire an exclusive lock
             fcntl.flock(f, fcntl.LOCK_EX)
-            
+
             if not clone_dir.exists():
                 print(f"Cloning repository: {repo_url}")
                 Repo.clone_from(repo_url, clone_dir)
             else:
                 print(f"Using existing repository: {clone_dir}")
-                
+
         finally:
             # Release the lock
             fcntl.flock(f, fcntl.LOCK_UN)
-            
+
     return str(clone_dir)
 
 
@@ -189,37 +189,29 @@ def process_task(task, out_dname):
             task = json.loads(task)
         except json.JSONDecodeError:
             task = {"raw_input": task}
-    
+
     print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
-    
+
     try:
         # Run prediction with retries and temp dirs
         result = ra_aid_prediction(task, out_dname)
-        return {
-            "id": task["id"],
-            "instance_id": task["instance_id"],
-            "result": result
-        }
+        return {"id": task["id"], "instance_id": task["instance_id"], "result": result}
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
-        return {
-            "id": task["id"],
-            "instance_id": task["instance_id"],
-            "error": str(e)
-        }
+        return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
 
 
 # Generate predictions for SWE-bench Lite
 def generate_predictions(dataset, max_workers, out_dname):
     """Generate predictions with parallel processing and result tracking"""
     predictions = []
-    
+
     # Create output directory if it doesn't exist
     out_dname.mkdir(exist_ok=True)
-    
+
     # Create repos directory if it doesn't exist
     REPOS_DNAME.mkdir(exist_ok=True)
-    
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(process_task, task, out_dname) for task in dataset]
         for i, future in enumerate(futures):
@@ -230,17 +222,17 @@ def generate_predictions(dataset, max_workers, out_dname):
 
 def main():
     # Load the dataset
-    dataset = load_dataset("princeton-nlp/SWE-bench", split="test")
-    
+    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+
     # Create output directory with timestamp
     out_dname = PREDS_DNAME / "ra_aid_predictions"
-    
+
     # Set the number of workers
     max_workers = 1
-    
+
     # Generate and save predictions
     predictions = generate_predictions(dataset, max_workers, out_dname)
-    
+
     # Save all predictions to a single file
     predictions_path = out_dname / "all_predictions.jsonl"
     with open(predictions_path, "w") as f:
