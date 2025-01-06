@@ -112,12 +112,16 @@ def clone_repository(repo_name):
 
 
 def process_task(task):
+    # Parse the task string into a dictionary
+    if isinstance(task, str):
+        task = json.loads(task)
+    
     # Debug print to see task structure
-    print(f"\nProcessing task {task['instance_id']} from {task['repo']}")
+    print(f"\nProcessing task {task.get('instance_id', 'unknown')} from {task.get('repo', 'unknown')}")
     print("Task keys:", task.keys())
 
     # Clone the repository
-    repo_path = clone_repository(task["repo"])
+    repo_path = clone_repository(task.get("repo"))
     print(f"Using repository at: {repo_path}")
 
     try:
