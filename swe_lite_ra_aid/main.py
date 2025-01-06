@@ -56,12 +56,13 @@ def ra_aid_prediction(task, out_dname):
     for attempt in range(1, MAX_RETRIES + 1):
         print(f"Attempt {attempt} for {instance_id}")
         
-        with tempfile.TemporaryDirectory() as git_tempdir:
-            try:
-                # Clone repo and checkout base commit
-                repo_path = clone_repository(task["repo"], git_tempdir)
-                repo = Repo(repo_path)
-                repo.git.checkout(base_commit)
+        try:
+            # Get or create repo clone
+            repo_path = clone_repository(task["repo"])
+            repo = Repo(repo_path)
+            
+            # Checkout base commit
+            repo.git.checkout(base_commit)
 
                 # Prepare the full prompt
                 full_prompt = f"""
@@ -151,27 +152,34 @@ def ra_aid_prediction(task, out_dname):
 
 
 # Function to process a single task
-def clone_repository(repo_name, dest_dir=None):
-    """Clone a GitHub repository and return the local path"""
+import fcntl
+
+def clone_repository(repo_name):
+    """Clone a GitHub repository and return the local path with thread-safe locking"""
     repo_url = f"https://github.com/{repo_name}.git"
+    REPOS_DNAME.mkdir(exist_ok=True)
+    clone_dir = REPOS_DNAME / repo_name.replace("/", "_")
     
-    if dest_dir:
-        # For temp dirs, always clone fresh
-        print(f"Cloning repository: {repo_url} to {dest_dir}")
-        Repo.clone_from(repo_url, dest_dir)
-        return dest_dir
-    else:
-        # For persistent clones, use cache
-        REPOS_DNAME.mkdir(exist_ok=True)
-        clone_dir = REPOS_DNAME / repo_name.replace("/", "_")
-        
-        if not clone_dir.exists():
-            print(f"Cloning repository: {repo_url}")
-            Repo.clone_from(repo_url, clone_dir)
-        else:
-            print(f"Using existing repository: {clone_dir}")
+    # Use a lock file to prevent multiple workers from cloning the same repo
+    lock_file = clone_dir.with_suffix(".lock")
+    lock_file.touch()
+    
+    with open(lock_file, "r+") as f:
+        try:
+            # Acquire an exclusive lock
+            fcntl.flock(f, fcntl.LOCK_EX)
             
-        return str(clone_dir)
+            if not clone_dir.exists():
+                print(f"Cloning repository: {repo_url}")
+                Repo.clone_from(repo_url, clone_dir)
+            else:
+                print(f"Using existing repository: {clone_dir}")
+                
+        finally:
+            # Release the lock
+            fcntl.flock(f, fcntl.LOCK_UN)
+            
+    return str(clone_dir)
 
 
 def process_task(task, out_dname):
@@ -208,6 +216,9 @@ def generate_predictions(dataset, max_workers, out_dname):
     
     # Create output directory if it doesn't exist
     out_dname.mkdir(exist_ok=True)
+    
+    # Create repos directory if it doesn't exist
+    REPOS_DNAME.mkdir(exist_ok=True)
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(process_task, task, out_dname) for task in dataset]
