@@ -71,52 +71,52 @@ def ra_aid_prediction(task, out_dname):
                 original_cwd = Path.cwd()
                 os.chdir(git_tempdir)
 
-            # Prepare the full prompt
-            full_prompt = f"""
-            Repository: {task["repo"]}
+                # Prepare the full prompt
+                full_prompt = f"""
+                Repository: {task["repo"]}
 
-            Base Commit: {base_commit}
-            Code Changes (Patch):
-            {task["patch"]}
+                Base Commit: {base_commit}
+                Code Changes (Patch):
+                {task["patch"]}
 
-            Test Changes:
-            {task["test_patch"]}
+                Test Changes:
+                {task["test_patch"]}
 
-            <Problem Statement>:
-            {problem_statement}
-            </Problem Statement>
+                <Problem Statement>:
+                {problem_statement}
+                </Problem Statement>
 
-            Additional Hints:
-            {task.get("hints_text", "")}
+                Additional Hints:
+                {task.get("hints_text", "")}
 
-            You are a world class software engineer. 
-            You must make code changes to fix the issue described in the problem statement.
-            """
+                You are a world class software engineer. 
+                You must make code changes to fix the issue described in the problem statement.
+                """
 
-            # Setup configuration
-            config = {
-                "expert_enabled": True,
-                "hil": False,
-                "web_research_enabled": True,
-                "configurable": {"thread_id": str(uuid.uuid4())},
-                "recursion_limit": 100,
-                "research_only": False,
-                "cowboy_mode": True,
-                # "expert_provider": "anthropic",
-                # "expert_model": "claude-3-5-sonnet-20241022",
-            }
+                # Setup configuration
+                config = {
+                    "expert_enabled": True,
+                    "hil": False,
+                    "web_research_enabled": True,
+                    "configurable": {"thread_id": str(uuid.uuid4())},
+                    "recursion_limit": 100,
+                    "research_only": False,
+                    "cowboy_mode": True,
+                    # "expert_provider": "anthropic",
+                    # "expert_model": "claude-3-5-sonnet-20241022",
+                }
 
-            # Run all agents
-            research_result = run_research_agent(
-                base_task_or_query=full_prompt,
-                model=model,
-                expert_enabled=config["expert_enabled"],
-                research_only=config["research_only"],
-                hil=config["hil"],
-                web_research_enabled=config["web_research_enabled"],
-                config=config,
-            )
-            print(f"research_result={research_result}")
+                # Run all agents
+                research_result = run_research_agent(
+                    base_task_or_query=full_prompt,
+                    model=model,
+                    expert_enabled=config["expert_enabled"],
+                    research_only=config["research_only"],
+                    hil=config["hil"],
+                    web_research_enabled=config["web_research_enabled"],
+                    config=config,
+                )
+                print(f"research_result={research_result}")
 
             # planning_result = run_planning_agent(
             #     base_task=full_prompt,
@@ -134,30 +134,30 @@ def ra_aid_prediction(task, out_dname):
             #     config=config,
             # )
 
-            # Stage all changes and get the diff
-            repo.git.add("-A")  # Add all changes including new/deleted files
-            model_patch = diff_versus_commit(repo_path, base_commit)
-            print(f"model_patch={model_patch}")
-            edited_files = files_in_patch(model_patch)
-            print(f"edited_files={edited_files}")
+                # Stage all changes and get the diff
+                repo.git.add("-A")  # Add all changes including new/deleted files
+                model_patch = diff_versus_commit(git_tempdir, base_commit)
+                print(f"model_patch={model_patch}")
+                edited_files = files_in_patch(model_patch)
+                print(f"edited_files={edited_files}")
 
                 # Restore original working directory
                 os.chdir(original_cwd)
-            # Temporary directory is automatically cleaned up when the with block exits
+                # Temporary directory is automatically cleaned up when the with block exits
 
-            # Record the results
-            result = {
-                "instance_id": instance_id,
-                "model_patch": model_patch,
-                "edited_files": edited_files,
-                "research": research_result,
-                "attempt": attempt,
-            }
-            results.append(result)
+                # Record the results
+                result = {
+                    "instance_id": instance_id,
+                    "model_patch": model_patch,
+                    "edited_files": edited_files,
+                    "research": research_result,
+                    "attempt": attempt,
+                }
+                results.append(result)
 
-            # If we got changes, return the result
-            if model_patch:
-                break
+                # If we got changes, return the result
+                if model_patch:
+                    break
 
         except Exception as e:
             print(f"Error processing {instance_id}: {str(e)}")
