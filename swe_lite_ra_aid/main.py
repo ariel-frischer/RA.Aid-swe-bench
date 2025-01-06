@@ -2,7 +2,10 @@ import json
 import uuid
 import os
 import shutil
+import subprocess
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from git import Repo
 from datasets import load_dataset
 from ra_aid.agent_utils import (
@@ -12,154 +15,204 @@ from ra_aid.agent_utils import (
 )
 from ra_aid.llm import initialize_llm
 
+REPOS_DNAME = Path("repos")
+PREDS_DNAME = Path("predictions")
+MAX_RETRIES = 3
+
+def diff_versus_commit(git_dname, commit):
+    """
+    Take a diff of `git_dname` current contents versus the `commit`.
+    """
+    diff_cmd = f"git -C {git_dname} diff {commit}"
+    diff_output = subprocess.check_output(diff_cmd.split()).decode()
+    return diff_output
+
+def files_in_patch(patch):
+    """
+    Extract the list of modified files from a unified diff patch string.
+    """
+    files = []
+    for line in patch.split("\n"):
+        if line.startswith("--- a/") or line.startswith("+++ b/"):
+            fname = line.split("/", 1)[1]
+            if fname not in files:
+                files.append(fname)
+    return files
+
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
 
 
-def ra_aid_prediction(task):
-    # Extract relevant information from the task
-    problem_statement = task["problem_statement"]
-    repo = task["repo"]
+def ra_aid_prediction(task, out_dname):
+    """Process one task using RA-AID approach with retries and result tracking"""
+    instance_id = task["instance_id"]
     base_commit = task["base_commit"]
-    patch = task["patch"]
-    test_patch = task["test_patch"]
-    hints = task.get("hints_text", "")  # Optional field
+    problem_statement = task["problem_statement"]
+    
+    results = []
+    cost = 0
+    
+    # Do MAX_RETRIES tries until we find a solution with changes
+    for attempt in range(1, MAX_RETRIES + 1):
+        print(f"Attempt {attempt} for {instance_id}")
+        
+        with tempfile.TemporaryDirectory() as git_tempdir:
+            try:
+                # Clone repo and checkout base commit
+                repo_path = clone_repository(task["repo"], git_tempdir)
+                repo = Repo(repo_path)
+                repo.git.checkout(base_commit)
 
-    # Combine all relevant information into a comprehensive prompt
-    full_prompt = f"""
-    Repository: {repo}
-    Problem Statement: {problem_statement}
-    Base Commit: {base_commit}
+                # Prepare the full prompt
+                full_prompt = f"""
+                Repository: {task["repo"]}
+                Problem Statement: {problem_statement}
+                Base Commit: {base_commit}
 
-    Code Changes (Patch):
-    {patch}
+                Code Changes (Patch):
+                {task["patch"]}
 
-    Test Changes:
-    {test_patch}
+                Test Changes:
+                {task["test_patch"]}
 
-    Additional Hints:
-    {hints}
-    """
-    print(f"full_prompt={full_prompt}")
+                Additional Hints:
+                {task.get("hints_text", "")}
+                """
 
-    # Setup configuration
-    config = {
-        "expert_enabled": False,
-        "hil": False,
-        "web_research_enabled": True,
-        "configurable": {"thread_id": str(uuid.uuid4())},
-        "recursion_limit": 100,
-        "research_only": False,
-        "cowboy_mode": False,
-    }
+                # Setup configuration
+                config = {
+                    "expert_enabled": False,
+                    "hil": False,
+                    "web_research_enabled": True,
+                    "configurable": {"thread_id": str(uuid.uuid4())},
+                    "recursion_limit": 100,
+                    "research_only": False,
+                    "cowboy_mode": False,
+                }
 
-    # Run research stage
-    research_result = run_research_agent(
-        base_task_or_query=full_prompt,
-        model=model,
-        expert_enabled=config["expert_enabled"],
-        research_only=config["research_only"],
-        hil=config["hil"],
-        web_research_enabled=config["web_research_enabled"],
-        config=config,
-    )
+                # Run all agents
+                research_result = run_research_agent(
+                    base_task_or_query=full_prompt,
+                    model=model,
+                    expert_enabled=config["expert_enabled"],
+                    research_only=config["research_only"],
+                    hil=config["hil"],
+                    web_research_enabled=config["web_research_enabled"],
+                    config=config,
+                )
 
-    # Run planning stage
-    planning_result = run_planning_agent(
-        base_task=full_prompt,
-        model=model,
-        expert_enabled=config["expert_enabled"],
-        hil=config["hil"],
-        config=config,
-    )
+                planning_result = run_planning_agent(
+                    base_task=full_prompt,
+                    model=model,
+                    expert_enabled=config["expert_enabled"],
+                    hil=config["hil"],
+                    config=config,
+                )
 
-    # Run implementation stage
-    implementation_result = run_task_implementation_agent(
-        base_task=full_prompt,
-        model=model,
-        expert_enabled=config["expert_enabled"],
-        config=config,
-    )
+                implementation_result = run_task_implementation_agent(
+                    base_task=full_prompt,
+                    model=model,
+                    expert_enabled=config["expert_enabled"],
+                    config=config,
+                )
 
-    # Combine results from all stages
-    combined_result = {
-        "research": research_result,
-        "planning": planning_result,
-        "implementation": implementation_result,
-    }
+                # Get the diff between current state and original commit
+                model_patch = diff_versus_commit(repo_path, base_commit)
+                edited_files = files_in_patch(model_patch)
 
-    return combined_result
+                # Record the results
+                result = {
+                    "instance_id": instance_id,
+                    "model_patch": model_patch,
+                    "edited_files": edited_files,
+                    "research": research_result,
+                    "planning": planning_result,
+                    "implementation": implementation_result,
+                    "attempt": attempt,
+                }
+                results.append(result)
+
+                # If we got changes, return the result
+                if model_patch:
+                    break
+
+            except Exception as e:
+                print(f"Error processing {instance_id}: {str(e)}")
+                continue
+
+    # Pick the result with most changes as the winner
+    winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
+    
+    # Save results
+    out_fname = out_dname / (instance_id + ".json")
+    out_fname.write_text(json.dumps(winner, indent=4))
+    
+    return winner
 
 
 # Function to process a single task
-def clone_repository(repo_name):
+def clone_repository(repo_name, dest_dir=None):
     """Clone a GitHub repository and return the local path"""
     repo_url = f"https://github.com/{repo_name}.git"
-    clone_dir = f"repos/{repo_name.replace('/', '_')}"
-
-    # Create repos directory if it doesn't exist
-    os.makedirs("repos", exist_ok=True)
-
-    # Only clone if directory doesn't exist
-    if not os.path.exists(clone_dir):
-        print(f"Cloning repository: {repo_url}")
-        Repo.clone_from(repo_url, clone_dir)
+    
+    if dest_dir:
+        # For temp dirs, always clone fresh
+        print(f"Cloning repository: {repo_url} to {dest_dir}")
+        Repo.clone_from(repo_url, dest_dir)
+        return dest_dir
     else:
-        print(f"Using existing repository: {clone_dir}")
+        # For persistent clones, use cache
+        REPOS_DNAME.mkdir(exist_ok=True)
+        clone_dir = REPOS_DNAME / repo_name.replace("/", "_")
+        
+        if not clone_dir.exists():
+            print(f"Cloning repository: {repo_url}")
+            Repo.clone_from(repo_url, clone_dir)
+        else:
+            print(f"Using existing repository: {clone_dir}")
+            
+        return str(clone_dir)
 
-    return clone_dir
 
-
-def process_task(task):
-    # Handle both dict and string input
+def process_task(task, out_dname):
+    """Process one task with proper error handling and result tracking"""
     if isinstance(task, str):
         try:
             task = json.loads(task)
         except json.JSONDecodeError:
-            # If it's not valid JSON, treat as raw string
             task = {"raw_input": task}
     
-    # Debug print to see task structure
-    print(f"\nProcessing task {task.get('instance_id', 'unknown')} from {task.get('repo', 'unknown')}")
-    print("Task keys:", list(task.keys()))
-
-    # Clone the repository
-    repo_path = clone_repository(task.get("repo"))
-    print(f"Using repository at: {repo_path}")
-
+    print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
+    
     try:
-        # Change to the cloned repository directory
-        original_dir = os.getcwd()
-        os.chdir(repo_path)
-
-        # Checkout the base commit
-        repo = Repo(".")  # Use current directory since we already changed to it
-        repo.git.checkout(task["base_commit"])
-
-        # Run prediction
-        prediction = ra_aid_prediction(task)
-
-        # Return to original directory
-        os.chdir(original_dir)
-
-        return {"id": task["id"], "prediction": prediction}
-
-    finally:
-        # Just return to original directory, don't clean up
-        os.chdir(original_dir)
+        # Run prediction with retries and temp dirs
+        result = ra_aid_prediction(task, out_dname)
+        return {
+            "id": task["id"],
+            "instance_id": task["instance_id"],
+            "result": result
+        }
+    except Exception as e:
+        print(f"Error processing task {task.get('instance_id')}: {str(e)}")
+        return {
+            "id": task["id"],
+            "instance_id": task["instance_id"],
+            "error": str(e)
+        }
 
 
 # Generate predictions for SWE-bench Lite
-def generate_predictions(dataset, max_workers):
+def generate_predictions(dataset, max_workers, out_dname):
+    """Generate predictions with parallel processing and result tracking"""
     predictions = []
-    # Take only first 3 tasks for debugging
-    limited_dataset = list(dataset)[:3]
-    print(f"Processing {len(limited_dataset)} tasks")
+    
+    # Create output directory if it doesn't exist
+    out_dname.mkdir(exist_ok=True)
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(process_task, task) for task in limited_dataset]
+        futures = [executor.submit(process_task, task, out_dname) for task in dataset]
         for i, future in enumerate(futures):
-            print(f"Processing task {i+1}/{len(limited_dataset)}")
+            print(f"Processing task {i+1}/{len(dataset)}")
             predictions.append(future.result())
     return predictions
 
@@ -167,22 +220,23 @@ def generate_predictions(dataset, max_workers):
 def main():
     # Load the dataset
     dataset = load_dataset("princeton-nlp/SWE-bench", split="test")
-
+    
+    # Create output directory with timestamp
+    out_dname = PREDS_DNAME / "ra_aid_predictions"
+    
     # Set the number of workers
-    max_workers = 1
-
-    predictions = generate_predictions(dataset, max_workers)
-
-    # Save predictions to a file
-    predictions_path = "ra_aid_predictions.jsonl"
+    max_workers = 4
+    
+    # Generate and save predictions
+    predictions = generate_predictions(dataset, max_workers, out_dname)
+    
+    # Save all predictions to a single file
+    predictions_path = out_dname / "all_predictions.jsonl"
     with open(predictions_path, "w") as f:
         for pred in predictions:
             f.write(json.dumps(pred) + "\n")
 
     print(f"Predictions saved to {predictions_path}")
-
-    # Note: The evaluation part has been removed as it relied on swebench.
-    # You may need to implement a custom evaluation function or use a different evaluation method.
 
 
 if __name__ == "__main__":
