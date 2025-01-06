@@ -243,6 +243,13 @@ def generate_predictions(dataset, threads, out_dname):
     try:
         # Process all tasks
         for task in dataset:
+            # Check if prediction already exists
+            instance_id = task["instance_id"]
+            existing_predictions = list(out_dname.glob(f"*{instance_id}.json"))
+            if existing_predictions:
+                print(f"Skipping {instance_id} - prediction already exists")
+                continue
+                
             try:
                 process_task_func(task, out_dname)
             except KeyboardInterrupt:
