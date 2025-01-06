@@ -1,9 +1,8 @@
 import json
 import uuid
 import fcntl
-import subprocess
 import os
-from concurrent.futures import ThreadPoolExecutor
+import lox
 from pathlib import Path
 from git import Repo
 from datasets import load_dataset
@@ -214,23 +213,27 @@ def process_task(task, out_dname):
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
 
 
-# Generate predictions for SWE-bench Lite
-def generate_predictions(dataset, max_workers, out_dname):
+def generate_predictions(dataset, threads, out_dname):
     """Generate predictions with parallel processing and result tracking"""
-    predictions = []
-
     # Create output directory if it doesn't exist
     out_dname.mkdir(exist_ok=True)
 
     # Create repos directory if it doesn't exist
     REPOS_DNAME.mkdir(exist_ok=True)
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(process_task, task, out_dname) for task in dataset]
-        for i, future in enumerate(futures):
-            print(f"Processing task {i+1}/{len(dataset)}")
-            predictions.append(future.result())
-    return predictions
+    if threads > 1:
+        process_task_lox = lox.process(threads)(process_task)
+        process_task_func = process_task_lox.scatter
+        gather = process_task_lox.gather
+    else:
+        process_task_func = process_task
+
+    # Process all tasks
+    for task in dataset:
+        process_task_func(task, out_dname)
+
+    if threads > 1:
+        gather()
 
 
 def main():
@@ -240,17 +243,11 @@ def main():
     # Create output directory with timestamp
     out_dname = PREDS_DNAME / "ra_aid_predictions"
 
-    # Set the number of workers
-    max_workers = 1
+    # Set the number of threads (1 for now)
+    threads = 1
 
     # Generate and save predictions
-    predictions = generate_predictions(dataset, max_workers, out_dname)
-
-    # Save all predictions to a single file
-    predictions_path = out_dname / "all_predictions.jsonl"
-    with open(predictions_path, "w") as f:
-        for pred in predictions:
-            f.write(json.dumps(pred) + "\n")
+    generate_predictions(dataset, threads, out_dname)
 
     print(f"Predictions saved to {predictions_path}")
 
