@@ -35,9 +35,9 @@ Additional Hints:
     
     # Use RA.Aid to generate a prediction with configuration
     config = {
-        'web_research_enabled': False,
+        'web_research_enabled': True,
         'expert_enabled': True,
-        'research_only': True
+        'research_only': False
     }
     
     result = run_research_agent(
