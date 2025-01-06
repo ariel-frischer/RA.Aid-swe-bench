@@ -112,13 +112,17 @@ def clone_repository(repo_name):
 
 
 def process_task(task):
-    # Parse the task string into a dictionary
+    # Handle both dict and string input
     if isinstance(task, str):
-        task = json.loads(task)
+        try:
+            task = json.loads(task)
+        except json.JSONDecodeError:
+            # If it's not valid JSON, treat as raw string
+            task = {"raw_input": task}
     
     # Debug print to see task structure
     print(f"\nProcessing task {task.get('instance_id', 'unknown')} from {task.get('repo', 'unknown')}")
-    print("Task keys:", task.keys())
+    print("Task keys:", list(task.keys()))
 
     # Clone the repository
     repo_path = clone_repository(task.get("repo"))
@@ -150,7 +154,7 @@ def process_task(task):
 def generate_predictions(dataset, max_workers):
     predictions = []
     # Take only first 3 tasks for debugging
-    limited_dataset = dataset[:3]
+    limited_dataset = list(dataset)[:3]
     print(f"Processing {len(limited_dataset)} tasks")
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
