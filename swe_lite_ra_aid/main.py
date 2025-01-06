@@ -113,10 +113,12 @@ def clone_repository(repo_name):
 
 def process_task(task):
     # Debug print to see task structure
+    print(f"\nProcessing task {task['instance_id']} from {task['repo']}")
     print("Task keys:", task.keys())
 
     # Clone the repository
     repo_path = clone_repository(task["repo"])
+    print(f"Using repository at: {repo_path}")
 
     try:
         # Change to the cloned repository directory
@@ -143,9 +145,14 @@ def process_task(task):
 # Generate predictions for SWE-bench Lite
 def generate_predictions(dataset, max_workers):
     predictions = []
+    # Take only first 3 tasks for debugging
+    limited_dataset = dataset[:3]
+    print(f"Processing {len(limited_dataset)} tasks")
+    
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(process_task, task) for task in dataset]
-        for future in futures:
+        futures = [executor.submit(process_task, task) for task in limited_dataset]
+        for i, future in enumerate(futures):
+            print(f"Processing task {i+1}/{len(limited_dataset)}")
             predictions.append(future.result())
     return predictions
 
