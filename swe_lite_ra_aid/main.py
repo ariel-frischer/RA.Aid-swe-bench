@@ -2,6 +2,7 @@ import json
 import uuid
 import fcntl
 import subprocess
+import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from git import Repo
@@ -65,6 +66,10 @@ def ra_aid_prediction(task, out_dname):
             # Checkout base commit
             repo.git.checkout(base_commit)
 
+            # Change working directory to the repo
+            original_cwd = Path.cwd()
+            os.chdir(repo_path)
+
             # Prepare the full prompt
             full_prompt = f"""
             Repository: {task["repo"]}
@@ -121,6 +126,9 @@ def ra_aid_prediction(task, out_dname):
             # Get the diff between current state and original commit
             model_patch = diff_versus_commit(repo_path, base_commit)
             edited_files = files_in_patch(model_patch)
+
+            # Restore original working directory
+            os.chdir(original_cwd)
 
             # Record the results
             result = {
