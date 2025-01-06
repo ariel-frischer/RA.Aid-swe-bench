@@ -3,6 +3,8 @@ import uuid
 import fcntl
 import os
 import lox
+import tempfile
+import shutil
 from pathlib import Path
 from git import Repo
 from datasets import load_dataset
@@ -61,18 +63,13 @@ def ra_aid_prediction(task, out_dname):
         print(f"Attempt {attempt} for {instance_id}")
 
         try:
-            # Get or create repo clone
-            repo_path = clone_repository(task["repo"])
-            repo = Repo(repo_path)
-
-            # Clean up any existing changes and checkout base commit
-            repo.git.reset('--hard')  # Discard any changes
-            repo.git.clean('-fd')     # Remove untracked files and directories
-            repo.git.checkout(base_commit)
-
-            # Change working directory to the repo
-            original_cwd = Path.cwd()
-            os.chdir(repo_path)
+            # Create temporary directory and clone repo
+            with tempfile.TemporaryDirectory(dir="/mnt/aider") as git_tempdir:
+                repo = checkout_repo(git_tempdir, task)
+                
+                # Change working directory to the repo
+                original_cwd = Path.cwd()
+                os.chdir(git_tempdir)
 
             # Prepare the full prompt
             full_prompt = f"""
@@ -144,8 +141,9 @@ def ra_aid_prediction(task, out_dname):
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
 
-            # Restore original working directory
-            os.chdir(original_cwd)
+                # Restore original working directory
+                os.chdir(original_cwd)
+            # Temporary directory is automatically cleaned up when the with block exits
 
             # Record the results
             result = {
@@ -175,7 +173,25 @@ def ra_aid_prediction(task, out_dname):
     return winner
 
 
-def clone_repository(repo_name):
+def checkout_repo_url_commit(git_tempdir, repo_url, commit):
+    """
+    Clone the git repo from url into tempdir at specific commit.
+    """
+    repo = Repo.clone_from(repo_url, git_tempdir)
+    repo.git.checkout(commit)
+    return repo
+
+def checkout_repo(git_tempdir, entry):
+    """
+    Clone the SWE Bench entry's git `repo` into `dname` at the `base_commit`.
+    Make a tempdir if no `dname` provided.
+    """
+    github_url = "https://github.com/"
+    repo_url = github_url + entry["repo"]
+    commit = entry["base_commit"]
+
+    print(f"Cloning {repo_url} at commit {commit}")
+    return checkout_repo_url_commit(git_tempdir, repo_url, commit)
     """Clone a GitHub repository and return the local path with thread-safe locking"""
     repo_url = f"https://github.com/{repo_name}.git"
     REPOS_DNAME.mkdir(exist_ok=True)
