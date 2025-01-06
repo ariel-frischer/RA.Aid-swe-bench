@@ -9,8 +9,8 @@ from git import Repo
 from datasets import load_dataset
 from ra_aid.agent_utils import (
     run_research_agent,
-    run_planning_agent,
-    run_task_implementation_agent,
+    # run_planning_agent,
+    # run_task_implementation_agent,
 )
 from ra_aid.llm import initialize_llm
 
@@ -94,7 +94,7 @@ def ra_aid_prediction(task, out_dname):
                 "configurable": {"thread_id": str(uuid.uuid4())},
                 "recursion_limit": 100,
                 "research_only": False,
-                "cowboy_mode": False,
+                "cowboy_mode": True,
             }
 
             # Run all agents
@@ -107,21 +107,23 @@ def ra_aid_prediction(task, out_dname):
                 web_research_enabled=config["web_research_enabled"],
                 config=config,
             )
+            print(f"research_result={research_result}")
 
-            planning_result = run_planning_agent(
-                base_task=full_prompt,
-                model=model,
-                expert_enabled=config["expert_enabled"],
-                hil=config["hil"],
-                config=config,
-            )
+            # planning_result = run_planning_agent(
+            #     base_task=full_prompt,
+            #     model=model,
+            #     expert_enabled=config["expert_enabled"],
+            #     hil=config["hil"],
+            #     config=config,
+            # )
+            # print(f"planning_result={planning_result}")
 
-            implementation_result = run_task_implementation_agent(
-                base_task=full_prompt,
-                model=model,
-                expert_enabled=config["expert_enabled"],
-                config=config,
-            )
+            # implementation_result = run_task_implementation_agent(
+            #     base_task=full_prompt,
+            #     model=model,
+            #     expert_enabled=config["expert_enabled"],
+            #     config=config,
+            # )
 
             # Get the diff between current state and original commit
             model_patch = diff_versus_commit(repo_path, base_commit)
@@ -136,8 +138,6 @@ def ra_aid_prediction(task, out_dname):
                 "model_patch": model_patch,
                 "edited_files": edited_files,
                 "research": research_result,
-                "planning": planning_result,
-                "implementation": implementation_result,
                 "attempt": attempt,
             }
             results.append(result)
