@@ -1,12 +1,18 @@
 import json
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datasets import load_dataset
-from ra_aid.agent_utils import create_agent, run_research_agent
+from ra_aid.agent_utils import (
+    create_agent,
+    run_research_agent,
+    run_planning_agent,
+    run_task_implementation_agent
+)
 from ra_aid.llm import initialize_llm
+from ra_aid.tools.memory import MemorySaver
 
-# Initialize the model and agent
+# Initialize the model
 model = initialize_llm(provider='openai', model_name='gpt-4')
-agent = create_agent(model=model, tools=[])
 
 def ra_aid_prediction(task):
     # Extract relevant information from the task
@@ -33,21 +39,60 @@ Additional Hints:
 {hints}
 """
     
-    # Use RA.Aid to generate a prediction with configuration
+    # Setup configuration
     config = {
-        'web_research_enabled': True,
-        'expert_enabled': True,
-        'research_only': False
+        "expert_enabled": True,
+        "hil": False,
+        "web_research_enabled": True,
+        "configurable": {"thread_id": str(uuid.uuid4())},
+        "recursion_limit": 100,
+        "research_only": False,
+        "cowboy_mode": False
     }
-    
-    result = run_research_agent(
+
+    # Setup memory
+    memory = MemorySaver()
+
+    # Run research stage
+    research_result = run_research_agent(
         base_task_or_query=full_prompt,
         model=model,
+        expert_enabled=config["expert_enabled"],
+        research_only=config["research_only"],
+        hil=config["hil"],
+        web_research_enabled=config["web_research_enabled"],
+        memory=memory,
         config=config
     )
+
+    # Run planning stage
+    planning_result = run_planning_agent(
+        base_task=full_prompt,
+        model=model,
+        expert_enabled=config["expert_enabled"],
+        hil=config["hil"],
+        memory=memory,
+        config=config
+    )
+
+    # Run implementation stage
+    implementation_result = run_task_implementation_agent(
+        base_task=full_prompt,
+        model=model,
+        expert_enabled=config["expert_enabled"],
+        hil=config["hil"],
+        memory=memory,
+        config=config
+    )
+
+    # Combine results from all stages
+    combined_result = {
+        "research": research_result,
+        "planning": planning_result,
+        "implementation": implementation_result
+    }
     
-    # The result is already the prediction
-    return result
+    return combined_result
 
 # Function to process a single task
 def process_task(task):
