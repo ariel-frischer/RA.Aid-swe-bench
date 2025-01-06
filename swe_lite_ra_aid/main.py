@@ -75,28 +75,36 @@ def ra_aid_prediction(task, out_dname):
             # Prepare the full prompt
             full_prompt = f"""
             Repository: {task["repo"]}
-            Problem Statement: {problem_statement}
-            Base Commit: {base_commit}
 
+            Base Commit: {base_commit}
             Code Changes (Patch):
             {task["patch"]}
 
             Test Changes:
             {task["test_patch"]}
 
+            <Problem Statement>:
+            {problem_statement}
+            </Problem Statement>
+
             Additional Hints:
             {task.get("hints_text", "")}
+
+            You are a world class software engineer. 
+            You must make code changes to fix the issue described in the problem statement.
             """
 
             # Setup configuration
             config = {
-                "expert_enabled": False,
+                "expert_enabled": True,
                 "hil": False,
                 "web_research_enabled": True,
                 "configurable": {"thread_id": str(uuid.uuid4())},
                 "recursion_limit": 100,
                 "research_only": False,
                 "cowboy_mode": True,
+                # "expert_provider": "anthropic",
+                # "expert_model": "claude-3-5-sonnet-20241022",
             }
 
             # Run all agents
@@ -128,7 +136,7 @@ def ra_aid_prediction(task, out_dname):
             # )
 
             # Stage all changes and get the diff
-            repo.git.add('-A')  # Add all changes including new/deleted files
+            repo.git.add("-A")  # Add all changes including new/deleted files
             model_patch = diff_versus_commit(repo_path, base_commit)
             print(f"model_patch={model_patch}")
             edited_files = files_in_patch(model_patch)
@@ -165,8 +173,6 @@ def ra_aid_prediction(task, out_dname):
     return winner
 
 
-
-
 def clone_repository(repo_name):
     """Clone a GitHub repository and return the local path with thread-safe locking"""
     repo_url = f"https://github.com/{repo_name}.git"
@@ -186,7 +192,9 @@ def clone_repository(repo_name):
                 print(f"Cloning repository: {repo_url}")
                 repo = Repo.clone_from(repo_url, clone_dir)
                 # Set git config to suppress detached HEAD warning
-                repo.config_writer().set_value("advice", "detachedHead", "false").release()
+                repo.config_writer().set_value(
+                    "advice", "detachedHead", "false"
+                ).release()
             else:
                 print(f"Using existing repository: {clone_dir}")
                 repo = Repo(clone_dir)
@@ -211,7 +219,7 @@ def process_task(task, out_dname):
     try:
         # Run prediction with retries and temp dirs
         result = ra_aid_prediction(task, out_dname)
-        return {"id": task["id"], "instance_id": task["instance_id"], "result": result}
+        return {"instance_id": task["instance_id"], "result": result}
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
