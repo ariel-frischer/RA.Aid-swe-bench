@@ -96,14 +96,18 @@ def ra_aid_prediction(task):
 def clone_repository(repo_name):
     """Clone a GitHub repository and return the local path"""
     repo_url = f"https://github.com/{repo_name}.git"
-    clone_dir = f"/tmp/{repo_name.replace('/', '_')}"
+    clone_dir = f"repos/{repo_name.replace('/', '_')}"
     
-    # Clean up if directory exists
-    if os.path.exists(clone_dir):
-        shutil.rmtree(clone_dir)
+    # Create repos directory if it doesn't exist
+    os.makedirs("repos", exist_ok=True)
     
-    print(f"Cloning repository: {repo_url}")
-    Repo.clone_from(repo_url, clone_dir)
+    # Only clone if directory doesn't exist
+    if not os.path.exists(clone_dir):
+        print(f"Cloning repository: {repo_url}")
+        Repo.clone_from(repo_url, clone_dir)
+    else:
+        print(f"Using existing repository: {clone_dir}")
+    
     return clone_dir
 
 def process_task(task):
@@ -131,8 +135,8 @@ def process_task(task):
         return {"id": task["id"], "prediction": prediction}
     
     finally:
-        # Clean up the cloned repository
-        shutil.rmtree(repo_path)
+        # Just return to original directory, don't clean up
+        os.chdir(original_dir)
 
 
 # Generate predictions for SWE-bench Lite

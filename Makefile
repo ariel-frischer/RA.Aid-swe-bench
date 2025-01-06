@@ -1,4 +1,4 @@
-.PHONY: install run test clean format help
+.PHONY: install run test clean format help clean-repos
 
 help:
 	@echo "Available commands:"
@@ -26,6 +26,9 @@ clean:
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	rm -f ra_aid_predictions.jsonl
+
+clean-repos:
+	rm -rf repos
 
 format:
 	poetry run black .
