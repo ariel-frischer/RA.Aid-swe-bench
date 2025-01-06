@@ -23,9 +23,9 @@ def diff_versus_commit(git_dname, commit):
     """
     Take a diff of `git_dname` current contents versus the `commit`.
     """
-    diff_cmd = f"git -C {git_dname} diff {commit}"
-    diff_output = subprocess.check_output(diff_cmd.split()).decode()
-    return diff_output
+    repo = Repo(git_dname)
+    diff = repo.git.diff(commit)
+    return diff
 
 
 def files_in_patch(patch):
@@ -179,9 +179,12 @@ def clone_repository(repo_name):
 
             if not clone_dir.exists():
                 print(f"Cloning repository: {repo_url}")
-                Repo.clone_from(repo_url, clone_dir)
+                repo = Repo.clone_from(repo_url, clone_dir)
+                # Set git config to suppress detached HEAD warning
+                repo.config_writer().set_value("advice", "detachedHead", "false").release()
             else:
                 print(f"Using existing repository: {clone_dir}")
+                repo = Repo(clone_dir)
 
         finally:
             # Release the lock
