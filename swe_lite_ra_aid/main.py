@@ -127,7 +127,9 @@ def ra_aid_prediction(task, out_dname):
 
             # Get the diff between current state and original commit
             model_patch = diff_versus_commit(repo_path, base_commit)
+            print(f"model_patch={model_patch}")
             edited_files = files_in_patch(model_patch)
+            print(f"edited_files={edited_files}")
 
             # Restore original working directory
             os.chdir(original_cwd)
