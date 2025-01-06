@@ -225,7 +225,7 @@ def main():
     out_dname = PREDS_DNAME / "ra_aid_predictions"
     
     # Set the number of workers
-    max_workers = 4
+    max_workers = 1
     
     # Generate and save predictions
     predictions = generate_predictions(dataset, max_workers, out_dname)
