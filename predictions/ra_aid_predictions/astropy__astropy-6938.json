@@ -1,0 +1,10 @@
+{
+    "instance_id": "astropy__astropy-6938",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 1414052aad..e5f097feba 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -62,3 +62,4 @@ htmlcov\n \n # Pytest\n v\n+.aider*\ndiff --git a/astropy/io/ascii/qdp.py b/astropy/io/ascii/qdp.py\nnew file mode 100644\nindex 0000000000..e69de29bb2\ndiff --git a/astropy/io/ascii/tests/test_qdp.py b/astropy/io/ascii/tests/test_qdp.py\nnew file mode 100644\nindex 0000000000..e69de29bb2\ndiff --git a/astropy/io/fits/fitsrec.py b/astropy/io/fits/fitsrec.py\nindex 574b4073b1..9188b4c2c5 100644\n--- a/astropy/io/fits/fitsrec.py\n+++ b/astropy/io/fits/fitsrec.py\n@@ -1261,7 +1261,7 @@ class FITS_rec(np.recarray):\n \n         # Replace exponent separator in floating point numbers\n         if 'D' in format:\n-            output_field.replace(encode_ascii('E'), encode_ascii('D'))\n+            output_field[:] = output_field.replace(b'E', b'D')\n \n \n def _get_recarray_field(array, key):",
+    "edited_files": [
+        ".gitignore",
+        "astropy/io/fits/fitsrec.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 1
+}

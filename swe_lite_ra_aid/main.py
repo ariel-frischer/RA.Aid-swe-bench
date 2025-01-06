@@ -1,29 +1,20 @@
 import json
 import uuid
-import fcntl
 import os
 import lox
 import tempfile
-import shutil
 from pathlib import Path
-from .git import diff_versus_commit, files_in_patch, checkout_repo, checkout_repo_url_commit
+from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
-from ra_aid.agent_utils import (
-    run_research_agent,
-    # run_planning_agent,
-    # run_task_implementation_agent,
-)
+from ra_aid.agent_utils import run_research_agent
 from ra_aid.llm import initialize_llm
 
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_RETRIES = 3
 
-
-
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
-
 
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
@@ -43,9 +34,9 @@ def ra_aid_prediction(task, out_dname):
 
         try:
             # Create temporary directory and clone repo
-            with tempfile.TemporaryDirectory(dir="/mnt/aider") as git_tempdir:
+            with tempfile.TemporaryDirectory() as git_tempdir:
                 repo = checkout_repo(git_tempdir, task)
-                
+
                 # Change working directory to the repo
                 original_cwd = Path.cwd()
                 os.chdir(git_tempdir)
@@ -97,22 +88,6 @@ def ra_aid_prediction(task, out_dname):
                 )
                 print(f"research_result={research_result}")
 
-            # planning_result = run_planning_agent(
-            #     base_task=full_prompt,
-            #     model=model,
-            #     expert_enabled=config["expert_enabled"],
-            #     hil=config["hil"],
-            #     config=config,
-            # )
-            # print(f"planning_result={planning_result}")
-
-            # implementation_result = run_task_implementation_agent(
-            #     base_task=full_prompt,
-            #     model=model,
-            #     expert_enabled=config["expert_enabled"],
-            #     config=config,
-            # )
-
                 # Stage all changes and get the diff
                 repo.git.add("-A")  # Add all changes including new/deleted files
                 model_patch = diff_versus_commit(git_tempdir, base_commit)
@@ -120,11 +95,8 @@ def ra_aid_prediction(task, out_dname):
                 edited_files = files_in_patch(model_patch)
                 print(f"edited_files={edited_files}")
 
-                # Restore original working directory
                 os.chdir(original_cwd)
-                # Temporary directory is automatically cleaned up when the with block exits
 
-                # Record the results
                 result = {
                     "instance_id": instance_id,
                     "model_patch": model_patch,
@@ -150,7 +122,6 @@ def ra_aid_prediction(task, out_dname):
     out_fname.write_text(json.dumps(winner, indent=4))
 
     return winner
-
 
 
 def process_task(task, out_dname):
@@ -196,7 +167,7 @@ def generate_predictions(dataset, threads, out_dname):
             if existing_predictions:
                 print(f"Skipping {instance_id} - prediction already exists")
                 continue
-                
+
             try:
                 process_task_func(task, out_dname)
             except KeyboardInterrupt:
