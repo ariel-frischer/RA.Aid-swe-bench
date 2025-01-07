@@ -1,6 +1,7 @@
 import json
 import uuid
 import os
+from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
@@ -104,6 +105,7 @@ def ra_aid_prediction(task, out_dname):
                     "edited_files": edited_files,
                     "research": research_result,
                     "attempt": attempt,
+                    "timestamp": datetime.now().isoformat(),
                 }
                 results.append(result)
 
