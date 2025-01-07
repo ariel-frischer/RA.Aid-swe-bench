@@ -87,6 +87,14 @@ def process_single_attempt(task, attempt, git_tempdir):
     original_cwd = Path.cwd()
     os.chdir(git_tempdir)
 
+    # Print initial status
+    print("\nInitial git status:")
+    print(repo.git.status())
+    
+    # Print initial diff
+    print("\nInitial diff vs base commit:")
+    print(diff_versus_commit(git_tempdir, task["base_commit"]))
+
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
 
@@ -101,11 +109,44 @@ def process_single_attempt(task, attempt, git_tempdir):
     )
     print(f"research_result={research_result}")
 
+    # Print status after research agent
+    print("\nGit status after research agent:")
+    print(repo.git.status())
+
+    # Print diff before adding files
+    print("\nDiff before git add:")
+    print(diff_versus_commit(git_tempdir, task["base_commit"]))
+
+    # Add all changes
     repo.git.add("-A")
+    
+    # Print status after adding
+    print("\nGit status after add:")
+    print(repo.git.status())
+
+    # Get the patch
     model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
-    print(f"model_patch={model_patch}")
+    print(f"\nmodel_patch={model_patch}")
+    
+    # Get list of changed files
     edited_files = files_in_patch(model_patch)
     print(f"edited_files={edited_files}")
+
+    # Also check git log for changes
+    print("\nGit log:")
+    print(repo.git.log("-1", "--stat"))
+
+    # Print actual file contents of changed files
+    if edited_files:
+        print("\nChanged file contents:")
+        for fname in edited_files:
+            try:
+                print(f"\n--- {fname} ---")
+                print(Path(fname).read_text())
+            except Exception as e:
+                print(f"Error reading {fname}: {str(e)}")
+    else:
+        print("\nNo files were changed")
 
     os.chdir(original_cwd)
 

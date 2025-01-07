@@ -5,8 +5,26 @@ def diff_versus_commit(git_dname, commit):
     Take a diff of `git_dname` current contents versus the `commit`.
     """
     repo = Repo(git_dname)
-    diff = repo.git.diff(commit)
-    return diff
+    try:
+        # Get detailed diff with color and full context
+        diff = repo.git.diff(
+            commit,
+            color="always",  # Force color output even when piped
+            unified=1000,    # Show full file context
+            ignore_space_at_eol=True,
+            ignore_blank_lines=True
+        )
+        # Also show staged changes
+        staged_diff = repo.git.diff(
+            "--cached",
+            color="always",
+            unified=1000,
+            ignore_space_at_eol=True,
+            ignore_blank_lines=True
+        )
+        return f"Working tree changes:\n{diff}\n\nStaged changes:\n{staged_diff}"
+    except Exception as e:
+        return f"Error getting diff: {str(e)}"
 
 
 def files_in_patch(patch):
