@@ -155,8 +155,20 @@ def generate_predictions(dataset, threads, out_dname):
     # Create output directory if it doesn't exist
     out_dname.mkdir(exist_ok=True)
 
-    # Create repos directory if it doesn't exist
+    # Create repos directory if it doesn't exist 
     REPOS_DNAME.mkdir(exist_ok=True)
+
+    # Load existing predictions to skip already processed instances
+    done_preds = load_predictions([out_dname])
+    done_instances = {inst for inst, pred in done_preds.items() 
+                     if pred.get("model_patch") and pred.get("edited_files")}
+    print(f"Found {len(done_instances)} completed predictions")
+
+    # Get remaining instances to process
+    remaining_instances = [task for task in dataset 
+                         if task["instance_id"] not in done_instances]
+    random.shuffle(remaining_instances)
+    print(f"Processing {len(remaining_instances)} remaining instances")
 
     if threads > 1:
         process_task_lox = lox.process(threads)(process_task)
@@ -166,8 +178,8 @@ def generate_predictions(dataset, threads, out_dname):
         process_task_func = process_task
 
     try:
-        # Process all tasks
-        for task in dataset:
+        # Process remaining tasks
+        for task in remaining_instances:
             # Get instance ID and create timestamped filename
             instance_id = task["instance_id"]
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
