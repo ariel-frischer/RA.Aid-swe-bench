@@ -48,7 +48,6 @@ def run_evals(_log_dir, predictions_jsonl):
 
 def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
     try:
-        dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         test_spec = list(dataset)
 
         report = get_eval_report(
@@ -68,23 +67,24 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
         }
 
         # Process each instance's status
-        for instance_id, eval_result in report.items():
-            resolution_status = get_resolution_status(eval_result)
+        if isinstance(report, dict):  # Add check to ensure report is a dictionary
+            for instance_id, eval_result in report.items():
+                resolution_status = get_resolution_status(eval_result)
 
-            # Track instance in appropriate categories
-            if resolution_status == ResolvedStatus.RESOLVED:
-                report_stats["resolved"].add(instance_id)
+                # Track instance in appropriate categories
+                if resolution_status == ResolvedStatus.RESOLVED:
+                    report_stats["resolved"].add(instance_id)
 
-            report_stats["generated"].add(instance_id)
+                report_stats["generated"].add(instance_id)
 
-            if eval_result.get("applied", False):
-                report_stats["applied"].add(instance_id)
+                if eval_result.get("applied", False):
+                    report_stats["applied"].add(instance_id)
 
-            if eval_result.get("logs"):
-                report_stats["with_logs"].add(instance_id)
+                if eval_result.get("logs"):
+                    report_stats["with_logs"].add(instance_id)
 
-            if not eval_result.get("applied", False):
-                report_stats["no_apply"].add(instance_id)
+                if not eval_result.get("applied", False):
+                    report_stats["no_apply"].add(instance_id)
 
         dump(sorted(report_stats["resolved"]))
 
