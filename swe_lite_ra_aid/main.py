@@ -143,7 +143,18 @@ def ra_aid_prediction(task, out_fname):
     winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
 
     # Save results using the provided filename
-    out_fname.write_text(json.dumps(winner, indent=4))
+    json_content = json.dumps(winner, indent=4)
+    print(f"Writing to {out_fname} with content length: {len(json_content)}")
+    
+    try:
+        out_fname.write_text(json_content)
+        if out_fname.exists():
+            print(f"Successfully wrote to {out_fname}")
+            print(f"File size: {out_fname.stat().st_size} bytes")
+        else:
+            print(f"ERROR: File {out_fname} does not exist after write attempt!")
+    except Exception as e:
+        print(f"Error writing to {out_fname}: {str(e)}")
 
     return winner
 
