@@ -141,6 +141,9 @@ def preds_to_jsonl(dname, predictions):
                 "model_name_or_path": model_name_or_path,
                 "model_patch": pred["model_patch"],
                 # "model_patch": remove_patches_to_tests(pred["model_patch"])
+                "ra_aid_model": pred.get("ra_aid_model", "openrouter/deepseek/deepseek-chat"),
+                "ra_aid_editor": pred.get("ra_aid_editor", "anthropic/claude-3-5-sonnet-20241022"),
+                "timestamp": pred.get("timestamp", "")
             }
             fh.write(json.dumps(minimal_pred) + "\n")
     return predictions_jsonl
