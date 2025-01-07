@@ -57,11 +57,11 @@ def prepare_prompt(task):
 def get_agent_config():
     """Get configuration for research agent"""
     return {
-        "expert_enabled": True,
+        "expert_enabled": False,
         "hil": False,
         "web_research_enabled": True,
         "configurable": {"thread_id": str(uuid.uuid4())},
-        "recursion_limit": 100,
+        "recursion_limit": 50,
         "research_only": False,
         "cowboy_mode": True,
     }
@@ -163,7 +163,7 @@ def process_task(task, out_dname):
         instance_id = task["instance_id"]
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         prediction_filename = f"{instance_id}-{timestamp}.json"
-        
+
         # Run prediction with retries and temp dirs
         result = ra_aid_prediction(task, out_dname / prediction_filename)
         return {"instance_id": task["instance_id"], "result": result}
@@ -199,6 +199,7 @@ def get_remaining_tasks(dataset, done_instances):
     random.shuffle(remaining_instances)
     print(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
+
 
 def generate_predictions(dataset, out_dname):
     """Generate predictions with parallel processing and result tracking"""
