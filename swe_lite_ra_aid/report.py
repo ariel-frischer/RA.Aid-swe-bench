@@ -2,21 +2,23 @@
 
 import json
 import os
-import random
 import shutil
 import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-from swebench.harness.grading import get_eval_report, get_resolution_status, ResolvedStatus
+from swebench.harness.grading import (
+    get_eval_report,
+    get_resolution_status,
+    ResolvedStatus,
+)
 
 from .dump import dump  # noqa: F401
-from tests import remove_patches_to_tests, run_tests
-from utils import (
-    FULL_DATASET_FNAME,
+
+from .utils import (
+    LITE_DATASET_FNAME,
     choose_predictions,
-    get_dataset,
     get_devin_instance_ids,
     load_predictions,
     old,
@@ -50,7 +52,7 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
         # Get evaluation report using new API
         report = get_eval_report(predictions_jsonl, log_dir)
-        
+
         # Initialize report categories
         report_stats = {
             "resolved": set(),
@@ -58,25 +60,25 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
             "applied": set(),
             "with_logs": set(),
             "no_apply": set(),
-            "no_generation": set()
+            "no_generation": set(),
         }
-        
+
         # Process each instance's status
         for instance_id, eval_result in report.items():
             resolution_status = get_resolution_status(eval_result)
-            
+
             # Track instance in appropriate categories
             if resolution_status == ResolvedStatus.RESOLVED:
                 report_stats["resolved"].add(instance_id)
-            
+
             report_stats["generated"].add(instance_id)
-            
+
             if eval_result.get("applied", False):
                 report_stats["applied"].add(instance_id)
-            
+
             if eval_result.get("logs"):
                 report_stats["with_logs"].add(instance_id)
-            
+
             if not eval_result.get("applied", False):
                 report_stats["no_apply"].add(instance_id)
 
@@ -99,7 +101,7 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
         dump(no_apply)
 
         return report_stats
-        
+
     except Exception as e:
         print(f"Error generating report: {e}")
         return dict()
@@ -128,16 +130,17 @@ def preds_to_jsonl(dname, predictions):
     dname = Path(dname)
     predictions_jsonl = str(dname / "all_preds.jsonl")
     dump(predictions_jsonl)
-    
+
     # Use consistent model name if not present in predictions
     model_name_or_path = "ra-aid-model"
-    
+
     with open(predictions_jsonl, "w") as fh:
-        for inst, pred in predictions.items():
+        for _, pred in predictions.items():
             minimal_pred = {
                 "instance_id": pred["instance_id"],
                 "model_name_or_path": model_name_or_path,
-                "model_patch": remove_patches_to_tests(pred["model_patch"])
+                "model_patch": pred["model_patch"],
+                # "model_patch": remove_patches_to_tests(pred["model_patch"])
             }
             fh.write(json.dumps(minimal_pred) + "\n")
     return predictions_jsonl
@@ -158,11 +161,11 @@ def run_evals_on_dname(dname):
     any_need_evals = any("resolved" not in pred for pred in predictions.values())
     any_need_evals = True
     if any_need_evals:
-        run_evals(FULL_DATASET_FNAME, str(log_dir), predictions_jsonl)
+        run_evals(LITE_DATASET_FNAME, str(log_dir), predictions_jsonl)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
         report = get_report(
-            FULL_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
+            LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
         )
         predictions = update_pred_json(predictions, report)
 
@@ -213,7 +216,7 @@ def main():
     # plausible predictions which were selected.
     # Outputs a clean `all_preds.jsonl`, `results.json`, `logs/`
     # and copies over all markdown chat transcripts.
-    model_name_or_path = "lite-multi"
+    model_name_or_path = "ra_aid_predictions"
 
     preds_dir = Path("predictions") / model_name_or_path
     old(preds_dir)
@@ -231,7 +234,7 @@ def main():
 
     predictions_jsonl, log_dir = combine_jsonl_logs(predictions, model_name_or_path)
     report = get_report(
-        FULL_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
+        LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
     )
     results_json = Path("predictions") / model_name_or_path / "results.json"
     results_json.write_text(json.dumps(report, indent=4))
@@ -291,7 +294,7 @@ def main():
         elif using_dataset == "lite":
             num_instances = 300
         else:
-            num_instances = len(json.load(open(FULL_DATASET_FNAME)))
+            num_instances = len(json.load(open(LITE_DATASET_FNAME)))
 
         expected_cost = num_instances * avg_cost
         print(f"expected_cost: ${expected_cost:.2f}")
@@ -393,55 +396,6 @@ def main():
     dump(pct_plausible)
 
     # stats_on_tests_before_and_after(report, predictions.values())
-
-
-def stats_on_tests_before_and_after(report, predictions):
-    num = 0
-    num_before_pass = 0
-    num_pass_to_fail = 0
-
-    dataset = get_dataset()
-
-    random.shuffle(predictions)
-
-    outcomes = defaultdict(int)
-    for pred in predictions:
-        instance_id = pred["instance_id"]
-
-        # if instance_id not in has_patch_not_resolved:
-        #    continue
-
-        num += 1
-
-        entry = dataset[instance_id]
-        before_passed, _ = run_tests(entry)
-        if not before_passed:
-            continue
-
-        after_passed, _ = run_tests(entry, model_patch=pred["model_patch"])
-
-        resolved = instance_id in report["resolved"]
-        dump(before_passed, after_passed, resolved)
-        outcome = (before_passed, after_passed, resolved)
-        outcomes[outcome] += 1
-        dump(sorted(outcomes.items()))
-
-        if before_passed:
-            num_before_pass += 1
-        if before_passed and not after_passed:
-            num_pass_to_fail += 1
-
-        print()
-        dump(num)
-        dump(num_before_pass)
-        dump(num_pass_to_fail)
-
-        pct_before_pass = num_before_pass / num * 100
-        dump(pct_before_pass)
-        pct_pass_to_fail = num_pass_to_fail / num_before_pass * 100
-        dump(pct_pass_to_fail)
-
-        print()
 
 
 if __name__ == "__main__":
