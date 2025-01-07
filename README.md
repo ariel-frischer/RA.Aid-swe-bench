@@ -4,7 +4,7 @@ A lightweight version of SWE Bench focused on the RA-AID agent.
 
 ## Description
 
-This project provides a streamlined interface for running the RA-AID agent on a simplified version of the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
+This project provides a streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
 
 ## Installation
 
@@ -32,6 +32,7 @@ The main workflow consists of:
 make run
 ```
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
+You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/main.py`.
 
 2. Evaluate predictions and generate a report:
 ```bash
