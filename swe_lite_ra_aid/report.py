@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import json
-import os
 import shutil
-import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -31,7 +29,7 @@ NUM_EVAL_PROCS = 5
 
 def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
     from swebench.harness.run_evaluation import main as run_evaluation
-    
+
     # Run evaluation using the swebench package directly
     run_evaluation(
         dataset_name="princeton-nlp/SWE-bench_Lite",
@@ -44,7 +42,7 @@ def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
         clean=False,
         open_file_limit=4096,
         run_id="ra_aid_eval",
-        timeout=1800
+        timeout=1800,
     )
 
 
@@ -53,13 +51,13 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
         # Load test spec from dataset
         with open(LITE_DATASET_FNAME) as f:
             test_spec = json.load(f)
-            
+
         # Get evaluation report using new API
         report = get_eval_report(
             test_spec=test_spec,
             prediction=predictions_jsonl,
             log_path=str(log_dir),
-            include_tests_status=True
+            include_tests_status=True,
         )
 
         # Initialize report categories
@@ -119,7 +117,7 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
 def update_pred_json(predictions, report):
     if not report:
         return predictions
-            
+
     all_instances = set(report.get("generated", []))
     all_instances.update(set(report.get("no_generation", [])))
 
@@ -153,9 +151,13 @@ def preds_to_jsonl(dname, predictions):
                 "model_name_or_path": model_name_or_path,
                 "model_patch": pred["model_patch"],
                 # "model_patch": remove_patches_to_tests(pred["model_patch"])
-                "ra_aid_model": pred.get("ra_aid_model", "openrouter/deepseek/deepseek-chat"),
-                "ra_aid_editor": pred.get("ra_aid_editor", "anthropic/claude-3-5-sonnet-20241022"),
-                "timestamp": pred.get("timestamp", "")
+                "ra_aid_model": pred.get(
+                    "ra_aid_model", "openrouter/deepseek/deepseek-chat"
+                ),
+                "ra_aid_editor": pred.get(
+                    "ra_aid_editor", "anthropic/claude-3-5-sonnet-20241022"
+                ),
+                "timestamp": pred.get("timestamp", ""),
             }
             fh.write(json.dumps(minimal_pred) + "\n")
     return predictions_jsonl
@@ -222,12 +224,14 @@ def process_predictions_directories(dnames):
         dump(dname)
         run_evals_on_dname(dname)
 
+
 def setup_output_directory(model_name_or_path):
     """Setup the output directory for predictions."""
     preds_dir = Path("predictions") / model_name_or_path
     old(preds_dir)
     preds_dir.mkdir(exist_ok=True)
     return preds_dir
+
 
 def process_report_statistics(report, counts):
     """Process and display basic report statistics."""
@@ -245,6 +249,7 @@ def process_report_statistics(report, counts):
     print()
     return total, missing_logs
 
+
 def analyze_missing_runs(total, missing_logs, counts):
     """Analyze and display statistics about missing runs."""
     need_to_be_run = missing_logs - counts["no_generation"]
@@ -256,6 +261,7 @@ def analyze_missing_runs(total, missing_logs, counts):
         print(f"{percent_of_should=:.1f}")
     return need_to_be_run
 
+
 def calculate_costs(predictions):
     """Calculate and display cost statistics."""
     costs = [
@@ -263,7 +269,7 @@ def calculate_costs(predictions):
         for data in predictions.values()
         if data.get("cost") is not None and data.get("cost") > 0
     ]
-    
+
     if costs:
         recent = [f"{c:.2f}" for c in costs[-5:]]
         print("recent costs:", ", ".join(recent))
@@ -283,6 +289,7 @@ def calculate_costs(predictions):
         print(f"expected_cost: ${expected_cost:.2f}")
         print()
 
+
 def analyze_gold_files(predictions):
     """Analyze statistics related to gold files."""
     stats = {
@@ -294,40 +301,45 @@ def analyze_gold_files(predictions):
         "gold_resolved": 0,
         "added_timeline": "",
         "repomap_timeline": "",
-        "timeline": ""
+        "timeline": "",
     }
-    
+
     for instance_id, data in predictions.items():
         gold_files = set(data.get("gold_files", []))
         added_files = set(data.get("added_files", []))
-        
+
         resolved = data.get("resolved")
         added_gold = (added_files.intersection(gold_files) == gold_files) and gold_files
-        
+
         plausible = data["model_patch"] and data["edited_files"]
         if plausible:
             stats["total_plausible"] += 1
             if resolved:
                 stats["resolved_plausible"] += 1
-                
+
         if added_files:
             stats["total_with_added"] += 1
             stats["added_timeline"] += str(len(added_files))
         else:
             stats["added_timeline"] += "_"
-            
+
         if gold_files:
             stats["total_with_gold_attr"] += 1
         if added_gold:
             stats["total_added_gold"] += 1
-            
+
         stats["timeline"] += get_timeline_marker(gold_files, resolved, added_gold)
-        stats["repomap_timeline"] += "M" if data.get("initial_map_has_gold_file") or data.get("map_has_gold_file") else "_"
-        
+        stats["repomap_timeline"] += (
+            "M"
+            if data.get("initial_map_has_gold_file") or data.get("map_has_gold_file")
+            else "_"
+        )
+
         if added_gold and resolved:
             stats["gold_resolved"] += 1
-            
+
     return stats
+
 
 def get_timeline_marker(gold_files, resolved, added_gold):
     """Get the appropriate timeline marker based on conditions."""
@@ -343,50 +355,58 @@ def get_timeline_marker(gold_files, resolved, added_gold):
         return "!"
     return "_"
 
+
 def display_gold_stats(stats, total):
     """Display statistics related to gold files."""
     pct_maps_with_gold_file = (
-        len(stats["repomap_timeline"].replace("_", "")) / len(stats["repomap_timeline"]) * 100
+        len(stats["repomap_timeline"].replace("_", ""))
+        / len(stats["repomap_timeline"])
+        * 100
     )
     dump(pct_maps_with_gold_file)
-    
+
     dump(stats["total_with_gold_attr"])
     dump(stats["total_added_gold"])
-    
+
     if stats["total_with_gold_attr"]:
         pct_added = stats["total_added_gold"] / stats["total_with_gold_attr"] * 100
         print(f"pct_added_gold: {pct_added:.1f}%")
-        
+
     if stats["total_added_gold"]:
-        pct_added_gold_resolved = stats["gold_resolved"] / stats["total_added_gold"] * 100
+        pct_added_gold_resolved = (
+            stats["gold_resolved"] / stats["total_added_gold"] * 100
+        )
         print(f"pct_added_gold_resolved: {pct_added_gold_resolved:.1f}%")
         print()
-        
+
     dump(stats["total_with_added"])
     pct_with_added = stats["total_with_added"] / total * 100
     dump(pct_with_added)
     print()
-    
+
     dump(stats["total_plausible"])
     dump(stats["resolved_plausible"])
     if stats["total_plausible"]:
-        pct_resolved_plausible = 100 * stats["resolved_plausible"] / stats["total_plausible"]
+        pct_resolved_plausible = (
+            100 * stats["resolved_plausible"] / stats["total_plausible"]
+        )
         dump(pct_resolved_plausible)
-        
+
     pct_plausible = stats["total_plausible"] / total * 100
     dump(pct_plausible)
+
 
 def main():
     """Main function to process and analyze predictions."""
     dnames = sys.argv[1:]
     model_name_or_path = "ra_aid_selected_predictions"
-    
+
     # Process all directories
     process_predictions_directories(dnames)
-    
+
     # Setup output directory
-    preds_dir = setup_output_directory(model_name_or_path)
-    
+    _preds_dir = setup_output_directory(model_name_or_path)
+
     # Get predictions
     predictions = choose_predictions(
         dnames, model_name_or_path, copy_md=True, devin_only=(using_dataset == "devin")
@@ -395,28 +415,30 @@ def main():
         print("No predictions")
         return
     dump(len(predictions))
-    
+
     # Process predictions and get report
     predictions_jsonl, log_dir = combine_jsonl_logs(predictions, model_name_or_path)
-    report = get_report(LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path)
-    
+    report = get_report(
+        LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
+    )
+
     # Save results
     results_json = Path("predictions") / model_name_or_path / "results.json"
     results_json.write_text(json.dumps(report, indent=4))
-    
+
     # Process statistics
     counts = defaultdict(int, [(k, len(v)) for k, v in report.items()])
     total, missing_logs = process_report_statistics(report, counts)
-    
+
     # Analyze missing runs
-    need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
-    
+    _need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
+
     # Calculate costs
     calculate_costs(predictions)
-    
+
     # Analyze gold files
     stats = analyze_gold_files(predictions)
-    
+
     # Display gold stats
     display_gold_stats(stats, total)
 
