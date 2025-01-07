@@ -11,7 +11,7 @@ def add_model_name():
         # Read existing JSON
         data = json.loads(json_file.read_text())
 
-        # Add model_name_or_path and timestamp if not present
+        # Add required fields if not present
         modified = False
         if "model_name_or_path" not in data:
             data["model_name_or_path"] = "ra-aid-model"
@@ -19,6 +19,14 @@ def add_model_name():
 
         if "timestamp" not in data:
             data["timestamp"] = datetime.now().isoformat()
+            modified = True
+            
+        if "ra_aid_model" not in data:
+            data["ra_aid_model"] = "openrouter/deepseek/deepseek-chat"
+            modified = True
+            
+        if "ra_aid_editor" not in data:
+            data["ra_aid_editor"] = "anthropic/claude-3-5-sonnet-20241022"
             modified = True
 
         # Write back to file if modified

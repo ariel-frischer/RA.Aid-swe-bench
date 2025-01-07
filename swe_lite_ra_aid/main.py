@@ -106,6 +106,8 @@ def ra_aid_prediction(task, out_dname):
                     "research": research_result,
                     "attempt": attempt,
                     "timestamp": datetime.now().isoformat(),
+                    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+                    "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022",
                 }
                 results.append(result)
 
