@@ -1,6 +1,7 @@
 {
     "instance_id": "astropy__astropy-12907",
-    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 1efe03bb1f..834327aadd 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -86,3 +86,4 @@ v\n \n .tmp\n pip-wheel-metadata\n+.aider*",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 1efe03bb1f..834327aadd 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -86,3 +86,4 @@ v\n \n .tmp\n pip-wheel-metadata\n+.aider*\n",
     "edited_files": [
         ".gitignore"
     ],

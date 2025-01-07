@@ -99,7 +99,8 @@ def ra_aid_prediction(task, out_dname):
 
                 result = {
                     "instance_id": instance_id,
-                    "model_patch": model_patch,
+                    "model_name_or_path": "ra-aid-model",
+                    "model_patch": model_patch + "\n" if model_patch else "",
                     "edited_files": edited_files,
                     "research": research_result,
                     "attempt": attempt,
