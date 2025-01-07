@@ -51,7 +51,12 @@ def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
         # Get evaluation report using new API
-        report = get_eval_report(predictions_jsonl, log_dir, include_tests_status=True)
+        report = get_eval_report(
+            test_spec=LITE_DATASET_FNAME,
+            prediction=predictions_jsonl,
+            log_path=str(log_dir),
+            include_tests_status=True
+        )
 
         # Initialize report categories
         report_stats = {
