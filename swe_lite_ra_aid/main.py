@@ -22,106 +22,115 @@ MAX_RETRIES = 3
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
 
 
+def print_task_info(task):
+    """Print basic task information"""
+    print(f"instance_id={task['instance_id']}")
+    print(f"base_commit={task['base_commit']}")
+    print(f"problem_statement={task['problem_statement']}")
+
+def prepare_prompt(task):
+    """Prepare the full prompt for the research agent"""
+    return f"""
+    Repository: {task["repo"]}
+
+    Base Commit: {task["base_commit"]}
+    Code Changes (Patch):
+    {task["patch"]}
+
+    Test Changes:
+    {task["test_patch"]}
+
+    <Problem Statement>:
+    {task["problem_statement"]}
+    </Problem Statement>
+
+    Additional Hints:
+    {task.get("hints_text", "")}
+
+    You are a world class software engineer. 
+    You must make code changes to fix the issue described in the problem statement.
+    """
+
+def get_agent_config():
+    """Get configuration for research agent"""
+    return {
+        "expert_enabled": True,
+        "hil": False,
+        "web_research_enabled": True,
+        "configurable": {"thread_id": str(uuid.uuid4())},
+        "recursion_limit": 100,
+        "research_only": False,
+        "cowboy_mode": True,
+    }
+
+def create_result_dict(task, model_patch, edited_files, research_result, attempt):
+    """Create standardized result dictionary"""
+    return {
+        "instance_id": task["instance_id"],
+        "model_name_or_path": "ra-aid-model",
+        "model_patch": model_patch + "\n" if model_patch else "",
+        "edited_files": edited_files,
+        "research": research_result,
+        "attempt": attempt,
+        "timestamp": datetime.now().isoformat(),
+        "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+        "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022",
+    }
+
+def process_single_attempt(task, attempt, git_tempdir):
+    """Process a single attempt at solving the task"""
+    repo = checkout_repo(git_tempdir, task)
+    original_cwd = Path.cwd()
+    os.chdir(git_tempdir)
+
+    config = get_agent_config()
+    full_prompt = prepare_prompt(task)
+    
+    research_result = run_research_agent(
+        base_task_or_query=full_prompt,
+        model=model,
+        expert_enabled=config["expert_enabled"],
+        research_only=config["research_only"],
+        hil=config["hil"],
+        web_research_enabled=config["web_research_enabled"],
+        config=config,
+    )
+    print(f"research_result={research_result}")
+
+    repo.git.add("-A")
+    model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
+    print(f"model_patch={model_patch}")
+    edited_files = files_in_patch(model_patch)
+    print(f"edited_files={edited_files}")
+
+    os.chdir(original_cwd)
+    
+    return model_patch, edited_files, research_result
+
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
-    instance_id = task["instance_id"]
-    print(f"instance_id={instance_id}")
-    base_commit = task["base_commit"]
-    print(f"base_commit={base_commit}")
-    problem_statement = task["problem_statement"]
-    print(f"problem_statement={problem_statement}")
-
+    print_task_info(task)
     results = []
-    cost = 0
 
-    # Do MAX_RETRIES tries until we find a solution with changes
     for attempt in range(1, MAX_RETRIES + 1):
-        print(f"Attempt {attempt} for {instance_id}")
+        print(f"Attempt {attempt} for {task['instance_id']}")
 
         try:
-            # Create temporary directory and clone repo
             with tempfile.TemporaryDirectory() as git_tempdir:
-                repo = checkout_repo(git_tempdir, task)
-
-                # Change working directory to the repo
-                original_cwd = Path.cwd()
-                os.chdir(git_tempdir)
-
-                # Prepare the full prompt
-                full_prompt = f"""
-                Repository: {task["repo"]}
-
-                Base Commit: {base_commit}
-                Code Changes (Patch):
-                {task["patch"]}
-
-                Test Changes:
-                {task["test_patch"]}
-
-                <Problem Statement>:
-                {problem_statement}
-                </Problem Statement>
-
-                Additional Hints:
-                {task.get("hints_text", "")}
-
-                You are a world class software engineer. 
-                You must make code changes to fix the issue described in the problem statement.
-                """
-
-                # Setup configuration
-                config = {
-                    "expert_enabled": True,
-                    "hil": False,
-                    "web_research_enabled": True,
-                    "configurable": {"thread_id": str(uuid.uuid4())},
-                    "recursion_limit": 100,
-                    "research_only": False,
-                    "cowboy_mode": True,
-                    # "expert_provider": "anthropic",
-                    # "expert_model": "claude-3-5-sonnet-20241022",
-                }
-
-                # Run all agents
-                research_result = run_research_agent(
-                    base_task_or_query=full_prompt,
-                    model=model,
-                    expert_enabled=config["expert_enabled"],
-                    research_only=config["research_only"],
-                    hil=config["hil"],
-                    web_research_enabled=config["web_research_enabled"],
-                    config=config,
+                model_patch, edited_files, research_result = process_single_attempt(
+                    task, attempt, git_tempdir
                 )
-                print(f"research_result={research_result}")
-
-                # Stage all changes and get the diff
-                repo.git.add("-A")  # Add all changes including new/deleted files
-                model_patch = diff_versus_commit(git_tempdir, base_commit)
-                print(f"model_patch={model_patch}")
-                edited_files = files_in_patch(model_patch)
-                print(f"edited_files={edited_files}")
-
-                os.chdir(original_cwd)
-
-                result = {
-                    "instance_id": instance_id,
-                    "model_name_or_path": "ra-aid-model",
-                    "model_patch": model_patch + "\n" if model_patch else "",
-                    "edited_files": edited_files,
-                    "research": research_result,
-                    "attempt": attempt,
-                    "timestamp": datetime.now().isoformat(),
-                    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
-                    "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022",
-                }
+                
+                result = create_result_dict(
+                    task, model_patch, edited_files, research_result, attempt
+                )
                 results.append(result)
 
-                # If we got changes, return the result
                 if model_patch:
                     break
 
         except Exception as e:
-            print(f"Error processing {instance_id}: {str(e)}")
+            print(f"Error processing {task['instance_id']}: {str(e)}")
             continue
 
     # Pick the result with most changes as the winner
@@ -153,26 +162,33 @@ def process_task(task, out_dname):
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
 
 
-def generate_predictions(dataset, threads, out_dname):
-    """Generate predictions with parallel processing and result tracking"""
-    # Create output directory if it doesn't exist
+def setup_directories(out_dname):
+    """Create necessary directories for predictions and repos"""
     out_dname.mkdir(exist_ok=True)
-
-    # Create repos directory if it doesn't exist 
     REPOS_DNAME.mkdir(exist_ok=True)
 
-    # Load existing predictions to skip already processed instances
+def get_completed_instances(out_dname):
+    """Load and return set of already processed instance IDs"""
     done_preds = load_predictions([out_dname])
     done_instances = {inst for inst, pred in done_preds.items() 
                      if pred.get("model_patch") and pred.get("edited_files")}
     print(f"Found {len(done_instances)} completed predictions")
     print(f"Skipping {len(done_instances)} already processed instances")
+    return done_instances
 
-    # Get remaining instances to process
+def get_remaining_tasks(dataset, done_instances):
+    """Get shuffled list of remaining tasks to process"""
     remaining_instances = [task for task in dataset 
                          if task["instance_id"] not in done_instances]
     random.shuffle(remaining_instances)
     print(f"Processing {len(remaining_instances)} remaining instances")
+    return remaining_instances
+
+def generate_predictions(dataset, threads, out_dname):
+    """Generate predictions with parallel processing and result tracking"""
+    setup_directories(out_dname)
+    done_instances = get_completed_instances(out_dname)
+    remaining_instances = get_remaining_tasks(dataset, done_instances)
 
     if threads > 1:
         process_task_lox = lox.process(threads)(process_task)
