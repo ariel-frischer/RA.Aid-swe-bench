@@ -1,4 +1,5 @@
 import json
+import random
 import uuid
 import os
 from datetime import datetime
@@ -6,6 +7,8 @@ from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
+
+from swe_lite_ra_aid.utils import load_predictions
 from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
 from ra_aid.agent_utils import run_research_agent
@@ -210,16 +213,10 @@ def generate_predictions(dataset, threads, out_dname):
 
 def main():
     try:
-        # Load the dataset
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
-
-        # Create output directory with timestamp
         out_dname = PREDS_DNAME / "ra_aid_predictions"
-
-        # Set the number of threads (1 for now)
         threads = 5
 
-        # Generate and save predictions
         generate_predictions(dataset, threads, out_dname)
 
         print(f"Predictions saved to {out_dname}")

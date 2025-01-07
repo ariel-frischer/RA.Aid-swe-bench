@@ -5,6 +5,8 @@ from datetime import datetime
 
 
 def add_model_name():
+    "Had missing fields on prediction files, you can use this method to update them"
+
     predictions_dir = Path("predictions/ra_aid_predictions")
 
     for json_file in predictions_dir.glob("*.json"):
@@ -20,11 +22,11 @@ def add_model_name():
         if "timestamp" not in data:
             data["timestamp"] = datetime.now().isoformat()
             modified = True
-            
+
         if "ra_aid_model" not in data:
             data["ra_aid_model"] = "openrouter/deepseek/deepseek-chat"
             modified = True
-            
+
         if "ra_aid_editor" not in data:
             data["ra_aid_editor"] = "anthropic/claude-3-5-sonnet-20241022"
             modified = True

@@ -33,13 +33,7 @@ make run
 ```
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
 
-2. Add required model metadata to predictions:
-```bash
-make add-model-name
-```
-This ensures all prediction files have the necessary model identifiers and timestamps.
-
-3. Evaluate predictions and generate a report:
+2. Evaluate predictions and generate a report:
 ```bash
 make evaluate
 ```
