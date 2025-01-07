@@ -76,11 +76,21 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
         # Process each instance's status
         for instance_id, eval_result in report.items():
             try:
+                # Handle case where eval_result might be a string or other non-dict
+                if isinstance(eval_result, str):
+                    print(f"Warning: eval_result for {instance_id} is a string: {eval_result}")
+                    continue
+                    
                 if not isinstance(eval_result, dict):
-                    print(f"Warning: eval_result for {instance_id} is not a dictionary")
+                    print(f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}")
                     continue
 
-                resolution_status = get_resolution_status(eval_result)
+                # Safely get resolution status with error handling
+                try:
+                    resolution_status = get_resolution_status(eval_result)
+                except Exception as e:
+                    print(f"Error getting resolution status for {instance_id}: {e}")
+                    continue
 
                 # Track instance in appropriate categories
                 if resolution_status == ResolvedStatus.RESOLVED:
@@ -257,9 +267,18 @@ def setup_output_directory(model_name_or_path):
 
 def process_report_statistics(report_stats, counts):
     """Process and display basic report statistics."""
-    # Convert sets to counts
+    # Ensure we have valid input
+    if not isinstance(report_stats, dict):
+        print(f"Warning: report_stats is not a dictionary, got {type(report_stats)}")
+        return 0, 0
+
+    # Convert sets to counts with validation
     for key, value in report_stats.items():
-        counts[key] = len(value)
+        if isinstance(value, (set, list)):
+            counts[key] = len(value)
+        else:
+            print(f"Warning: value for {key} is not a set/list, got {type(value)}")
+            counts[key] = 0
     
     print(f"Debug - report_stats keys: {report_stats.keys()}")
     print(f"Debug - counts: {dict(counts)}")
