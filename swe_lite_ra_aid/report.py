@@ -51,7 +51,7 @@ def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
         # Get evaluation report using new API
-        report = get_eval_report(predictions_jsonl, log_dir)
+        report = get_eval_report(predictions_jsonl, log_dir, include_tests_status=True)
 
         # Initialize report categories
         report_stats = {
@@ -108,11 +108,14 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
 
 
 def update_pred_json(predictions, report):
+    if not report:
+        return predictions
+            
     all_instances = set(report.get("generated", []))
     all_instances.update(set(report.get("no_generation", [])))
 
     for instance_id, pred in predictions.items():
-        was_resolved = instance_id in report["resolved"]
+        was_resolved = instance_id in report.get("resolved", set())
         if "resolved" in pred and pred["resolved"] == was_resolved:
             continue
 
