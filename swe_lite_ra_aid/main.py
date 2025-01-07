@@ -3,7 +3,6 @@ import random
 from datetime import datetime
 import uuid
 import os
-from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
@@ -16,8 +15,8 @@ from ra_aid.llm import initialize_llm
 
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
-MAX_RETRIES = 3
-MAX_THREADS = 3
+MAX_ATTEMPTS = 3
+MAX_THREADS = 1
 
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
@@ -117,7 +116,7 @@ def write_result_file(out_fname, content):
     """Write JSON content to file with error handling and verification"""
     json_content = json.dumps(content, indent=4)
     print(f"Writing to {out_fname} with content length: {len(json_content)}")
-    
+
     try:
         out_fname.write_text(json_content)
         if out_fname.exists():
@@ -131,6 +130,7 @@ def write_result_file(out_fname, content):
         print(f"Error writing to {out_fname}: {str(e)}")
         return False
 
+
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
     print_task_info(task)
@@ -139,7 +139,7 @@ def ra_aid_prediction(task, out_dname):
     winner_file = None
     max_edited_files = 0
 
-    for attempt in range(1, MAX_RETRIES + 1):
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         print(f"Attempt {attempt} for {task['instance_id']}")
 
         try:
@@ -153,10 +153,12 @@ def ra_aid_prediction(task, out_dname):
                 )
                 results.append(result)
 
-                # Create timestamped filename for this attempt
                 timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-                attempt_fname = out_dname / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
-                
+                attempt_fname = (
+                    out_dname
+                    / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
+                )
+
                 if write_result_file(attempt_fname, result):
                     output_files.append(attempt_fname)
                     # Track the file with most edits as the winner
@@ -171,16 +173,17 @@ def ra_aid_prediction(task, out_dname):
             print(f"Error processing {task['instance_id']}: {str(e)}")
             continue
 
-    # Log the winner file
     if winner_file:
-        print(f"Winner file selected: {winner_file} with {max_edited_files} edited files")
+        print(
+            f"Winner file selected: {winner_file} with {max_edited_files} edited files"
+        )
     else:
         print("No successful attempts with edited files")
 
     return {
         "output_files": output_files,
         "winner_file": winner_file,
-        "max_edited_files": max_edited_files
+        "max_edited_files": max_edited_files,
     }
 
 
@@ -196,9 +199,8 @@ def process_task(task, out_dname):
 
     try:
         # Create timestamped filename
-        instance_id = task["instance_id"]
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        prediction_filename = f"{instance_id}-{timestamp}.json"
+        # instance_id = task["instance_id"]
+        # timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # Run prediction with retries and temp dirs
         result = ra_aid_prediction(task, out_dname)
@@ -206,7 +208,7 @@ def process_task(task, out_dname):
             "instance_id": task["instance_id"],
             "result": result,
             "output_files": result["output_files"],
-            "winner_file": result["winner_file"]
+            "winner_file": result["winner_file"],
         }
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
@@ -271,6 +273,7 @@ def generate_predictions(dataset, out_dname):
 
         if MAX_THREADS > 1:
             try:
+                print(f"Running {MAX_THREADS} threads.")
                 gather()
             except KeyboardInterrupt:
                 print("\nInterrupted by user during gather. Cleaning up...")
