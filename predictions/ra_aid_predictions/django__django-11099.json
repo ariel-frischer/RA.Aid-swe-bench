@@ -1,0 +1,11 @@
+{
+    "instance_id": "django__django-11099",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 238fb3a200..9870d457d8 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -16,3 +16,4 @@ tests/coverage_html/\n tests/.coverage\n build/\n tests/report/\n+.aider*\ndiff --git a/django/contrib/auth/validators.py b/django/contrib/auth/validators.py\nindex b4878cfd45..9345c5cb0b 100644\n--- a/django/contrib/auth/validators.py\n+++ b/django/contrib/auth/validators.py\n@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _\n \n @deconstructible\n class ASCIIUsernameValidator(validators.RegexValidator):\n-    regex = r'^[\\w.@+-]+$'\n+    regex = r'^[\\w.@+-]+\\Z'\n     message = _(\n         'Enter a valid username. This value may contain only English letters, '\n         'numbers, and @/./+/-/_ characters.'\n@@ -17,7 +17,7 @@ class ASCIIUsernameValidator(validators.RegexValidator):\n \n @deconstructible\n class UnicodeUsernameValidator(validators.RegexValidator):\n-    regex = r'^[\\w.@+-]+$'\n+    regex = r'^[\\w.@+-]+\\Z'\n     message = _(\n         'Enter a valid username. This value may contain only letters, '\n         'numbers, and @/./+/-/_ characters.'\ndiff --git a/tests/auth_tests/test_validators.py b/tests/auth_tests/test_validators.py\nindex 1c2c6b4aff..cb03445798 100644\n--- a/tests/auth_tests/test_validators.py\n+++ b/tests/auth_tests/test_validators.py\n@@ -238,6 +238,8 @@ class UsernameValidatorsTests(SimpleTestCase):\n             \"o'connell\", \"\u0639\u0628\u062f \u0627\u0644\",\n             \"zerowidth\\u200Bspace\", \"nonbreaking\\u00A0space\",\n             \"en\\u2013dash\",\n+            \"trailing\\n\",\n+            \"trailing\\r\\n\",\n         ]\n         v = validators.UnicodeUsernameValidator()\n         for valid in valid_usernames:",
+    "edited_files": [
+        ".gitignore",
+        "django/contrib/auth/validators.py",
+        "tests/auth_tests/test_validators.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 1
+}

@@ -1,0 +1,10 @@
+{
+    "instance_id": "django__django-12125",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 238fb3a200..9870d457d8 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -16,3 +16,4 @@ tests/coverage_html/\n tests/.coverage\n build/\n tests/report/\n+.aider*\ndiff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py\nindex 7d226955d5..ead81c398a 100644\n--- a/django/db/migrations/serializer.py\n+++ b/django/db/migrations/serializer.py\n@@ -269,7 +269,7 @@ class TypeSerializer(BaseSerializer):\n             if module == builtins.__name__:\n                 return self.value.__name__, set()\n             else:\n-                return \"%s.%s\" % (module, self.value.__name__), {\"import %s\" % module}\n+                return \"%s.%s\" % (module, self.value.__qualname__), {\"import %s\" % module}\n \n \n class UUIDSerializer(BaseSerializer):",
+    "edited_files": [
+        ".gitignore",
+        "django/db/migrations/serializer.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 1
+}

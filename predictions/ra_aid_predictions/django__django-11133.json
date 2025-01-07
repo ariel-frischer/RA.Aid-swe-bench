@@ -1,0 +1,10 @@
+{
+    "instance_id": "django__django-11133",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 238fb3a200..9870d457d8 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -16,3 +16,4 @@ tests/coverage_html/\n tests/.coverage\n build/\n tests/report/\n+.aider*\ndiff --git a/django/http/response.py b/django/http/response.py\nindex 6a84e193ba..a9ede09dd9 100644\n--- a/django/http/response.py\n+++ b/django/http/response.py\n@@ -229,7 +229,7 @@ class HttpResponseBase:\n         # Handle string types -- we can't rely on force_bytes here because:\n         # - Python attempts str conversion first\n         # - when self._charset != 'utf-8' it re-encodes the content\n-        if isinstance(value, bytes):\n+        if isinstance(value, (bytes, memoryview)):\n             return bytes(value)\n         if isinstance(value, str):\n             return bytes(value.encode(self.charset))",
+    "edited_files": [
+        ".gitignore",
+        "django/http/response.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 2
+}

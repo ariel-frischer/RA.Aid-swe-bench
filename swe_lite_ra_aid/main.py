@@ -197,7 +197,7 @@ def main():
         out_dname = PREDS_DNAME / "ra_aid_predictions"
 
         # Set the number of threads (1 for now)
-        threads = 1
+        threads = 5
 
         # Generate and save predictions
         generate_predictions(dataset, threads, out_dname)
