@@ -5,7 +5,7 @@ from pathlib import Path
 
 from datasets import load_dataset
 
-from dump import dump  # noqa: F401
+from .dump import dump  # noqa: F401
 
 FULL_DATASET = "princeton-nlp/SWE-bench"
 FULL_DATASET_FNAME = FULL_DATASET.replace("/", "--") + ".json"

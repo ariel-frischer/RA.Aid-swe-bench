@@ -12,6 +12,7 @@ ra-aid = "^0.12.0"
 datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main" }
 gitpython = "<=3.1.44"
 lox = "^0.12.0"
+swebench = "^2.1.7"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"

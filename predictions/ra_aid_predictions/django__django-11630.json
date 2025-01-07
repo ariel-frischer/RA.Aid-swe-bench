@@ -7,5 +7,9 @@
         "tests/check_framework/test_model_checks.py"
     ],
     "research": "Agent run completed successfully",
-    "attempt": 3
+    "attempt": 3,
+    "model_name_or_path": "ra-aid-model",
+    "timestamp": "2025-01-06T17:46:09.984797",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022"
 }

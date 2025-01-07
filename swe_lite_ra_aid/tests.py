@@ -8,7 +8,7 @@ import tempfile
 from collections import defaultdict
 from pathlib import Path
 
-from dump import dump
+from .dump import dump
 from swebench_docker.constants import MAP_REPO_TO_TEST_FRAMEWORK, MAP_VERSION_TO_INSTALL
 from swebench_docker.run_docker import run_docker_evaluation
 from swebench_docker.utils import get_test_directives
