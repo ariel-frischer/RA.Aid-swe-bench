@@ -2,6 +2,7 @@ import json
 import uuid
 import os
 from datetime import datetime
+from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
@@ -166,12 +167,12 @@ def generate_predictions(dataset, threads, out_dname):
     try:
         # Process all tasks
         for task in dataset:
-            # Check if prediction already exists
+            # Get instance ID and create timestamped filename
             instance_id = task["instance_id"]
-            existing_predictions = list(out_dname.glob(f"*{instance_id}.json"))
-            if existing_predictions:
-                print(f"Skipping {instance_id} - prediction already exists")
-                continue
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            prediction_filename = f"{instance_id}-{timestamp}.json"
+            
+            # Proceed with processing the task
 
             try:
                 process_task_func(task, out_dname)
