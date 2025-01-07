@@ -231,7 +231,7 @@ def main():
     # plausible predictions which were selected.
     # Outputs a clean `all_preds.jsonl`, `results.json`, `logs/`
     # and copies over all markdown chat transcripts.
-    model_name_or_path = "ra_aid_predictions"
+    model_name_or_path = "ra_aid_selected_predictions"
 
     preds_dir = Path("predictions") / model_name_or_path
     old(preds_dir)

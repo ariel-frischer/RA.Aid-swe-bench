@@ -1,0 +1,14 @@
+{
+  "instance_id": "pylint-dev__pylint-7080",
+  "model_name_or_path": "ra-aid-model",
+  "model_patch": "diff --git a/.gitignore b/.gitignore\nindex d80760956..a24d67790 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -27,3 +27,4 @@ build-stamp\n .pytest_cache/\n .mypy_cache/\n .benchmarks/\n+.aider*\ndiff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py\nindex 5cacc0371..52b732671 100644\n--- a/pylint/lint/expand_modules.py\n+++ b/pylint/lint/expand_modules.py\n@@ -53,6 +53,7 @@ def _is_ignored_file(\n     ignore_list_paths_re: list[Pattern[str]],\n ) -> bool:\n     basename = os.path.basename(element)\n+    element = os.path.normpath(element)\n     return (\n         basename in ignore_list\n         or _is_in_ignore_list_re(basename, ignore_list_re)\n",
+  "edited_files": [
+    ".gitignore",
+    "pylint/lint/expand_modules.py"
+  ],
+  "research": "Agent run completed successfully",
+  "attempt": 1,
+  "timestamp": "2025-01-07T08:54:33.042703",
+  "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+  "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

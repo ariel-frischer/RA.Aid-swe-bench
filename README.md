@@ -52,6 +52,21 @@ make add-model-name # Add model metadata to predictions
 make evaluate    # Run evaluation and generate report
 ```
 
+## Problems/Improvements
+* RA.Aid does get stuck often, multiple different errors.
+  * Tool Error: Error executing code: invalid syntax (, line 4)
+  * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
+  * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
+  * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
+* RA.Aid seems to not make any code changes often but complete all its tasks.
+  For example the research agent does one research task and is done? Prompt engineering or
+  model changes can hopefully improve this.
+* Need a cheaper model unless your willing to break the bank. I'm using deepseek/deepseek-chat for now.
+* Aider repomap will regenerate a repomap for each attempt, does not seem optimal.
+* Need to extract and pass the correct `test_cmd` and `lint_cmd` to aider when make code changes.
+* Need to modify `pick_winner` method for RA.Aid, `choose_predictions` doesnt work well without it.
+* Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
+
 ## Dataset Structure
 Data Instances
 
@@ -69,6 +84,7 @@ environment_setup_commit: (str) - commit hash to use for environment setup and i
 FAIL_TO_PASS: (str) - A json list of strings that represent the set of tests resolved by the PR and tied to the issue resolution.
 PASS_TO_PASS: (str) - A json list of strings that represent tests that should pass before and after the PR application.
 
+
 ## License
 
-[License information to be added]
+MIT License

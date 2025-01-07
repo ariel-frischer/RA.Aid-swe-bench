@@ -1,0 +1,11 @@
+{
+    "instance_id": "sympy__sympy-22005",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "Working tree changes:\n\n\nStaged changes:\n\n",
+    "edited_files": [],
+    "research": "Agent run completed successfully",
+    "attempt": 1,
+    "timestamp": "2025-01-07T09:48:29.101158",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

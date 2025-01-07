@@ -1,0 +1,11 @@
+{
+    "instance_id": "pytest-dev__pytest-8365",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "",
+    "edited_files": [],
+    "research": "Agent run completed successfully",
+    "attempt": 2,
+    "timestamp": "2025-01-07T09:11:32.372401",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}
