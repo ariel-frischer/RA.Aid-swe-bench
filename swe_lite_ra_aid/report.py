@@ -46,7 +46,7 @@ def run_evals(log_dir, predictions_jsonl):
     )
 
 
-def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
+def get_report(dataset, log_dir, predictions_jsonl, model_name_or_path):
     try:
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         test_spec = list(dataset)
@@ -258,7 +258,7 @@ def analyze_missing_runs(total, missing_logs, counts):
     return need_to_be_run
 
 
-def calculate_costs(predictions):
+def calculate_costs(predictions, dataset):
     """Calculate and display cost statistics."""
     costs = [
         data.get("cost")
@@ -276,10 +276,8 @@ def calculate_costs(predictions):
 
         if using_dataset == "devin":
             num_instances = len(get_devin_instance_ids())
-        elif using_dataset == "lite":
-            num_instances = 300
         else:
-            num_instances = len(json.load(open(LITE_DATASET_FNAME)))
+            num_instances = len(list(dataset))
 
         expected_cost = num_instances * avg_cost
         print(f"expected_cost: ${expected_cost:.2f}")
@@ -397,6 +395,9 @@ def main():
     dnames = sys.argv[1:]
     model_name_or_path = "ra_aid_selected_predictions"
 
+    # Load dataset once
+    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+
     process_predictions_directories(dnames)
     _preds_dir = setup_output_directory(model_name_or_path)
 
@@ -409,9 +410,7 @@ def main():
     dump(len(predictions))
 
     predictions_jsonl, log_dir = combine_jsonl_logs(predictions, model_name_or_path)
-    report = get_report(
-        "princeton-nlp/SWE-bench_Lite", log_dir, predictions_jsonl, model_name_or_path
-    )
+    report = get_report(dataset, log_dir, predictions_jsonl, model_name_or_path)
 
     results_json = Path("predictions") / model_name_or_path / "results.json"
     results_json.write_text(json.dumps(report, indent=4))
@@ -421,7 +420,7 @@ def main():
 
     _need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
 
-    calculate_costs(predictions)
+    calculate_costs(predictions, dataset)
 
     stats = analyze_gold_files(predictions)
     display_gold_stats(stats, total)
