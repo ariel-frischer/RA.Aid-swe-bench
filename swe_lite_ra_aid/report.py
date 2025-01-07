@@ -30,22 +30,15 @@ NUM_EVAL_PROCS = 5
 
 
 def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
-    base = os.getcwd()
-
-    run_evals_cmd = f"""
-python {base}/SWE-bench-docker/run_evaluation.py
-    --log_dir {base}/{log_dir}
-    --swe_bench_tasks {base}/{swe_bench_tasks}
-    --skip_existing
-    --predictions_path {predictions_jsonl}
-    --num_processes {NUM_EVAL_PROCS}
-"""
-    run_evals_cmd = " ".join(
-        [line.strip() for line in run_evals_cmd.split() if line.strip()]
+    from swebench.harness.run_evaluation import run_evaluation
+    
+    # Run evaluation using the swebench package directly
+    run_evaluation(
+        dataset_name="princeton-nlp/SWE-bench_Lite",
+        predictions_path=predictions_jsonl,
+        log_dir=log_dir,
+        max_workers=NUM_EVAL_PROCS
     )
-    dump(run_evals_cmd)
-
-    subprocess.run(run_evals_cmd.split(), check=True)
 
 
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
