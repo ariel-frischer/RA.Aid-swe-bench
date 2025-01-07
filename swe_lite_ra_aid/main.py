@@ -78,7 +78,7 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
         "attempt": attempt,
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": "openrouter/deepseek/deepseek-chat",
-        "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022",
+        "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
     }
 
 
