@@ -163,6 +163,7 @@ def generate_predictions(dataset, threads, out_dname):
     done_instances = {inst for inst, pred in done_preds.items() 
                      if pred.get("model_patch") and pred.get("edited_files")}
     print(f"Found {len(done_instances)} completed predictions")
+    print(f"Skipping {len(done_instances)} already processed instances")
 
     # Get remaining instances to process
     remaining_instances = [task for task in dataset 
