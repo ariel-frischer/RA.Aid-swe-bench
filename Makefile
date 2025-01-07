@@ -33,6 +33,9 @@ clean-repos:
 format:
 	poetry run black .
 
+check:
+	poetry run ruff check --fix .
+
 add-model-name:
 	poetry run python add_model_name.py
 
