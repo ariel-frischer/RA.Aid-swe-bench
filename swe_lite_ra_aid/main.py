@@ -113,10 +113,31 @@ def process_single_attempt(task, attempt, git_tempdir):
     return model_patch, edited_files, research_result
 
 
-def ra_aid_prediction(task, out_fname):
+def write_result_file(out_fname, content):
+    """Write JSON content to file with error handling and verification"""
+    json_content = json.dumps(content, indent=4)
+    print(f"Writing to {out_fname} with content length: {len(json_content)}")
+    
+    try:
+        out_fname.write_text(json_content)
+        if out_fname.exists():
+            print(f"Successfully wrote to {out_fname}")
+            print(f"File size: {out_fname.stat().st_size} bytes")
+            return True
+        else:
+            print(f"ERROR: File {out_fname} does not exist after write attempt!")
+            return False
+    except Exception as e:
+        print(f"Error writing to {out_fname}: {str(e)}")
+        return False
+
+def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
     print_task_info(task)
     results = []
+    output_files = []
+    winner_file = None
+    max_edited_files = 0
 
     for attempt in range(1, MAX_RETRIES + 1):
         print(f"Attempt {attempt} for {task['instance_id']}")
@@ -132,6 +153,17 @@ def ra_aid_prediction(task, out_fname):
                 )
                 results.append(result)
 
+                # Create timestamped filename for this attempt
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                attempt_fname = out_dname / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
+                
+                if write_result_file(attempt_fname, result):
+                    output_files.append(attempt_fname)
+                    # Track the file with most edits as the winner
+                    if len(edited_files) > max_edited_files:
+                        max_edited_files = len(edited_files)
+                        winner_file = attempt_fname
+
                 if model_patch:
                     break
 
@@ -139,24 +171,17 @@ def ra_aid_prediction(task, out_fname):
             print(f"Error processing {task['instance_id']}: {str(e)}")
             continue
 
-    # Pick the result with most changes as the winner
-    winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
+    # Log the winner file
+    if winner_file:
+        print(f"Winner file selected: {winner_file} with {max_edited_files} edited files")
+    else:
+        print("No successful attempts with edited files")
 
-    # Save results using the provided filename
-    json_content = json.dumps(winner, indent=4)
-    print(f"Writing to {out_fname} with content length: {len(json_content)}")
-    
-    try:
-        out_fname.write_text(json_content)
-        if out_fname.exists():
-            print(f"Successfully wrote to {out_fname}")
-            print(f"File size: {out_fname.stat().st_size} bytes")
-        else:
-            print(f"ERROR: File {out_fname} does not exist after write attempt!")
-    except Exception as e:
-        print(f"Error writing to {out_fname}: {str(e)}")
-
-    return winner
+    return {
+        "output_files": output_files,
+        "winner_file": winner_file,
+        "max_edited_files": max_edited_files
+    }
 
 
 def process_task(task, out_dname):
@@ -176,8 +201,13 @@ def process_task(task, out_dname):
         prediction_filename = f"{instance_id}-{timestamp}.json"
 
         # Run prediction with retries and temp dirs
-        result = ra_aid_prediction(task, out_dname / prediction_filename)
-        return {"instance_id": task["instance_id"], "result": result}
+        result = ra_aid_prediction(task, out_dname)
+        return {
+            "instance_id": task["instance_id"],
+            "result": result,
+            "output_files": result["output_files"],
+            "winner_file": result["winner_file"]
+        }
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
