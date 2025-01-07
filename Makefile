@@ -32,3 +32,10 @@ clean-repos:
 
 format:
 	poetry run black .
+
+evaluate:
+	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
+	poetry run python -m swebench.harness.run_evaluation \
+		--dataset_name princeton-nlp/SWE-bench_Lite \
+		--predictions_path predictions/lite-multi/all_preds.jsonl \
+		--max_workers 1 --run_id 1
