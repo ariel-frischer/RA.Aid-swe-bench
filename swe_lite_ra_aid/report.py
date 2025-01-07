@@ -30,14 +30,21 @@ NUM_EVAL_PROCS = 5
 
 
 def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
-    from swebench.harness.run_evaluation import run_evaluation
+    from swebench.harness.run_evaluation import main as run_evaluation
     
     # Run evaluation using the swebench package directly
     run_evaluation(
         dataset_name="princeton-nlp/SWE-bench_Lite",
+        split="test",
+        instance_ids=None,
         predictions_path=predictions_jsonl,
-        log_dir=log_dir,
-        max_workers=NUM_EVAL_PROCS
+        max_workers=NUM_EVAL_PROCS,
+        force_rebuild=False,
+        cache_level="env",
+        clean=False,
+        open_file_limit=4096,
+        run_id="ra_aid_eval",
+        timeout=1800
     )
 
 
