@@ -140,13 +140,12 @@ def is_plausible(pred):
         pred (dict): Prediction result dictionary
 
     Returns:
-        bool: True if prediction has valid model_patch, edit_outcome,
-              lint_outcome and test_outcome, False otherwise
+        bool: True if prediction has valid model_patch and edited_files
     """
-    attrs = "model_patch edit_outcome lint_outcome test_outcome".split()
-    for attr in attrs:
-        if not pred.get(attr):
-            return
+    if not pred.get("model_patch"):
+        return False
+    if not pred.get("edited_files"):
+        return False
     return True
 
 
@@ -181,23 +180,10 @@ def check_criteria(pred, criteria):
     return True
 
 
-def pick_winner(results):
+def pick_winner_aider(results):
     """
-    Select best prediction from multiple results.
-
-    Args:
-        results (list): List of prediction results
-
-    Returns:
-        dict: Best prediction based on priority criteria, or first result if none meet criteria
-
-    Tries increasingly weaker criteria to find the strongest available result:
-    1. All outcomes good (model_patch, edit_outcome, lint_outcome, test_outcome)
-    2. All good except test_outcome
-    3. Has model_patch and lint_outcome
-    4. Has model_patch and edit_outcome
-    5. Has any model_patch
-    6. First result as fallback
+    Legacy winner selection using Aider's criteria including edit/lint/test outcomes.
+    Kept for reference but no longer used.
     """
     priority = (
         "model_patch edit_outcome lint_outcome test_outcome",  # all good!
@@ -216,6 +202,31 @@ def pick_winner(results):
     # choose the first result as a last resort
     if results:
         return results[0]
+
+def pick_winner(results):
+    """
+    Select best prediction from multiple results based on model_patch and edited_files.
+
+    Args:
+        results (list): List of prediction results
+
+    Returns:
+        dict: Best prediction based on number of edited files, or first result if none have edits
+    """
+    # First try to find results with both model_patch and edited_files
+    valid_results = [r for r in results if r.get("model_patch") and r.get("edited_files")]
+    
+    if valid_results:
+        # Return the result with the most edited files
+        return max(valid_results, key=lambda r: len(r.get("edited_files", [])))
+    
+    # If no results have both, try to find any with just a model_patch
+    patch_results = [r for r in results if r.get("model_patch")]
+    if patch_results:
+        return patch_results[0]
+        
+    # Last resort - return first result if any exist
+    return results[0] if results else None
 
 
 def get_devin_instance_ids():
