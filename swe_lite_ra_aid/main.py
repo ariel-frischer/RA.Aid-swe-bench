@@ -17,6 +17,7 @@ from ra_aid.llm import initialize_llm
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_RETRIES = 3
+MAX_THREADS = 3
 
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
@@ -195,19 +196,20 @@ def get_remaining_tasks(dataset, done_instances):
     print(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
 
-
-def generate_predictions(dataset, threads, out_dname):
+def generate_predictions(dataset, out_dname):
     """Generate predictions with parallel processing and result tracking"""
     setup_directories(out_dname)
     done_instances = get_completed_instances(out_dname)
     remaining_instances = get_remaining_tasks(dataset, done_instances)
 
-    if threads > 1:
-        process_task_lox = lox.process(threads)(process_task)
-        process_task_func = process_task_lox.scatter
+    scatter = process_task
+    gather = None
+
+    if MAX_THREADS > 1:
+        # Rebind process_task to use `threads` concurrency
+        process_task_lox = lox.process(MAX_THREADS)(process_task)
+        scatter = process_task_lox.scatter
         gather = process_task_lox.gather
-    else:
-        process_task_func = process_task
 
     try:
         # Process remaining tasks
@@ -217,13 +219,8 @@ def generate_predictions(dataset, threads, out_dname):
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             prediction_filename = f"{instance_id}-{timestamp}.json"
 
-            # Get instance ID and create timestamped filename
-            instance_id = task["instance_id"]
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            prediction_filename = f"{instance_id}-{timestamp}.json"
-            
             try:
-                process_task_func(task, out_dname / prediction_filename)
+                scatter(task, prediction_filename)
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
@@ -231,7 +228,7 @@ def generate_predictions(dataset, threads, out_dname):
                 print(f"Error processing task: {e}")
                 continue
 
-        if threads > 1:
+        if MAX_THREADS > 1:
             try:
                 gather()
             except KeyboardInterrupt:
@@ -246,9 +243,8 @@ def main():
     try:
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         out_dname = PREDS_DNAME / "ra_aid_predictions"
-        threads = 5
 
-        generate_predictions(dataset, threads, out_dname)
+        generate_predictions(dataset, out_dname)
 
         print(f"Predictions saved to {out_dname}")
     except KeyboardInterrupt:
