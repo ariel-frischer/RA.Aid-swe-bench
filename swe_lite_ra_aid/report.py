@@ -390,8 +390,11 @@ def display_gold_stats(stats, total):
         )
         dump(pct_resolved_plausible)
 
-    pct_plausible = stats["total_plausible"] / total * 100
-    dump(pct_plausible)
+    if total > 0:
+        pct_plausible = stats["total_plausible"] / total * 100
+        dump(pct_plausible)
+    else:
+        print("No total instances found - cannot calculate percentage plausible")
 
 
 def main():
