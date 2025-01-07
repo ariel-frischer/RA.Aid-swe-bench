@@ -50,9 +50,13 @@ def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
 
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
+        # Load test spec from dataset
+        with open(LITE_DATASET_FNAME) as f:
+            test_spec = json.load(f)
+            
         # Get evaluation report using new API
         report = get_eval_report(
-            test_spec=LITE_DATASET_FNAME,
+            test_spec=test_spec,
             prediction=predictions_jsonl,
             log_path=str(log_dir),
             include_tests_status=True
