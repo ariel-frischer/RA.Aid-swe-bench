@@ -401,13 +401,9 @@ def main():
     dnames = sys.argv[1:]
     model_name_or_path = "ra_aid_selected_predictions"
 
-    # Process all directories
     process_predictions_directories(dnames)
-
-    # Setup output directory
     _preds_dir = setup_output_directory(model_name_or_path)
 
-    # Get predictions
     predictions = choose_predictions(
         dnames, model_name_or_path, copy_md=True, devin_only=(using_dataset == "devin")
     )
@@ -416,30 +412,22 @@ def main():
         return
     dump(len(predictions))
 
-    # Process predictions and get report
     predictions_jsonl, log_dir = combine_jsonl_logs(predictions, model_name_or_path)
     report = get_report(
         LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
     )
 
-    # Save results
     results_json = Path("predictions") / model_name_or_path / "results.json"
     results_json.write_text(json.dumps(report, indent=4))
 
-    # Process statistics
     counts = defaultdict(int, [(k, len(v)) for k, v in report.items()])
     total, missing_logs = process_report_statistics(report, counts)
 
-    # Analyze missing runs
     _need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
 
-    # Calculate costs
     calculate_costs(predictions)
 
-    # Analyze gold files
     stats = analyze_gold_files(predictions)
-
-    # Display gold stats
     display_gold_stats(stats, total)
 
 
