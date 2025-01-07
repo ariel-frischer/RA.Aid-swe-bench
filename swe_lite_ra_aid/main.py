@@ -1,5 +1,6 @@
 import json
 import random
+from datetime import datetime
 import uuid
 import os
 from datetime import datetime
@@ -216,8 +217,13 @@ def generate_predictions(dataset, threads, out_dname):
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             prediction_filename = f"{instance_id}-{timestamp}.json"
 
+            # Get instance ID and create timestamped filename
+            instance_id = task["instance_id"]
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            prediction_filename = f"{instance_id}-{timestamp}.json"
+            
             try:
-                process_task_func(task, out_dname)
+                process_task_func(task, out_dname / prediction_filename)
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
