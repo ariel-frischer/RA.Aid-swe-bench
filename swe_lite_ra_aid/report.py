@@ -336,12 +336,7 @@ def main():
         resolved = data.get("resolved")
         added_gold = (added_files.intersection(gold_files) == gold_files) and gold_files
 
-        plausible = (
-            data["model_patch"]
-            and data["edit_outcome"]
-            and data["lint_outcome"]
-            and data["test_outcome"]
-        )
+        plausible = data["model_patch"] and data["edited_files"]
         if plausible:
             total_plausible += 1
             if resolved:
