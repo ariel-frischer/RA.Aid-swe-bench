@@ -50,7 +50,7 @@ def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         test_spec = list(dataset)
-        
+
         report = get_eval_report(
             test_spec=test_spec,
             prediction=predictions_jsonl,
