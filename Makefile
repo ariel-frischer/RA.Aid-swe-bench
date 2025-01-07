@@ -33,5 +33,8 @@ clean-repos:
 format:
 	poetry run black .
 
+add-model-name:
+	poetry run python add_model_name.py
+
 evaluate:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
