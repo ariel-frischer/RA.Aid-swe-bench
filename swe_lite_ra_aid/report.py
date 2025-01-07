@@ -6,6 +6,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from datasets import load_dataset
 from swebench.harness.grading import (
     get_eval_report,
     get_resolution_status,
@@ -15,7 +16,6 @@ from swebench.harness.grading import (
 from .dump import dump  # noqa: F401
 
 from .utils import (
-    LITE_DATASET_FNAME,
     choose_predictions,
     get_devin_instance_ids,
     load_predictions,
@@ -48,9 +48,9 @@ def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
 
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
-        with open(LITE_DATASET_FNAME) as f:
-            test_spec = json.load(f)
-
+        dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+        test_spec = list(dataset)
+        
         report = get_eval_report(
             test_spec=test_spec,
             prediction=predictions_jsonl,
@@ -410,7 +410,7 @@ def main():
 
     predictions_jsonl, log_dir = combine_jsonl_logs(predictions, model_name_or_path)
     report = get_report(
-        LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
+        "princeton-nlp/SWE-bench_Lite", log_dir, predictions_jsonl, model_name_or_path
     )
 
     results_json = Path("predictions") / model_name_or_path / "results.json"
