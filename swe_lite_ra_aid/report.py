@@ -27,13 +27,13 @@ using_dataset = "lite"
 NUM_EVAL_PROCS = 5
 
 
-def run_evals(swe_bench_tasks, log_dir, predictions_jsonl):
+def run_evals(log_dir, predictions_jsonl):
     from swebench.harness.run_evaluation import main as run_evaluation
 
     # Run evaluation using the swebench package directly
     run_evaluation(
         dataset_name="princeton-nlp/SWE-bench_Lite",
-        split="test",
+        split="test", 
         instance_ids=None,
         predictions_path=predictions_jsonl,
         max_workers=NUM_EVAL_PROCS,
@@ -174,11 +174,11 @@ def run_evals_on_dname(dname):
     any_need_evals = any("resolved" not in pred for pred in predictions.values())
     any_need_evals = True
     if any_need_evals:
-        run_evals(LITE_DATASET_FNAME, str(log_dir), predictions_jsonl)
+        run_evals(str(log_dir), predictions_jsonl)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
         report = get_report(
-            LITE_DATASET_FNAME, log_dir, predictions_jsonl, model_name_or_path
+            "princeton-nlp/SWE-bench_Lite", log_dir, predictions_jsonl, model_name_or_path
         )
         predictions = update_pred_json(predictions, report)
 
