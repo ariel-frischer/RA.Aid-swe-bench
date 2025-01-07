@@ -113,7 +113,7 @@ def process_single_attempt(task, attempt, git_tempdir):
     return model_patch, edited_files, research_result
 
 
-def ra_aid_prediction(task, out_dname):
+def ra_aid_prediction(task, out_fname):
     """Process one task using RA-AID approach with retries and result tracking"""
     print_task_info(task)
     results = []
@@ -142,8 +142,7 @@ def ra_aid_prediction(task, out_dname):
     # Pick the result with most changes as the winner
     winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
 
-    # Save results
-    out_fname = out_dname / (task.get("instance_id") + ".json")
+    # Save results using the provided filename
     out_fname.write_text(json.dumps(winner, indent=4))
 
     return winner
@@ -160,8 +159,13 @@ def process_task(task, out_dname):
     print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
 
     try:
+        # Create timestamped filename
+        instance_id = task["instance_id"]
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        prediction_filename = f"{instance_id}-{timestamp}.json"
+        
         # Run prediction with retries and temp dirs
-        result = ra_aid_prediction(task, out_dname)
+        result = ra_aid_prediction(task, out_dname / prediction_filename)
         return {"instance_id": task["instance_id"], "result": result}
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
@@ -214,13 +218,8 @@ def generate_predictions(dataset, out_dname):
     try:
         # Process remaining tasks
         for task in remaining_instances:
-            # Get instance ID and create timestamped filename
-            instance_id = task["instance_id"]
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            prediction_filename = f"{instance_id}-{timestamp}.json"
-
             try:
-                scatter(task, prediction_filename)
+                scatter(task, out_dname)
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
