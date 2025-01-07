@@ -3,7 +3,6 @@ import random
 import uuid
 import os
 from datetime import datetime
-from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
@@ -28,6 +27,7 @@ def print_task_info(task):
     print(f"base_commit={task['base_commit']}")
     print(f"problem_statement={task['problem_statement']}")
 
+
 def prepare_prompt(task):
     """Prepare the full prompt for the research agent"""
     return f"""
@@ -51,6 +51,7 @@ def prepare_prompt(task):
     You must make code changes to fix the issue described in the problem statement.
     """
 
+
 def get_agent_config():
     """Get configuration for research agent"""
     return {
@@ -62,6 +63,7 @@ def get_agent_config():
         "research_only": False,
         "cowboy_mode": True,
     }
+
 
 def create_result_dict(task, model_patch, edited_files, research_result, attempt):
     """Create standardized result dictionary"""
@@ -77,6 +79,7 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
         "ra_aid_editor": "anthropic/claude-3-5-sonnet-20241022",
     }
 
+
 def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
     repo = checkout_repo(git_tempdir, task)
@@ -85,7 +88,7 @@ def process_single_attempt(task, attempt, git_tempdir):
 
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
-    
+
     research_result = run_research_agent(
         base_task_or_query=full_prompt,
         model=model,
@@ -104,8 +107,9 @@ def process_single_attempt(task, attempt, git_tempdir):
     print(f"edited_files={edited_files}")
 
     os.chdir(original_cwd)
-    
+
     return model_patch, edited_files, research_result
+
 
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
@@ -120,7 +124,7 @@ def ra_aid_prediction(task, out_dname):
                 model_patch, edited_files, research_result = process_single_attempt(
                     task, attempt, git_tempdir
                 )
-                
+
                 result = create_result_dict(
                     task, model_patch, edited_files, research_result, attempt
                 )
@@ -137,7 +141,7 @@ def ra_aid_prediction(task, out_dname):
     winner = max(results, key=lambda r: len(r.get("edited_files", [])) if r else 0)
 
     # Save results
-    out_fname = out_dname / (instance_id + ".json")
+    out_fname = out_dname / (task.get("instance_id") + ".json")
     out_fname.write_text(json.dumps(winner, indent=4))
 
     return winner
@@ -167,22 +171,29 @@ def setup_directories(out_dname):
     out_dname.mkdir(exist_ok=True)
     REPOS_DNAME.mkdir(exist_ok=True)
 
+
 def get_completed_instances(out_dname):
     """Load and return set of already processed instance IDs"""
     done_preds = load_predictions([out_dname])
-    done_instances = {inst for inst, pred in done_preds.items() 
-                     if pred.get("model_patch") and pred.get("edited_files")}
+    done_instances = {
+        inst
+        for inst, pred in done_preds.items()
+        if pred.get("model_patch") and pred.get("edited_files")
+    }
     print(f"Found {len(done_instances)} completed predictions")
     print(f"Skipping {len(done_instances)} already processed instances")
     return done_instances
 
+
 def get_remaining_tasks(dataset, done_instances):
     """Get shuffled list of remaining tasks to process"""
-    remaining_instances = [task for task in dataset 
-                         if task["instance_id"] not in done_instances]
+    remaining_instances = [
+        task for task in dataset if task["instance_id"] not in done_instances
+    ]
     random.shuffle(remaining_instances)
     print(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
+
 
 def generate_predictions(dataset, threads, out_dname):
     """Generate predictions with parallel processing and result tracking"""
@@ -204,8 +215,6 @@ def generate_predictions(dataset, threads, out_dname):
             instance_id = task["instance_id"]
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             prediction_filename = f"{instance_id}-{timestamp}.json"
-
-            # Proceed with processing the task
 
             try:
                 process_task_func(task, out_dname)
@@ -247,5 +256,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
