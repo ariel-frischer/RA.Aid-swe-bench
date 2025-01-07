@@ -57,6 +57,7 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
             include_tests_status=True,
         )
 
+        # Initialize report_stats with empty sets
         report_stats = {
             "resolved": set(),
             "generated": set(),
@@ -66,16 +67,29 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
             "no_generation": set(),
         }
 
+        print(f"Raw report: {report}")  # Debug print
+
+        if not isinstance(report, dict):
+            print(f"Warning: report is not a dictionary, got {type(report)}")
+            return report_stats
+
         # Process each instance's status
-        if isinstance(report, dict):  # Add check to ensure report is a dictionary
-            for instance_id, eval_result in report.items():
+        for instance_id, eval_result in report.items():
+            try:
+                if not isinstance(eval_result, dict):
+                    print(f"Warning: eval_result for {instance_id} is not a dictionary")
+                    continue
+
                 resolution_status = get_resolution_status(eval_result)
 
                 # Track instance in appropriate categories
                 if resolution_status == ResolvedStatus.RESOLVED:
                     report_stats["resolved"].add(instance_id)
 
-                report_stats["generated"].add(instance_id)
+                if eval_result.get("model_patch"):
+                    report_stats["generated"].add(instance_id)
+                else:
+                    report_stats["no_generation"].add(instance_id)
 
                 if eval_result.get("applied", False):
                     report_stats["applied"].add(instance_id)
@@ -85,6 +99,15 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
 
                 if not eval_result.get("applied", False):
                     report_stats["no_apply"].add(instance_id)
+
+            except Exception as e:
+                print(f"Error processing instance {instance_id}: {e}")
+                continue
+
+        # Debug output
+        print("\nReport Statistics:")
+        for key, value in report_stats.items():
+            print(f"{key}: {len(value)}")
 
         dump(sorted(report_stats["resolved"]))
 
@@ -232,8 +255,15 @@ def setup_output_directory(model_name_or_path):
     return preds_dir
 
 
-def process_report_statistics(_report, counts):
+def process_report_statistics(report_stats, counts):
     """Process and display basic report statistics."""
+    # Convert sets to counts
+    for key, value in report_stats.items():
+        counts[key] = len(value)
+    
+    print(f"Debug - report_stats keys: {report_stats.keys()}")
+    print(f"Debug - counts: {dict(counts)}")
+    
     total = counts["generated"] + counts["no_generation"]
     missing_logs = total - counts["with_logs"]
     dump(counts)
