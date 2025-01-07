@@ -423,6 +423,7 @@ def main():
     results_json.write_text(json.dumps(report, indent=4))
 
     counts = defaultdict(int, [(k, len(v)) for k, v in report.items()])
+    print(f"counts={counts}")
     total, missing_logs = process_report_statistics(report, counts)
 
     _need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
