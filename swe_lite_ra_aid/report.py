@@ -358,7 +358,7 @@ def display_gold_stats(stats, total):
     pct_maps_with_gold_file = (
         len(stats["repomap_timeline"].replace("_", ""))
         / len(stats["repomap_timeline"])
-        * 100
+        * 100 if stats.get("repomap_timeline") else 0
     )
     dump(pct_maps_with_gold_file)
 
@@ -377,8 +377,9 @@ def display_gold_stats(stats, total):
         print()
 
     dump(stats["total_with_added"])
-    pct_with_added = stats["total_with_added"] / total * 100
-    dump(pct_with_added)
+    if total > 0:  # Add check for zero
+        pct_with_added = stats["total_with_added"] / total * 100
+        dump(pct_with_added)
     print()
 
     dump(stats["total_plausible"])
