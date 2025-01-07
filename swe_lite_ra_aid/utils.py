@@ -15,15 +15,6 @@ LITE_DATASET_FNAME = LITE_DATASET.replace("/", "--") + ".json"
 
 
 def dump_dataset(dataset, fname):
-    """
-    Save the dataset to a JSON file.
-
-    Args:
-        dataset: The dataset object to save
-        fname: Path to the output JSON file
-
-    The function converts FAIL_TO_PASS and PASS_TO_PASS fields from string to JSON.
-    """
     entries = list(dataset)
     for entry in entries:
         entry["FAIL_TO_PASS"] = json.loads(entry["FAIL_TO_PASS"])
@@ -54,19 +45,6 @@ def get_lite_dataset():
 
 
 def get_dataset(dataset, fname):
-    """
-    Load a dataset from Hugging Face and cache it locally.
-
-    Args:
-        dataset (str): Hugging Face dataset identifier
-        fname (str): Local cache filename
-
-    Returns:
-        dict: Dataset entries keyed by instance_id
-
-    The function loads the dataset from Hugging Face if not cached,
-    otherwise loads from the local JSON cache file.
-    """
 
     fname = Path(fname)
     if fname.exists():
@@ -85,19 +63,6 @@ def get_dataset(dataset, fname):
 
 
 def load_predictions(paths, devin_only=False):
-    """
-    Load model predictions from JSON files.
-
-    Args:
-        paths (list): List of file/directory paths containing prediction JSONs
-        devin_only (bool): If True, only load predictions for Devin instances
-
-    Returns:
-        dict: Predictions keyed by instance_id
-
-    Loads predictions from individual JSON files or directories of JSON files.
-    Each prediction must have an instance_id field.
-    """
     prediction_paths = []
     for path in paths:
         path = Path(path)
@@ -318,22 +283,6 @@ def choose_pred(inst, all_preds, dnames):
 
 
 def choose_predictions(dnames, model_name_or_path=None, copy_md=False, devin_only=False):
-    """
-    Select best predictions from multiple directories of results.
-
-    Args:
-        dnames (list): List of prediction directory paths
-        model_name_or_path (str, optional): Model identifier to add to predictions
-        copy_md (bool): If True, copy associated markdown files
-        devin_only (bool): If True, only process Devin benchmark instances
-
-    Returns:
-        dict: Best predictions for each instance, keyed by instance_id
-
-    For each instance, selects the best prediction across all directories
-    using pick_winner() criteria. Optionally copies associated markdown files
-    and adds model identifier to predictions.
-    """
     all_preds = [load_predictions([dname], devin_only=devin_only) for dname in dnames]
     all_instances = set()
     for preds in all_preds:
