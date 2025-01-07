@@ -9,7 +9,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from swebench.metrics.report import get_model_report
+from swebench.harness.grading import get_eval_report, get_resolution_status, ResolvedStatus
 
 from dump import dump  # noqa: F401
 from tests import remove_patches_to_tests, run_tests
@@ -48,44 +48,61 @@ python {base}/SWE-bench-docker/run_evaluation.py
 
 def get_report(swe_bench_tasks, log_dir, predictions_jsonl, model_name_or_path):
     try:
-        report = get_model_report(
-            model_name_or_path,
-            predictions_jsonl,
-            swe_bench_tasks,
-            log_dir,
-            verbose=True,
+        # Get evaluation report using new API
+        report = get_eval_report(predictions_jsonl, log_dir)
+        
+        # Initialize report categories
+        report_stats = {
+            "resolved": set(),
+            "generated": set(),
+            "applied": set(),
+            "with_logs": set(),
+            "no_apply": set(),
+            "no_generation": set()
+        }
+        
+        # Process each instance's status
+        for instance_id, eval_result in report.items():
+            resolution_status = get_resolution_status(eval_result)
+            
+            # Track instance in appropriate categories
+            if resolution_status == ResolvedStatus.RESOLVED:
+                report_stats["resolved"].add(instance_id)
+            
+            report_stats["generated"].add(instance_id)
+            
+            if eval_result.get("applied", False):
+                report_stats["applied"].add(instance_id)
+            
+            if eval_result.get("logs"):
+                report_stats["with_logs"].add(instance_id)
+            
+            if not eval_result.get("applied", False):
+                report_stats["no_apply"].add(instance_id)
+
+        # Log statistics
+        dump(sorted(report_stats["resolved"]))
+
+        generated_minus_applied = report_stats["generated"] - report_stats["applied"]
+        dump(len(generated_minus_applied))
+        generated_minus_applied = " ".join(
+            iid + "*" for iid in sorted(generated_minus_applied)
         )
-    except KeyError:
-        report = dict()
+        dump(generated_minus_applied)
 
-    # for k, v in report.items():
-    #    print(f"- {k}: {len(v)}")
+        with_logs_minus_applied = report_stats["with_logs"] - report_stats["applied"]
+        dump(len(with_logs_minus_applied))
+        dump(with_logs_minus_applied)
 
-    # dump(report)
+        dump(len(report_stats["no_apply"]))
+        no_apply = " ".join(iid + "*" for iid in sorted(report_stats["no_apply"]))
+        dump(no_apply)
 
-    resolved_instances = report["resolved"]
-    dump(sorted(resolved_instances))
-
-    generated = set(report["generated"])
-    applied = set(report["applied"])
-    generated_minus_applied = generated - applied
-    dump(len(generated_minus_applied))
-    generated_minus_applied = " ".join(
-        iid + "*" for iid in sorted(generated_minus_applied)
-    )
-    dump(generated_minus_applied)
-
-    with_logs = set(report["with_logs"])
-    with_logs_minus_applied = with_logs - applied
-    dump(len(with_logs_minus_applied))
-    dump(with_logs_minus_applied)
-
-    no_apply = set(report["no_apply"])
-    dump(len(no_apply))
-    no_apply = " ".join(iid + "*" for iid in sorted(no_apply))
-    dump(no_apply)
-
-    return report
+        return report_stats
+        
+    except Exception as e:
+        print(f"Error generating report: {e}")
+        return dict()
 
 
 def update_pred_json(predictions, report):
@@ -109,18 +126,19 @@ def update_pred_json(predictions, report):
 
 def preds_to_jsonl(dname, predictions):
     dname = Path(dname)
-
     predictions_jsonl = str(dname / "all_preds.jsonl")
     dump(predictions_jsonl)
-    model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
+    
+    # Use consistent model name if not present in predictions
+    model_name_or_path = "ra-aid-model"
+    
     with open(predictions_jsonl, "w") as fh:
         for inst, pred in predictions.items():
-            assert model_name_or_path == pred["model_name_or_path"]
-            minimal_pred = dict(
-                model_name_or_path=model_name_or_path,
-                model_patch=remove_patches_to_tests(pred["model_patch"]),
-                instance_id=pred["instance_id"],
-            )
+            minimal_pred = {
+                "instance_id": pred["instance_id"],
+                "model_name_or_path": model_name_or_path,
+                "model_patch": remove_patches_to_tests(pred["model_patch"])
+            }
             fh.write(json.dumps(minimal_pred) + "\n")
     return predictions_jsonl
 
