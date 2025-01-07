@@ -25,7 +25,38 @@ poetry install
 
 ## Usage
 
-[Usage instructions to be added]
+The main workflow consists of:
+
+1. Generate predictions using the RA-AID model:
+```bash
+make run
+```
+This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
+
+2. Add required model metadata to predictions:
+```bash
+make add-model-name
+```
+This ensures all prediction files have the necessary model identifiers and timestamps.
+
+3. Evaluate predictions and generate a report:
+```bash
+make evaluate
+```
+This will run the evaluation pipeline and generate a detailed report of model performance.
+
+### Available Make Commands
+
+```bash
+make install      # Install project dependencies using Poetry
+make run         # Run the main prediction script
+make test        # Run tests using pytest
+make clean       # Remove Python cache files and predictions
+make format      # Format code using black
+make clean-repos # Clean up cloned repositories
+make add-model-name # Add model metadata to predictions
+make evaluate    # Run evaluation and generate report
+```
 
 ## Dataset Structure
 Data Instances
