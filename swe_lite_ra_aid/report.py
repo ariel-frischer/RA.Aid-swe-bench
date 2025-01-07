@@ -11,7 +11,7 @@ from pathlib import Path
 
 from swebench.harness.grading import get_eval_report, get_resolution_status, ResolvedStatus
 
-from dump import dump  # noqa: F401
+from .dump import dump  # noqa: F401
 from tests import remove_patches_to_tests, run_tests
 from utils import (
     FULL_DATASET_FNAME,
