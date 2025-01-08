@@ -4,7 +4,7 @@ A lightweight version of SWE Bench focused on the RA-AID agent.
 
 ## Description
 
-This project provides a streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
+Streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
 Many of the files in this repo have been modified from the source: https://github.com/Aider-AI/aider-swe-bench
 
 ## Installation
