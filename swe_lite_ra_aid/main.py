@@ -81,51 +81,55 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
     }
 
 
+@contextmanager
+def change_directory(path):
+    """Context manager for changing directory"""
+    original_cwd = Path.cwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(original_cwd)
+
 def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
-    repo = checkout_repo(git_tempdir, task)
-    original_cwd = Path.cwd()
     git_tempdir_path = Path(git_tempdir)
-    print(f"Changing to directory: {git_tempdir_path.absolute()}")
-    os.chdir(git_tempdir_path)
-
+    print(f"Using temporary directory: {git_tempdir_path.absolute()}")
+    
+    # Clone repository first
+    repo = checkout_repo(git_tempdir, task)
+    
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
+    
+    # Use context manager for directory changes
+    with change_directory(git_tempdir_path):
+        try:
+            research_result = run_research_agent(
+                base_task_or_query=full_prompt,
+                model=model,
+                expert_enabled=config["expert_enabled"],
+                research_only=config["research_only"],
+                hil=config["hil"],
+                web_research_enabled=config["web_research_enabled"],
+                config=config,
+            )
+            print(f"research_result={research_result}")
 
-    research_result = run_research_agent(
-        base_task_or_query=full_prompt,
-        model=model,
-        expert_enabled=config["expert_enabled"],
-        research_only=config["research_only"],
-        hil=config["hil"],
-        web_research_enabled=config["web_research_enabled"],
-        config=config,
-    )
-    print(f"research_result={research_result}")
+            print(diff_versus_commit(git_tempdir, task["base_commit"]))
 
-    # planning_result = run_planning_agent(
-    #     base_task_or_query=full_prompt,
-    #     model=model,
-    #     expert_enabled=config["expert_enabled"],
-    #     hil=config["hil"],
-    #     config=config,
-    # )
-    # print(f"planning_result={planning_result}")
+            # Add all changes - otherwise diff doesnt work correctly
+            repo.git.add("-A")
+            model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
 
-    # Print status after research agent
-    print(diff_versus_commit(git_tempdir, task["base_commit"]))
+            edited_files = files_in_patch(model_patch)
+            print(f"edited_files={edited_files}")
 
-    # Add all changes - otherwise diff doesnt work correctly
-    repo.git.add("-A")
-    model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
-
-    edited_files = files_in_patch(model_patch)
-    print(f"edited_files={edited_files}")
-
-    print(f"Returning to original directory: {original_cwd}")
-    os.chdir(original_cwd)
-
-    return model_patch, edited_files, research_result
+            return model_patch, edited_files, research_result
+            
+        except Exception as e:
+            print(f"Error in process_single_attempt: {str(e)}")
+            raise
 
 
 def write_result_file(out_fname, content):
@@ -162,14 +166,17 @@ def ra_aid_prediction(task, out_dname):
 
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
+                print(f"Created temporary directory: {git_tempdir}")
                 # Ensure the directory exists
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
-                print(f"Using temporary directory: {git_tempdir}")
+                print(f"Directory exists: {Path(git_tempdir).exists()}")
             
                 model_patch, edited_files, research_result = process_single_attempt(
                     task, attempt, str(Path(git_tempdir).absolute())
                 )
 
+                print("Successfully completed process_single_attempt")
+                
                 result = create_result_dict(
                     task, model_patch, edited_files, research_result, attempt
                 )
