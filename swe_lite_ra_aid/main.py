@@ -85,7 +85,9 @@ def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
     repo = checkout_repo(git_tempdir, task)
     original_cwd = Path.cwd()
-    os.chdir(git_tempdir)
+    git_tempdir_path = Path(git_tempdir)
+    print(f"Changing to directory: {git_tempdir_path.absolute()}")
+    os.chdir(git_tempdir_path)
 
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
@@ -120,6 +122,7 @@ def process_single_attempt(task, attempt, git_tempdir):
     edited_files = files_in_patch(model_patch)
     print(f"edited_files={edited_files}")
 
+    print(f"Returning to original directory: {original_cwd}")
     os.chdir(original_cwd)
 
     return model_patch, edited_files, research_result
@@ -157,8 +160,12 @@ def ra_aid_prediction(task, out_dname):
 
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
+                # Ensure the directory exists
+                Path(git_tempdir).mkdir(parents=True, exist_ok=True)
+                print(f"Using temporary directory: {git_tempdir}")
+            
                 model_patch, edited_files, research_result = process_single_attempt(
-                    task, attempt, git_tempdir
+                    task, attempt, str(Path(git_tempdir).absolute())
                 )
 
                 result = create_result_dict(
