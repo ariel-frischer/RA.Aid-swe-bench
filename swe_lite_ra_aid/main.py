@@ -16,7 +16,7 @@ from ra_aid.llm import initialize_llm
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
-MAX_THREADS = 1
+MAX_THREADS = 2
 
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
@@ -103,14 +103,14 @@ def process_single_attempt(task, attempt, git_tempdir):
     )
     print(f"research_result={research_result}")
 
-    planning_result = run_planning_agent(
-        base_task_or_query=full_prompt,
-        model=model,
-        expert_enabled=config["expert_enabled"],
-        hil=config["hil"],
-        config=config,
-    )
-    print(f"planning_result={planning_result}")
+    # planning_result = run_planning_agent(
+    #     base_task_or_query=full_prompt,
+    #     model=model,
+    #     expert_enabled=config["expert_enabled"],
+    #     hil=config["hil"],
+    #     config=config,
+    # )
+    # print(f"planning_result={planning_result}")
 
     # Print status after research agent
     print(diff_versus_commit(git_tempdir, task["base_commit"]))
@@ -156,7 +156,9 @@ def ra_aid_prediction(task, out_dname):
     max_edited_files = 0
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
+        print("=" * 60)
         print(f"Attempt {attempt} for {task['instance_id']}")
+        print("=" * 60)
 
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
@@ -283,7 +285,10 @@ def generate_predictions(dataset, out_dname):
         # Process remaining tasks
         for task in remaining_instances:
             try:
-                scatter(task, out_dname)
+                if MAX_THREADS > 1:
+                    scatter(task, out_dname)
+                else:
+                    process_task(task, out_dname)
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
