@@ -11,7 +11,7 @@ Many of the files in this repo have been modified from the source: https://githu
 
 ```bash
 # Clone the repository
-git clone https://gitlab.com/ariel-frischer/swe-lite-ra-aid.git
+git clone https://github.com/ariel-frischer/RA.Aid-swe-bench
 cd swe-lite-ra-aid
 
 # Install dependencies using Poetry
