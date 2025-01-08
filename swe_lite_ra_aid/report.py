@@ -49,6 +49,7 @@ def run_evals(_log_dir, predictions_jsonl):
 def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
     try:
         test_spec = list(dataset)
+        print(f"test_spec={test_spec}")
 
         report = get_eval_report(
             test_spec=test_spec,
@@ -56,6 +57,7 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
             log_path=str(log_dir),
             include_tests_status=True,
         )
+        print(f"report={report}")
 
         # Initialize report_stats with empty sets
         report_stats = {
@@ -78,11 +80,15 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
             try:
                 # Handle case where eval_result might be a string or other non-dict
                 if isinstance(eval_result, str):
-                    print(f"Warning: eval_result for {instance_id} is a string: {eval_result}")
+                    print(
+                        f"Warning: eval_result for {instance_id} is a string: {eval_result}"
+                    )
                     continue
-                    
+
                 if not isinstance(eval_result, dict):
-                    print(f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}")
+                    print(
+                        f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}"
+                    )
                     continue
 
                 # Safely get resolution status with error handling
@@ -279,10 +285,10 @@ def process_report_statistics(report_stats, counts):
         else:
             print(f"Warning: value for {key} is not a set/list, got {type(value)}")
             counts[key] = 0
-    
+
     print(f"Debug - report_stats keys: {report_stats.keys()}")
     print(f"Debug - counts: {dict(counts)}")
-    
+
     total = counts["generated"] + counts["no_generation"]
     missing_logs = total - counts["with_logs"]
     dump(counts)
@@ -407,7 +413,9 @@ def display_gold_stats(stats, total):
     pct_maps_with_gold_file = (
         len(stats["repomap_timeline"].replace("_", ""))
         / len(stats["repomap_timeline"])
-        * 100 if stats.get("repomap_timeline") else 0
+        * 100
+        if stats.get("repomap_timeline")
+        else 0
     )
     dump(pct_maps_with_gold_file)
 
