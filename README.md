@@ -35,6 +35,8 @@ make run
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
 You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/main.py`.
 
+NOTE: Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
+
 2. (WIP) Evaluate predictions and generate a report:
 
 IN DEVELOPMPENT
@@ -72,6 +74,7 @@ make evaluate    # Run evaluation and generate report
 * Need to extract and pass the correct `test_cmd` and `lint_cmd` to aider when make code changes.
 * Need to modify `pick_winner` method for RA.Aid, `choose_predictions` doesnt work well without it.
 * Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
+* Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
 
 ## Dataset Structure
 Data Instances
