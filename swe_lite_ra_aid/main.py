@@ -10,7 +10,7 @@ from pathlib import Path
 from swe_lite_ra_aid.utils import load_predictions
 from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
-from ra_aid.agent_utils import run_research_agent
+from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
 
 REPOS_DNAME = Path("repos")
@@ -87,14 +87,6 @@ def process_single_attempt(task, attempt, git_tempdir):
     original_cwd = Path.cwd()
     os.chdir(git_tempdir)
 
-    # Print initial status
-    print("\nInitial git status:")
-    print(repo.git.status())
-    
-    # Print initial diff
-    print("\nInitial diff vs base commit:")
-    print(diff_versus_commit(git_tempdir, task["base_commit"]))
-
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
 
@@ -109,44 +101,24 @@ def process_single_attempt(task, attempt, git_tempdir):
     )
     print(f"research_result={research_result}")
 
-    # Print status after research agent
-    print("\nGit status after research agent:")
-    print(repo.git.status())
+    planning_result = run_planning_agent(
+        base_task_or_query=full_prompt,
+        model=model,
+        expert_enabled=config["expert_enabled"],
+        hil=config["hil"],
+        config=config,
+    )
+    print(f"planning_result={planning_result}")
 
-    # Print diff before adding files
-    print("\nDiff before git add:")
+    # Print status after research agent
     print(diff_versus_commit(git_tempdir, task["base_commit"]))
 
-    # Add all changes
+    # Add all changes - otherwise diff doesnt work correctly
     repo.git.add("-A")
-    
-    # Print status after adding
-    print("\nGit status after add:")
-    print(repo.git.status())
-
-    # Get the patch
     model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
-    print(f"\nmodel_patch={model_patch}")
-    
-    # Get list of changed files
+
     edited_files = files_in_patch(model_patch)
     print(f"edited_files={edited_files}")
-
-    # Also check git log for changes
-    print("\nGit log:")
-    print(repo.git.log("-1", "--stat"))
-
-    # Print actual file contents of changed files
-    if edited_files:
-        print("\nChanged file contents:")
-        for fname in edited_files:
-            try:
-                print(f"\n--- {fname} ---")
-                print(Path(fname).read_text())
-            except Exception as e:
-                print(f"Error reading {fname}: {str(e)}")
-    else:
-        print("\nNo files were changed")
 
     os.chdir(original_cwd)
 
