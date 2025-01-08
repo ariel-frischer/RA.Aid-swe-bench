@@ -5,6 +5,7 @@ A lightweight version of SWE Bench focused on the RA-AID agent.
 ## Description
 
 This project provides a streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
+Many of the files in this repo have been modified from the source: https://github.com/Aider-AI/aider-swe-bench
 
 ## Installation
 
@@ -34,11 +35,15 @@ make run
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
 You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/main.py`.
 
-2. Evaluate predictions and generate a report:
+2. (WIP) Evaluate predictions and generate a report:
+
+IN DEVELOPMPENT
+
 ```bash
 make evaluate
 ```
 This will run the evaluation pipeline and generate a detailed report of model performance.
+
 
 ### Available Make Commands
 
