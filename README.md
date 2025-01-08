@@ -93,4 +93,4 @@ PASS_TO_PASS: (str) - A json list of strings that represent tests that should pa
 
 ## License
 
-MIT License
+Apache 2.0 License
