@@ -205,19 +205,18 @@ def process_single_attempt(task, attempt, git_tempdir):
     # Clone repository at environment setup commit
     repo = checkout_repo(git_tempdir, task)
     
-    # Setup virtual environment and dependencies
-    setup_venv_and_deps(Path(git_tempdir), task["repo"], force_venv=False)
-    
-    # Switch to base commit for the actual task
-    print(f"Switching to base commit {task['base_commit']}")
-    repo.git.checkout(task['base_commit'])
-
     config = get_agent_config()
     research_prompt = prepare_research_prompt(task)
     planning_prompt = prepare_planning_prompt(task)
 
     # Use context manager for directory changes
     with change_directory(git_tempdir_path):
+        # Setup virtual environment and dependencies
+        setup_venv_and_deps(Path.cwd(), task["repo"], force_venv=False)
+        
+        # Switch to base commit for the actual task
+        print(f"Switching to base commit {task['base_commit']}")
+        repo.git.checkout(task['base_commit'])
         try:
             research_result = run_research_agent(
                 base_task_or_query=research_prompt,
