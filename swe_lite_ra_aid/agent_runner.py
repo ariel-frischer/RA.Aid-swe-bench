@@ -1,5 +1,6 @@
 """Module for handling RA-AID agent configuration and execution."""
 
+import os
 import uuid
 import logging
 import subprocess
