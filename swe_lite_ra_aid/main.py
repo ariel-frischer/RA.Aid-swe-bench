@@ -24,7 +24,7 @@ from .io_utils import setup_directories, change_directory, handle_result_file
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
-MAX_THREADS = 3
+MAX_THREADS = 1
 
 # RA-AID Configuration
 RA_AID_PROVIDER = "openrouter"
