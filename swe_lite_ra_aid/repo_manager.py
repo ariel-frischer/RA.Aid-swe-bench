@@ -21,13 +21,12 @@ class RepoManager:
         
     def get_cached_repo_path(self, repo_name: str) -> Path:
         """Get path where cached repo should be stored."""
-        # Add debug logging
-        logging.info(f"Getting cached path for repo: {repo_name}")
+        print(f"\nGetting cached path for repo: {repo_name}")
         
         # Extract owner/repo part from full URL if needed
         if 'github.com/' in repo_name:
             repo_name = repo_name.split('github.com/')[-1]
-            logging.info(f"Extracted from URL: {repo_name}")
+            print(f"Extracted from URL: {repo_name}")
             
         # Handle both https and git protocols
         repo_name = repo_name.replace('https://', '').replace('git://', '')
@@ -36,8 +35,8 @@ class RepoManager:
         safe_name = repo_name.replace('/', '__')
         cache_path = self.cache_root / safe_name
         
-        logging.info(f"Converted to safe name: {safe_name}")
-        logging.info(f"Full cache path: {cache_path}")
+        print(f"Converted to safe name: {safe_name}")
+        print(f"Full cache path: {cache_path}")
         
         return cache_path
     
@@ -52,14 +51,14 @@ class RepoManager:
         Returns:
             Tuple of (Repo object, Path to cached repo)
         """
-        logging.info(f"Ensuring base repo exists for URL: {repo_url}")
-        logging.info(f"Setup commit: {setup_commit}")
+        print(f"\nEnsuring base repo exists for URL: {repo_url}")
+        print(f"Setup commit: {setup_commit}")
         
         repo_name = repo_url.split('github.com/')[-1]
-        logging.info(f"Extracted repo name: {repo_name}")
+        print(f"Extracted repo name: {repo_name}")
         
         cache_path = self.get_cached_repo_path(repo_name)
-        logging.info(f"Cache path resolved to: {cache_path}")
+        print(f"Cache path resolved to: {cache_path}")
         
         # Ensure parent directories exist
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,7 +66,7 @@ class RepoManager:
         try:
             if not cache_path.exists():
                 # Clone fresh repo
-                logging.info(f"Cloning {repo_url} to cache at {cache_path}")
+                print(f"Cloning {repo_url} to cache at {cache_path}")
                 repo = Repo.clone_from(repo_url, cache_path)
                 repo.git.checkout(setup_commit)
                 
@@ -75,7 +74,7 @@ class RepoManager:
                 from .venv_setup import setup_venv_and_deps
                 setup_venv_and_deps(cache_path, repo_name, force_venv=True)
             else:
-                logging.info(f"Using cached repo at {cache_path}")
+                print(f"Using cached repo at {cache_path}")
                 repo = Repo(cache_path)
                 
             return repo, cache_path
