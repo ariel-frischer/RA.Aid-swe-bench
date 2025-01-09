@@ -4,6 +4,7 @@ import logging
 import subprocess
 from pathlib import Path
 from typing import List
+from .io_utils import change_directory
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -32,36 +33,37 @@ def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> Non
     - If requirements-dev.txt -> uv pip install -r requirements-dev.txt
     - If there's a setup.py or pyproject => uv pip install -e .
     """
-    uv_venv(repo_dir, repo_name, force_venv)
+    with change_directory(repo_dir):
+        uv_venv(repo_dir, repo_name, force_venv)
 
-    # 1) upgrade pip
-    uv_pip_install(repo_dir, ["--upgrade", "pip"])
+        # 1) upgrade pip
+        uv_pip_install(repo_dir, ["--upgrade", "pip"])
 
-    # 2) ensure setuptools & wheel are installed/up to date
-    uv_pip_install(repo_dir, ["--upgrade", "setuptools", "wheel"])
+        # 2) ensure setuptools & wheel are installed/up to date
+        uv_pip_install(repo_dir, ["--upgrade", "setuptools", "wheel"])
 
-    # 3) install ra-aid from local path
-    script_dir = Path(__file__).resolve().parent
-    ra_aid_root = script_dir.parent  # one level up from scripts
-    uv_pip_install(repo_dir, ["-e", str(ra_aid_root)])
+        # 3) install ra-aid from local path
+        script_dir = Path(__file__).resolve().parent
+        ra_aid_root = script_dir.parent  # one level up from scripts
+        uv_pip_install(repo_dir, ["-e", str(ra_aid_root)])
 
-    # 4) optional pyproject
-    pyproject_path = repo_dir / "pyproject.toml"
-    if pyproject_path.is_file():
-        uv_pip_install(repo_dir, ["."])
+        # 4) optional pyproject
+        pyproject_path = repo_dir / "pyproject.toml"
+        if pyproject_path.is_file():
+            uv_pip_install(repo_dir, ["."])
 
-    # 5) optional requirements.txt
-    req_file = repo_dir / "requirements.txt"
-    if req_file.is_file():
-        uv_pip_install(repo_dir, ["-r", "requirements.txt"])
+        # 5) optional requirements.txt
+        req_file = repo_dir / "requirements.txt"
+        if req_file.is_file():
+            uv_pip_install(repo_dir, ["-r", "requirements.txt"])
 
-    # 6) optional requirements-dev.txt
-    req_dev_file = repo_dir / "requirements-dev.txt"
-    if req_dev_file.is_file():
-        uv_pip_install(repo_dir, ["-r", "requirements-dev.txt"])
+        # 6) optional requirements-dev.txt
+        req_dev_file = repo_dir / "requirements-dev.txt"
+        if req_dev_file.is_file():
+            uv_pip_install(repo_dir, ["-r", "requirements-dev.txt"])
 
-    # 7) install the cloned project in editable mode if it's a Python package
-    setup_path = repo_dir / "setup.py"
-    if pyproject_path.is_file() or setup_path.is_file():
-        logging.info("Installing cloned project in editable mode.")
-        uv_pip_install(repo_dir, ["-e", "."])
+        # 7) install the cloned project in editable mode if it's a Python package
+        setup_path = repo_dir / "setup.py"
+        if pyproject_path.is_file() or setup_path.is_file():
+            logging.info("Installing cloned project in editable mode.")
+            uv_pip_install(repo_dir, ["-e", "."])
