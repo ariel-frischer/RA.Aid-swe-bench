@@ -64,11 +64,20 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     streaming output directly to the console (capture_output=False).
     Returns the patch if successful, else None.
     """
+    print(f"\nStarting RA.Aid in directory: {repo_dir}")
+    print(f"Current working directory before: {os.getcwd()}")
+    
+    venv_python = repo_dir / ".venv" / "bin" / "python"
     cmd = [
-        "uv", "run", "ra-aid",
+        str(venv_python),
+        "-m", "ra_aid",
         "--cowboy-mode",
         "-m", prompt
     ]
+    
+    print(f"Using Python interpreter: {venv_python}")
+    print(f"Full command: {' '.join(cmd)}")
+    
     # We are NOT capturing output, so it streams live:
     try:
         result = subprocess.run(
@@ -77,6 +86,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
             text=True,
             check=False,   # We manually handle exit code
         )
+        print(f"Current working directory after: {os.getcwd()}")
         if result.returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
             return None
