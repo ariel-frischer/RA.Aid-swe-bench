@@ -21,9 +21,25 @@ class RepoManager:
         
     def get_cached_repo_path(self, repo_name: str) -> Path:
         """Get path where cached repo should be stored."""
-        # Convert github.com/owner/repo to owner__repo format
+        # Add debug logging
+        logging.info(f"Getting cached path for repo: {repo_name}")
+        
+        # Extract owner/repo part from full URL if needed
+        if 'github.com/' in repo_name:
+            repo_name = repo_name.split('github.com/')[-1]
+            logging.info(f"Extracted from URL: {repo_name}")
+            
+        # Handle both https and git protocols
+        repo_name = repo_name.replace('https://', '').replace('git://', '')
+        
+        # Convert owner/repo to owner__repo format
         safe_name = repo_name.replace('/', '__')
-        return self.cache_root / safe_name
+        cache_path = self.cache_root / safe_name
+        
+        logging.info(f"Converted to safe name: {safe_name}")
+        logging.info(f"Full cache path: {cache_path}")
+        
+        return cache_path
     
     def ensure_base_repo(self, repo_url: str, setup_commit: str) -> Tuple[Repo, Path]:
         """
@@ -36,8 +52,14 @@ class RepoManager:
         Returns:
             Tuple of (Repo object, Path to cached repo)
         """
+        logging.info(f"Ensuring base repo exists for URL: {repo_url}")
+        logging.info(f"Setup commit: {setup_commit}")
+        
         repo_name = repo_url.split('github.com/')[-1]
+        logging.info(f"Extracted repo name: {repo_name}")
+        
         cache_path = self.get_cached_repo_path(repo_name)
+        logging.info(f"Cache path resolved to: {cache_path}")
         
         # Ensure parent directories exist
         cache_path.parent.mkdir(parents=True, exist_ok=True)
