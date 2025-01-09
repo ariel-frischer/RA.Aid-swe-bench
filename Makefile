@@ -28,7 +28,7 @@ clean:
 	rm -f ra_aid_predictions.jsonl
 
 clean-repos:
-	rm -rf repos
+	rm -rf repos/*
 
 format:
 	poetry run black .
