@@ -14,7 +14,8 @@ from .git import get_git_patch
 
 def initialize_model():
     """Initialize the LLM model."""
-    return initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
+    from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
+    return initialize_llm(provider=RA_AID_PROVIDER, model_name=RA_AID_MODEL)
 
 def get_agent_config():
     """Get configuration for research agent"""
@@ -95,11 +96,12 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     print(f"\nStarting RA.Aid in directory: {repo_dir}")
     print(f"Current working directory before: {os.getcwd()}")
     
+    from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
     cmd = [
         "ra-aid",
         "--cowboy-mode",
-        "--provider", "openrouter",
-        "--model", "deepseek/deepseek-chat",
+        "--provider", RA_AID_PROVIDER,
+        "--model", RA_AID_MODEL,
         "-m", prompt
     ]
     
@@ -140,6 +142,6 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
         "research": research_result,
         "attempt": attempt,
         "timestamp": datetime.now().isoformat(),
-        "ra_aid_model": "openrouter/deepseek/deepseek-chat",
-        "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
+        "ra_aid_model": RA_AID_FULL_MODEL,
+        "ra_aid_editor": RA_AID_FULL_MODEL,
     }

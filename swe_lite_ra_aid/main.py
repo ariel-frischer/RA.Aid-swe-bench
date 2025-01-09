@@ -26,6 +26,14 @@ PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
+# RA-AID Configuration
+RA_AID_PROVIDER = "openrouter"
+RA_AID_MODEL = "deepseek/deepseek-chat"
+RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
+
+# Set AIDER_MODEL to use same model
+os.environ["AIDER_MODEL"] = RA_AID_FULL_MODEL
+
 model = initialize_model()
 
 
