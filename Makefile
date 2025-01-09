@@ -30,6 +30,13 @@ clean:
 clean-repos:
 	rm -rf repos/*
 
+clean-predictions:
+	@echo "This will remove all prediction files and old directories. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+	rm -rf predictions/ra_aid_predictions/*.json
+	rm -rf predictions/ra_aid_predictions/*.jsonl
+	rm -rf predictions/ra_aid_selected_predictions/*.jsonl
+	rm -rf predictions/old
+
 format:
 	poetry run black .
 
