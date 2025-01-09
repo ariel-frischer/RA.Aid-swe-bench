@@ -2,7 +2,6 @@ from contextlib import contextmanager
 import json
 import random
 from datetime import datetime
-import uuid
 import os
 import lox
 import tempfile
