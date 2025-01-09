@@ -10,11 +10,10 @@ from pathlib import Path
 
 from swe_lite_ra_aid.utils import load_predictions
 from typing import List
-from .git import diff_versus_commit, files_in_patch, checkout_repo
+from .git import files_in_patch, checkout_repo
 from datasets import load_dataset
 from .agent_runner import (
     initialize_model,
-    run_agents,
     create_result_dict,
     uv_run_raaid,
 )
