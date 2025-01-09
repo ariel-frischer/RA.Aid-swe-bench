@@ -258,7 +258,8 @@ def generate_predictions(dataset, out_dname, repo_manager):
     done_instances = get_completed_instances(out_dname)
     remaining_instances = get_remaining_tasks(dataset, done_instances)
 
-    scatter = lambda task: process_task(task, out_dname, repo_manager)
+    def scatter(task):
+        return process_task(task, out_dname, repo_manager)
     gather = None
 
     if MAX_THREADS > 1:
