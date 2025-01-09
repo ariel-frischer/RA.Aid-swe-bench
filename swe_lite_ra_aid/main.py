@@ -24,18 +24,17 @@ from .io_utils import write_result_file, setup_directories, change_directory
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
-MAX_THREADS = 1
+MAX_THREADS = 3
 
 # RA-AID Configuration
 RA_AID_PROVIDER = "openrouter"
 RA_AID_MODEL = "deepseek/deepseek-chat"
 RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 
-# Set AIDER_MODEL to use same model
-os.environ["AIDER_MODEL"] = RA_AID_FULL_MODEL
+# Free to have different models for ra-aid researcher + aider-coder
+RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL
 
 model = initialize_model()
-
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -125,7 +124,7 @@ def process_single_attempt(task, attempt, repo_manager):
     try:
         with change_directory(worktree_path):
             planning_prompt = prepare_planning_prompt(task)
-            os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
+            os.environ["AIDER_MODEL"] = RA_AID_AIDER_MODEL
 
             model_patch = uv_run_raaid(worktree_path, planning_prompt)
 
@@ -303,7 +302,7 @@ def main():
     try:
         # Store project root directory
         project_root = Path(__file__).resolve().parent.parent
-        
+
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         out_dname = project_root / PREDS_DNAME / "ra_aid_predictions"
 
