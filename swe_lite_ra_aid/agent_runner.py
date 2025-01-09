@@ -68,15 +68,14 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     print(f"\nStarting RA.Aid in directory: {repo_dir}")
     print(f"Current working directory before: {os.getcwd()}")
     
-    venv_python = repo_dir / ".venv" / "bin" / "python"
+    ra_aid_path = repo_dir / ".venv" / "bin" / "ra-aid"
     cmd = [
-        str(venv_python),
-        "-m", "ra_aid",
+        str(ra_aid_path),
         "--cowboy-mode",
         "-m", prompt
     ]
     
-    print(f"Using Python interpreter: {venv_python}")
+    print(f"Using ra-aid at: {ra_aid_path}")
     print(f"Full command: {' '.join(cmd)}")
     
     # We are NOT capturing output, so it streams live:
