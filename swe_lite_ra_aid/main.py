@@ -1,8 +1,5 @@
-from contextlib import contextmanager
-import json
 import random
 from datetime import datetime
-import os
 import lox
 import tempfile
 import logging
@@ -14,6 +11,7 @@ from typing import List
 from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
 from .agent_runner import initialize_model, run_agents, create_result_dict
+from .io_utils import write_result_file, setup_directories, change_directory
 
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
@@ -339,7 +337,7 @@ def get_remaining_tasks(dataset, done_instances):
 
 def generate_predictions(dataset, out_dname):
     """Generate predictions with parallel processing and result tracking"""
-    setup_directories(out_dname)
+    setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
     remaining_instances = get_remaining_tasks(dataset, done_instances)
 
