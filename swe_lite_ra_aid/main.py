@@ -10,7 +10,8 @@ from pathlib import Path
 
 from swe_lite_ra_aid.utils import load_predictions
 from typing import List
-from .git import files_in_patch, checkout_repo
+from .git import files_in_patch
+from .repo_manager import RepoManager
 from datasets import load_dataset
 from .agent_runner import (
     initialize_model,
@@ -247,17 +248,17 @@ def get_remaining_tasks(dataset, done_instances):
     return remaining_instances
 
 
-def generate_predictions(dataset, out_dname):
+def generate_predictions(dataset, out_dname, repo_manager):
     """Generate predictions with parallel processing and result tracking"""
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
     remaining_instances = get_remaining_tasks(dataset, done_instances)
 
-    scatter = process_task
+    scatter = lambda task: process_task(task, out_dname, repo_manager)
     gather = None
 
     if MAX_THREADS > 1:
-        process_task_lox = lox.process(MAX_THREADS)(process_task)
+        process_task_lox = lox.process(MAX_THREADS)(scatter)
         scatter = process_task_lox.scatter
         gather = process_task_lox.gather
 
@@ -265,9 +266,9 @@ def generate_predictions(dataset, out_dname):
         for task in remaining_instances:
             try:
                 if MAX_THREADS > 1:
-                    scatter(task, out_dname)
+                    scatter(task)
                 else:
-                    process_task(task, out_dname)
+                    scatter(task)
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
@@ -291,8 +292,12 @@ def main():
     try:
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         out_dname = PREDS_DNAME / "ra_aid_predictions"
-
-        generate_predictions(dataset, out_dname)
+        
+        # Initialize repo manager
+        repo_manager = RepoManager(REPOS_DNAME)
+        
+        # Update generate_predictions to pass repo_manager
+        generate_predictions(dataset, out_dname, repo_manager)
 
         print(f"Predictions saved to {out_dname}")
     except KeyboardInterrupt:
