@@ -171,7 +171,7 @@ def process_single_attempt(task, attempt, git_tempdir):
     # Clone repository at environment setup commit
     repo = checkout_repo(git_tempdir, task)
 
-    research_prompt = prepare_research_prompt(task)
+    # research_prompt = prepare_research_prompt(task)
     planning_prompt = prepare_planning_prompt(task)
 
     # Use context manager for directory changes
