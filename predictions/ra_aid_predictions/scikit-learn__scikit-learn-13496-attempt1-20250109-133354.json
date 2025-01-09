@@ -1,0 +1,11 @@
+{
+    "instance_id": "scikit-learn__scikit-learn-13496",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "",
+    "edited_files": [],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-09T13:33:54.540490",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

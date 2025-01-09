@@ -1,0 +1,15 @@
+{
+    "instance_id": "scikit-learn__scikit-learn-13496",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 73feb51e7..c34c647bc 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -76,3 +76,4 @@ _configtest.o.d\n sklearn/utils/seq_dataset.pyx\n sklearn/utils/seq_dataset.pxd\n sklearn/linear_model/sag_fast.pyx\n+.aider*\ndiff --git a/sklearn/ensemble/bagging.py b/sklearn/ensemble/bagging.py\nindex f21fbd81b..e6b589d99 100644\n--- a/sklearn/ensemble/bagging.py\n+++ b/sklearn/ensemble/bagging.py\n@@ -487,6 +487,8 @@ class BaggingClassifier(BaseBagging, ClassifierMixin):\n         and add more estimators to the ensemble, otherwise, just fit\n         a whole new ensemble. See :term:`the Glossary <warm_start>`.\n \n+        .. versionadded:: 0.21\n+\n         .. versionadded:: 0.17\n            *warm_start* constructor parameter.\n \ndiff --git a/sklearn/ensemble/iforest.py b/sklearn/ensemble/iforest.py\nindex 8a1bd3625..055f51c2e 100644\n--- a/sklearn/ensemble/iforest.py\n+++ b/sklearn/ensemble/iforest.py\n@@ -31,6 +31,13 @@ class IsolationForest(BaseBagging, OutlierMixin):\n \n     Return the anomaly score of each sample using the IsolationForest algorithm\n \n+    Parameters\n+    ----------\n+    warm_start : bool, optional (default=False)\n+        When set to True, reuse the solution of the previous call to fit\n+        and add more estimators to the ensemble, otherwise, just fit\n+        a whole new ensemble. See :term:`the Glossary <warm_start>`.\n+\n     The IsolationForest 'isolates' observations by randomly selecting a feature\n     and then randomly selecting a split value between the maximum and minimum\n     values of the selected feature.\n@@ -173,7 +180,8 @@ class IsolationForest(BaseBagging, OutlierMixin):\n                  n_jobs=None,\n                  behaviour='old',\n                  random_state=None,\n-                 verbose=0):\n+                 verbose=0,\n+                 warm_start=False):\n         super().__init__(\n             base_estimator=ExtraTreeRegressor(\n                 max_features=1,\n@@ -187,7 +195,8 @@ class IsolationForest(BaseBagging, OutlierMixin):\n             max_features=max_features,\n             n_jobs=n_jobs,\n             random_state=random_state,\n-            verbose=verbose)\n+            verbose=verbose,\n+            warm_start=warm_start)\n \n         self.behaviour = behaviour\n         self.contamination = contamination\n\n",
+    "edited_files": [
+        ".gitignore",
+        "sklearn/ensemble/bagging.py",
+        "sklearn/ensemble/iforest.py"
+    ],
+    "research": null,
+    "attempt": 2,
+    "timestamp": "2025-01-09T13:35:33.252190",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

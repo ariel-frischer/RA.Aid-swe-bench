@@ -26,7 +26,6 @@ cd swe-lite-ra-aid
 poetry install
 ```
 
-
 ## Usage
 
 The main workflow consists of:
@@ -42,7 +41,7 @@ NOTE: Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" w
 
 2. (WIP) Evaluate predictions and generate a report:
 
-IN DEVELOPMPENT
+IN DEVELOPMENT
 
 ```bash
 make evaluate
@@ -96,6 +95,18 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
 - Reusing installed dependencies
 - Sharing virtual environments across attempts
 
+## Winner File Selection
+
+For each task, the system makes up to 3 attempts to solve the problem. Each prediction file includes an `is_winner` boolean field that indicates whether it's currently considered the best solution. The winner is selected based on these criteria:
+
+1. The attempt that modifies the most files wins (higher `num_edited_files`)
+2. If multiple attempts modify the same number of files, the one with the longer patch wins (longer `model_patch`)
+3. Earlier attempts are replaced as winners if later attempts score better on these criteria
+
+The `is_winner` field is automatically updated in all related prediction files when a new winner is selected. When evaluating results, you can filter for files with `is_winner=true` to get the best prediction for each task.
+
+Note: As mentioned in Problems/Improvements below, this selection criteria may not be optimal - using the number of passing tests would be a better metric.
+
 ## Problems/Improvements
 * RA.Aid does get stuck often, multiple different errors.
   * Tool Error: Error executing code: invalid syntax (, line 4)
@@ -115,18 +126,6 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
 * We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 * Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
-
-## Winner File Selection
-
-For each task, the system makes up to 3 attempts to solve the problem. Each prediction file includes an `is_winner` boolean field that indicates whether it's currently considered the best solution. The winner is selected based on these criteria:
-
-1. The attempt that modifies the most files wins (higher `num_edited_files`)
-2. If multiple attempts modify the same number of files, the one with the longer patch wins (longer `model_patch`)
-3. Earlier attempts are replaced as winners if later attempts score better on these criteria
-
-The `is_winner` field is automatically updated in all related prediction files when a new winner is selected. When evaluating results, you can filter for files with `is_winner=true` to get the best prediction for each task.
-
-Note: As mentioned in Problems/Improvements below, this selection criteria may not be optimal - using the number of passing tests would be a better metric.
 
 ## Dataset Structure
 

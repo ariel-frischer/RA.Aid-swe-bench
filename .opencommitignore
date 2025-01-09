@@ -5,11 +5,6 @@ predictions/ra_aid_predictions/
 predictions/ra_aid_selected_predictions/
 predictions/old/
 
-# Test files
-**/tests/
-**/test_*.py
-swe_lite_ra_aid/tests.py
-
 # Temporary and cache directories
 **/tmp/
 **/.tmp/

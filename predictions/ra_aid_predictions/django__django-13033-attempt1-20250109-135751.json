@@ -1,0 +1,11 @@
+{
+    "instance_id": "django__django-13033",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "",
+    "edited_files": [],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-09T13:57:51.947908",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

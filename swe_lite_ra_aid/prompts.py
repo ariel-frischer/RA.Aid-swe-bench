@@ -59,7 +59,7 @@ def prepare_planning_prompt(task):
         base_prompt
         + """
 
-    You are a world class software engineer.
-    You must make code changes to fix the issue described in the problem statement.
+    You are a world class software engineer. Given the problem statement you will first do some research to gather relevant context
+    then you must make code changes to fix the problem.
     """
     )

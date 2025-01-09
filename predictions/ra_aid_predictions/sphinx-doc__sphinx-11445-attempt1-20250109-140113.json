@@ -1,0 +1,14 @@
+{
+    "instance_id": "sphinx-doc__sphinx-11445",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 8d33409d5..7034ee32c 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -33,3 +33,4 @@ tests/build/\n utils/regression_test.js\n \n node_modules/\n+.aider*\ndiff --git a/sphinx/util/rst.py b/sphinx/util/rst.py\nindex 7a1538325..7a098e50a 100644\n--- a/sphinx/util/rst.py\n+++ b/sphinx/util/rst.py\n@@ -79,18 +79,23 @@ def prepend_prolog(content: StringList, prolog: str) -> None:\n     \"\"\"Prepend a string to content body as prolog.\"\"\"\n     if prolog:\n         pos = 0\n+        # Skip docinfo and any domain directive headings\n         for line in content:\n-            if docinfo_re.match(line):\n+            if docinfo_re.match(line) or line.strip().startswith((':mod:', ':class:', ':func:')):\n                 pos += 1\n             else:\n-                break\n+                # Check if this is a heading line (followed by section chars)\n+                if pos + 1 < len(content) and content[pos + 1].strip() in SECTIONING_CHARS:\n+                    pos += 2  # Skip heading and its underline\n+                else:\n+                    break\n \n         if pos > 0:\n-            # insert a blank line after docinfo\n+            # insert a blank line after docinfo/directives\n             content.insert(pos, '', '<generated>', 0)\n             pos += 1\n \n-        # insert prolog (after docinfo if exists)\n+        # insert prolog (after docinfo/directives if exists)\n         for lineno, line in enumerate(prolog.splitlines()):\n             content.insert(pos + lineno, line, '<rst_prolog>', lineno)\n \n\n",
+    "edited_files": [
+        ".gitignore",
+        "sphinx/util/rst.py"
+    ],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-09T14:01:13.276650",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}
