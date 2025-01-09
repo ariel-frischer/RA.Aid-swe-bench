@@ -142,10 +142,6 @@ def process_single_attempt(task, attempt, repo_manager):
         # Cleanup worktree
         repo_manager.cleanup_worktree(base_repo, worktree_path)
 
-        except Exception as e:
-            print(f"Error in process_single_attempt: {str(e)}")
-            raise
-
 
 def ra_aid_prediction(task, out_dname):
     """Process one task using RA-AID approach with retries and result tracking"""
