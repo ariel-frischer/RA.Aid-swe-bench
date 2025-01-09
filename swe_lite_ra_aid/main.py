@@ -21,6 +21,7 @@ MAX_THREADS = 1
 
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
 
+
 def print_task_info(task):
     """Print basic task information"""
     print(f"instance_id={task['instance_id']}")
@@ -37,18 +38,19 @@ def build_prompt(problem_statement: str, fail_tests: list, pass_tests: list) -> 
     if pass_tests:
         prompt += "Tests that must remain passing:\n```\n"
         for t in pass_tests:
-            prompt += f"- {t}\n" 
+            prompt += f"- {t}\n"
         prompt += "```\n\n"
     prompt += "\n\nYou must run all above tests both **before and after** making changes, and ensure they pass as you do your work. Do not write any new test cases."
     return prompt
+
 
 def prepare_base_prompt(task):
     """Prepare the common base prompt used by both agents"""
     fail_tests = json.loads(task["FAIL_TO_PASS"])
     pass_tests = json.loads(task["PASS_TO_PASS"])
-    
+
     problem_details = build_prompt(task["problem_statement"], fail_tests, pass_tests)
-    
+
     return f"""
     Repository: {task["repo"]}
 
@@ -66,23 +68,31 @@ def prepare_base_prompt(task):
     Additional Hints:
     {task.get("hints_text", "")}"""
 
+
 def prepare_research_prompt(task):
     """Prepare the prompt specifically for the research agent"""
     base_prompt = prepare_base_prompt(task)
-    return base_prompt + """
+    return (
+        base_prompt
+        + """
 
     You are a research assistant tasked with finding all relevant context and information needed to solve this issue.
     You must be comprehensive and thorough in gathering information about the codebase, related issues, and potential solutions.
     """
+    )
+
 
 def prepare_planning_prompt(task):
     """Prepare the prompt specifically for the planning agent"""
     base_prompt = prepare_base_prompt(task)
-    return base_prompt + """
+    return (
+        base_prompt
+        + """
 
     You are a world class software engineer.
     You must make code changes to fix the issue described in the problem statement.
     """
+    )
 
 
 def get_agent_config():
@@ -150,14 +160,14 @@ def process_single_attempt(task, attempt, git_tempdir):
             )
             print(f"research_result={research_result}")
 
-            planning_result = run_planning_agent(                                                     
-                base_task=planning_prompt,                                                       
-                model=model,                                                                          
-                expert_enabled=config["expert_enabled"],                                              
-                hil=config["hil"],                                                                    
-                config=config,                                                                        
-            )                                                                                         
-            print(f"planning_result={planning_result}") 
+            planning_result = run_planning_agent(
+                base_task=planning_prompt,
+                model=model,
+                expert_enabled=config["expert_enabled"],
+                hil=config["hil"],
+                config=config,
+            )
+            print(f"planning_result={planning_result}")
 
             print(diff_versus_commit(git_tempdir, task["base_commit"]))
 
