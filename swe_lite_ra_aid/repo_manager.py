@@ -38,7 +38,7 @@ class RepoManager:
         cache_path = self.cache_root / safe_name
         
         print(f"Converted to safe name: {safe_name}")
-        print(f"Full cache path: {cache_path}")
+        # print(f"Full cache path: {cache_path}")
         
         return cache_path
     
@@ -60,7 +60,7 @@ class RepoManager:
         print(f"Extracted repo name: {repo_name}")
         
         cache_path = self.get_cached_repo_path(repo_name)
-        print(f"Cache path resolved to: {cache_path}")
+        # print(f"Cache path resolved to: {cache_path}")
         
         # Ensure parent directories exist
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -79,7 +79,7 @@ class RepoManager:
                 from .venv_setup import setup_venv_and_deps
                 setup_venv_and_deps(cache_path, repo_name, force_venv=True)
             else:
-                print(f"Using cached repo at {cache_path}")
+                # print(f"Using cached repo at {cache_path}")
                 repo = Repo(cache_path)
                 
             return repo, cache_path
