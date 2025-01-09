@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from git import Repo
 import tempfile
-from typing import Optional, Tuple
+from typing import Tuple
 import logging
 
 class RepoManager:
@@ -92,10 +92,10 @@ class RepoManager:
             repo: Repository object
             worktree_path: Path to worktree to remove
         """
-        try:
-            repo.git.worktree('remove', str(worktree_path), force=True)
-        except Exception as e:
-            logging.error(f"Error removing worktree: {e}")
+        # try:
+        #     repo.git.worktree('remove', str(worktree_path), force=True)
+        # except Exception as e:
+        #     logging.error(f"Error removing worktree: {e}")
             
         try:
             shutil.rmtree(worktree_path)
