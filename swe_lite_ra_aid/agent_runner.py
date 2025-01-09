@@ -98,6 +98,8 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     cmd = [
         "ra-aid",
         "--cowboy-mode",
+        "--provider", "openrouter",
+        "--model", "deepseek/deepseek-chat",
         "-m", prompt
     ]
     
