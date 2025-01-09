@@ -184,18 +184,16 @@ def process_single_attempt(task, attempt, git_tempdir):
         os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
 
         try:
-            # research_result, planning_result = run_agents(
-            #     research_prompt, planning_prompt, model
-            # )
-
-            # Add all changes - otherwise diff doesnt work correctly
-            repo.git.add("-A")
-            model_patch = diff_versus_commit(git_tempdir, task["base_commit"])
+            # Run RA.Aid directly with planning prompt
+            model_patch = uv_run_raaid(git_tempdir_path, planning_prompt)
+            if not model_patch:
+                print("No changes made by RA.Aid")
+                return None, [], None
 
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
 
-            return model_patch, edited_files, research_result
+            return model_patch, edited_files, None  # No research result since we're not using run_agents
 
         except Exception as e:
             print(f"Error in process_single_attempt: {str(e)}")
