@@ -40,20 +40,42 @@ def update_winner_file(output_files: list, attempt_fname: Path, result_file: str
                       max_edited_files: int) -> tuple[str, int]:
     """
     Update winner file based on number of edited files and patch length.
+    Updates is_winner field in both current and previous winner files.
     Returns: (winner_file, max_edited_files)
     """
     output_files.append(attempt_fname)
     
+    new_winner = False
     if num_edited > max_edited_files:
         max_edited_files = num_edited
-        winner_file = result_file
+        new_winner = True
     elif num_edited == max_edited_files and winner_file:
         current_patch = result.get("model_patch", "")
         with open(winner_file) as f:
             winner_result = json.loads(f.read())
             winner_patch = winner_result.get("model_patch", "")
         if len(current_patch) > len(winner_patch):
-            winner_file = result_file
+            new_winner = True
+    
+    if new_winner:
+        # Unset previous winner if it exists
+        if winner_file:
+            with open(winner_file) as f:
+                prev_winner = json.loads(f.read())
+            prev_winner["is_winner"] = False
+            with open(winner_file, 'w') as f:
+                json.dump(prev_winner, f, indent=4)
+        
+        # Set new winner
+        result["is_winner"] = True
+        with open(result_file, 'w') as f:
+            json.dump(result, f, indent=4)
+        winner_file = result_file
+    else:
+        # Ensure current file is marked as not winner
+        result["is_winner"] = False
+        with open(result_file, 'w') as f:
+            json.dump(result, f, indent=4)
             
     return winner_file, max_edited_files
 

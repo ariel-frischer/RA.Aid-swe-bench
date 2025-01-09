@@ -153,4 +153,5 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": RA_AID_FULL_MODEL,
         "ra_aid_editor": RA_AID_FULL_MODEL,
+        "is_winner": False,  # Default to False, will be updated by winner selection logic
     }
