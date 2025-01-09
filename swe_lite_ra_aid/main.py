@@ -204,7 +204,7 @@ def ra_aid_prediction(task, out_dname):
     }
 
 
-def process_task(task, out_dname):
+def process_task(task, out_dname, repo_manager):
     """Process one task with proper error handling and result tracking"""
     if isinstance(task, str):
         try:
@@ -270,9 +270,9 @@ def generate_predictions(dataset, out_dname, repo_manager):
         for task in remaining_instances:
             try:
                 if MAX_THREADS > 1:
-                    scatter(task)
+                    scatter(task)  # For parallel processing
                 else:
-                    scatter(task)
+                    process_task(task, out_dname, repo_manager)  # Direct call for single thread
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
