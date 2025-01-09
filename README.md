@@ -53,15 +53,48 @@ This will run the evaluation pipeline and generate a detailed report of model pe
 ### Available Make Commands
 
 ```bash
-make install      # Install project dependencies using Poetry
-make run         # Run the main prediction script
-make test        # Run tests using pytest
-make clean       # Remove Python cache files and predictions
-make format      # Format code using black
-make clean-repos # Clean up cloned repositories
-make add-model-name # Add model metadata to predictions
-make evaluate    # Run evaluation and generate report
+make install          # Install project dependencies using Poetry
+make run             # Run the main prediction script
+make test            # Run tests using pytest
+make clean           # Remove Python cache files and predictions
+make format          # Format code using black
+make clean-repos     # Clean up cloned repositories
+make clean-predictions # Remove all prediction files (with confirmation)
+make add-model-name  # Add model metadata to predictions
+make evaluate        # Run evaluation and generate report
+make check          # Run ruff linter with auto-fix
+make aider          # Run aider in the current directory
 ```
+
+### Repository Management
+
+The project uses a `RepoManager` class to efficiently handle repository operations:
+
+1. **Repository Caching**:
+   - Base repositories are cached in the `repos/` directory
+   - Each repository is cloned once and reused across multiple attempts
+   - Dependencies are installed in a virtual environment within the cached repo
+   - Format: `repos/owner__repo/` (e.g., `repos/django__django/`)
+
+2. **Worktree System**:
+   - For each attempt, a new git worktree is created from the cached repo
+   - Worktrees share the same .venv through symlinks to save space and setup time
+   - Each worktree gets a unique name: `worktree-{commit}-{random}`
+   - Worktrees are automatically cleaned up after each attempt
+
+3. **Dependency Management**:
+   - Uses `uv` for fast Python package installation
+   - Virtual environments are created once per cached repo
+   - Handles various dependency files:
+     - pyproject.toml
+     - requirements.txt
+     - requirements-dev.txt
+     - setup.py
+
+This system significantly reduces disk usage and speeds up multiple attempts by:
+- Avoiding repeated cloning of repositories
+- Reusing installed dependencies
+- Sharing virtual environments across attempts
 
 ## Problems/Improvements
 * RA.Aid does get stuck often, multiple different errors.
