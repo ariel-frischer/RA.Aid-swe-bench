@@ -65,9 +65,12 @@ class RepoManager:
         
         try:
             if not cache_path.exists():
+                # Create directory before cloning
+                cache_path.mkdir(parents=True, exist_ok=True)
+                
                 # Clone fresh repo
                 print(f"Cloning {repo_url} to cache at {cache_path}")
-                repo = Repo.clone_from(repo_url, cache_path)
+                repo = Repo.clone_from(repo_url, str(cache_path))  # Convert Path to str for git
                 repo.git.checkout(setup_commit)
                 
                 # Setup virtual environment in cached repo
