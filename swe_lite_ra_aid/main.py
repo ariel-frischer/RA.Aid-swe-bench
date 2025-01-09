@@ -182,17 +182,10 @@ def ra_aid_prediction(task, out_dname, repo_manager):
 
                 success, result_file, num_edited = handle_result_file(attempt_fname, result)
                 if success:
-                    output_files.append(attempt_fname)
-                    if num_edited > max_edited_files:
-                        max_edited_files = num_edited
-                        winner_file = result_file
-                    elif num_edited == max_edited_files and winner_file:
-                        current_patch = result.get("model_patch", "")
-                        with open(winner_file) as f:
-                            winner_result = json.loads(f.read())
-                            winner_patch = winner_result.get("model_patch", "")
-                        if len(current_patch) > len(winner_patch):
-                            winner_file = result_file
+                    winner_file, max_edited_files = update_winner_file(
+                        output_files, attempt_fname, result_file, 
+                        num_edited, result, winner_file, max_edited_files
+                    )
 
                 if model_patch:
                     break

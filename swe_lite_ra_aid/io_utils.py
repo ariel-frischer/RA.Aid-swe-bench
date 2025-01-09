@@ -35,6 +35,28 @@ def handle_result_file(out_fname: Path, content: dict) -> tuple[bool, Optional[s
         print(f"Error writing to {out_fname}: {str(e)}")
         return False, None, 0
 
+def update_winner_file(output_files: list, attempt_fname: Path, result_file: str, 
+                      num_edited: int, result: dict, winner_file: Optional[str], 
+                      max_edited_files: int) -> tuple[str, int]:
+    """
+    Update winner file based on number of edited files and patch length.
+    Returns: (winner_file, max_edited_files)
+    """
+    output_files.append(attempt_fname)
+    
+    if num_edited > max_edited_files:
+        max_edited_files = num_edited
+        winner_file = result_file
+    elif num_edited == max_edited_files and winner_file:
+        current_patch = result.get("model_patch", "")
+        with open(winner_file) as f:
+            winner_result = json.loads(f.read())
+            winner_patch = winner_result.get("model_patch", "")
+        if len(current_patch) > len(winner_patch):
+            winner_file = result_file
+            
+    return winner_file, max_edited_files
+
 
 def setup_directories(out_dname: Path, repos_dname: Path) -> None:
     """Create necessary directories for predictions and repos."""
