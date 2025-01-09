@@ -9,11 +9,7 @@ def get_git_patch(repo_dir: Path) -> Optional[str]:
     """Get the current git diff as a patch string."""
     try:
         result = subprocess.run(
-            ["git", "diff"],
-            cwd=repo_dir,
-            capture_output=True,
-            text=True,
-            check=True
+            ["git", "diff"], cwd=repo_dir, capture_output=True, text=True, check=True
         )
         return result.stdout if result.stdout else None
     except subprocess.CalledProcessError:
@@ -21,10 +17,10 @@ def get_git_patch(repo_dir: Path) -> Optional[str]:
         return None
 
 
-
 def diff_versus_commit(git_dname, commit) -> str:
     repo = Repo(git_dname)
     return repo.git.diff(commit)
+
 
 def files_in_patch(patch):
     files = []

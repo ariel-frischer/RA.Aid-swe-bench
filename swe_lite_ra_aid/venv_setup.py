@@ -3,6 +3,7 @@
 import logging
 import subprocess
 from pathlib import Path
+from typing import List
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""

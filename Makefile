@@ -1,4 +1,4 @@
-.PHONY: install run test clean format help clean-repos
+.PHONY: install run test clean format help clean-repos aider
 
 help:
 	@echo "Available commands:"
@@ -43,4 +43,4 @@ evaluate:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 
 aider:
-	poetry run aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
+	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint

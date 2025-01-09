@@ -98,7 +98,6 @@ def print_task_info(task):
     print(f"problem_statement={task['problem_statement']}")
 
 
-
 def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
     git_tempdir_path = Path(git_tempdir)
@@ -128,7 +127,11 @@ def process_single_attempt(task, attempt, git_tempdir):
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
 
-            return model_patch, edited_files, None  # No research result since we're not using run_agents
+            return (
+                model_patch,
+                edited_files,
+                None,
+            )  # No research result since we're not using run_agents
 
         except Exception as e:
             print(f"Error in process_single_attempt: {str(e)}")

@@ -6,6 +6,14 @@ A lightweight version of SWE Bench focused on the RA-AID agent.
 
 Streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
 Many of the files in this repo have been modified from the source: https://github.com/Aider-AI/aider-swe-bench
+[Read more about swebench here.](https://www.swebench.com/)
+
+## Requirements
+
+- Python >=3.9, <3.13
+- Poetry for dependency management
+- RA-AID ^0.12.0
+- uv for fast dependency installation for each attempt
 
 ## Installation
 
@@ -18,11 +26,6 @@ cd swe-lite-ra-aid
 poetry install
 ```
 
-## Requirements
-
-- Python >=3.9, <3.13
-- Poetry for dependency management
-- RA-AID ^0.12.0
 
 ## Usage
 
@@ -66,19 +69,18 @@ make evaluate    # Run evaluation and generate report
   * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
   * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
   * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
-* RA.Aid seems to not make any code changes often but complete all its tasks.
-  For example the research agent does one research task and is done? Prompt engineering or
-  model changes can hopefully improve this.
-* Need a cheaper model unless your willing to break the bank. I'm using deepseek/deepseek-chat for now.
-* Aider repomap will regenerate a repomap for each attempt, does not seem optimal.
-* Need to extract and pass the correct `test_cmd` and `lint_cmd` to aider when make code changes.
-* Need to modify `pick_winner` method for RA.Aid, `choose_predictions` doesnt work well without it.
+* Aider repomap will regenerate a repomap for each attempt, not optimal.
+* Would be nice to be ablee to extract and pass `test_cmd` and `lint_cmd` to aider when make code changes.
+* Need to modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
 * Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
 * Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
+* We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
+* This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 
 ## Dataset Structure
-Data Instances
 
+### SWE-bench_Lite
+https://huggingface.co/datasets/princeton-nlp/
 ```
 An example of a SWE-bench datum is as follows:
 instance_id: (str) - A formatted instance identifier, usually as repo_owner__repo_name-PR-number.
