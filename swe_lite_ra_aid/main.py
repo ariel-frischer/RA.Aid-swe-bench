@@ -183,9 +183,18 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 if write_result_file(attempt_fname, result):
                     output_files.append(attempt_fname)
                     # Track the file with most edits as the winner
+                    # If equal number of edited files, choose the one with longer patch
                     if len(edited_files) > max_edited_files:
                         max_edited_files = len(edited_files)
                         winner_file = attempt_fname
+                    elif len(edited_files) == max_edited_files and winner_file:
+                        # Load both results to compare patch lengths
+                        current_patch = result.get("model_patch", "")
+                        with open(winner_file) as f:
+                            winner_result = json.loads(f.read())
+                            winner_patch = winner_result.get("model_patch", "")
+                        if len(current_patch) > len(winner_patch):
+                            winner_file = attempt_fname
 
                 if model_patch:
                     break
