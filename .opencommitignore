@@ -1,0 +1,41 @@
+# Prediction files
+predictions/**/*.json
+predictions/**/*.jsonl
+predictions/ra_aid_predictions/
+predictions/ra_aid_selected_predictions/
+predictions/old/
+
+# Test files
+**/tests/
+**/test_*.py
+swe_lite_ra_aid/tests.py
+
+# Temporary and cache directories
+**/tmp/
+**/.tmp/
+**/__pycache__/
+**/.pytest_cache/
+**/.coverage
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Virtual environments
+**/.venv/
+**/venv/
+
+# Repository cache
+repos/
+
+# Build artifacts
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.so
+**/*.egg
+**/*.egg-info/
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
