@@ -96,7 +96,7 @@ def print_task_info(task):
     """Print basic task information"""
     print(f"instance_id={task['instance_id']}")
     print(f"base_commit={task['base_commit']}")
-    print(f"problem_statement={task['problem_statement']}")
+    # print(f"problem_statement={task['problem_statement']}")
 
 
 def process_single_attempt(task, attempt, repo_manager):
@@ -104,12 +104,10 @@ def process_single_attempt(task, attempt, repo_manager):
     github_url = "https://github.com/"
     repo_url = github_url + task["repo"]
 
-    # Get/setup cached base repo
     base_repo, cache_path = repo_manager.ensure_base_repo(
         repo_url, task["environment_setup_commit"]
     )
 
-    # Create worktree for this attempt
     worktree_path, venv_path = repo_manager.create_worktree(
         base_repo, task["base_commit"]
     )
@@ -117,13 +115,12 @@ def process_single_attempt(task, attempt, repo_manager):
     print(f"Using worktree at: {worktree_path}")
 
     try:
-        # Use context manager for directory changes
         with change_directory(worktree_path):
             planning_prompt = prepare_planning_prompt(task)
             os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
 
-            # Run RA.Aid
             model_patch = uv_run_raaid(worktree_path, planning_prompt)
+
             if not model_patch:
                 print("No changes made by RA.Aid")
                 return None, [], None
@@ -272,7 +269,9 @@ def generate_predictions(dataset, out_dname, repo_manager):
                 if MAX_THREADS > 1:
                     scatter(task)  # For parallel processing
                 else:
-                    process_task(task, out_dname, repo_manager)  # Direct call for single thread
+                    process_task(
+                        task, out_dname, repo_manager
+                    )  # Direct call for single thread
             except KeyboardInterrupt:
                 print("\nInterrupted by user. Cleaning up...")
                 raise
