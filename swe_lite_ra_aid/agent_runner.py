@@ -22,7 +22,11 @@ def get_agent_config():
     }
 
 def run_agents(research_prompt, planning_prompt, model):
-    """Run both research and planning agents with the given prompts."""
+    """Run both research and planning agents with the given prompts.
+    
+    DEPRECATED: cowboy_mode config is not working properly for planner agent.
+    Use uv_run_raaid() instead.
+    """
     config = get_agent_config()
     
     # Run research agent
