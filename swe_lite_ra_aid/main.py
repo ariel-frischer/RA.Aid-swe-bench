@@ -99,28 +99,33 @@ def print_task_info(task):
     print(f"problem_statement={task['problem_statement']}")
 
 
-def process_single_attempt(task, attempt, git_tempdir):
+def process_single_attempt(task, attempt, repo_manager):
     """Process a single attempt at solving the task"""
-    git_tempdir_path = Path(git_tempdir)
-    print(f"Using temporary directory: {git_tempdir_path.absolute()}")
+    github_url = "https://github.com/"
+    repo_url = github_url + task["repo"]
+    
+    # Get/setup cached base repo
+    base_repo, cache_path = repo_manager.ensure_base_repo(
+        repo_url,
+        task["environment_setup_commit"]
+    )
+    
+    # Create worktree for this attempt
+    worktree_path, venv_path = repo_manager.create_worktree(
+        base_repo, 
+        task["base_commit"]
+    )
+    
+    print(f"Using worktree at: {worktree_path}")
+    
+    try:
+        # Use context manager for directory changes
+        with change_directory(worktree_path):
+            planning_prompt = prepare_planning_prompt(task)
+            os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
 
-    # Clone repository at environment setup commit
-    repo = checkout_repo(git_tempdir, task)
-
-    # research_prompt = prepare_research_prompt(task)
-    planning_prompt = prepare_planning_prompt(task)
-
-    # Use context manager for directory changes
-    with change_directory(git_tempdir_path):
-        # Setup virtual environment and dependencies
-        setup_venv_and_deps(Path.cwd(), task["repo"], force_venv=False)
-        print(f"Switching to base commit {task['base_commit']}")
-        repo.git.checkout(task["base_commit"])
-        os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
-
-        try:
-            # Run RA.Aid directly with planning prompt
-            model_patch = uv_run_raaid(git_tempdir_path, planning_prompt)
+            # Run RA.Aid
+            model_patch = uv_run_raaid(worktree_path, planning_prompt)
             if not model_patch:
                 print("No changes made by RA.Aid")
                 return None, [], None
@@ -128,11 +133,14 @@ def process_single_attempt(task, attempt, git_tempdir):
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
 
-            return (
-                model_patch,
-                edited_files,
-                None,
-            )  # No research result since we're not using run_agents
+            return model_patch, edited_files, None
+
+    except Exception as e:
+        print(f"Error in process_single_attempt: {str(e)}")
+        raise
+    finally:
+        # Cleanup worktree
+        repo_manager.cleanup_worktree(base_repo, worktree_path)
 
         except Exception as e:
             print(f"Error in process_single_attempt: {str(e)}")
