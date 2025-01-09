@@ -101,7 +101,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
         "-m", prompt
     ]
     
-    print(f"Full command: {' '.join(cmd)}")
+    # print(f"Full command: {' '.join(cmd)}")
     
     # We are NOT capturing output, so it streams live:
     try:
