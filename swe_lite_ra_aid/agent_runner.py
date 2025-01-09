@@ -16,7 +16,7 @@ def get_agent_config():
         "hil": False,
         "web_research_enabled": True,
         "configurable": {"thread_id": str(uuid.uuid4())},
-        "recursion_limit": 50,
+        "recursion_limit": 100,
         "research_only": True,
         "cowboy_mode": True,
     }
