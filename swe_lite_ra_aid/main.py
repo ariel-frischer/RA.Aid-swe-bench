@@ -19,9 +19,7 @@ PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
-# Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
-
 
 def print_task_info(task):
     """Print basic task information"""
@@ -238,11 +236,6 @@ def process_task(task, out_dname):
     print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
 
     try:
-        # Create timestamped filename
-        # instance_id = task["instance_id"]
-        # timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-
-        # Run prediction with retries and temp dirs
         result = ra_aid_prediction(task, out_dname)
         return {
             "instance_id": task["instance_id"],
@@ -294,13 +287,11 @@ def generate_predictions(dataset, out_dname):
     gather = None
 
     if MAX_THREADS > 1:
-        # Rebind process_task to use `threads` concurrency
         process_task_lox = lox.process(MAX_THREADS)(process_task)
         scatter = process_task_lox.scatter
         gather = process_task_lox.gather
 
     try:
-        # Process remaining tasks
         for task in remaining_instances:
             try:
                 if MAX_THREADS > 1:
