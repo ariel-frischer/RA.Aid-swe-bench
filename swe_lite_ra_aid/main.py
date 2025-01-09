@@ -293,11 +293,14 @@ def generate_predictions(dataset, out_dname, repo_manager):
 
 def main():
     try:
+        # Store project root directory
+        project_root = Path(__file__).resolve().parent.parent
+        
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
-        out_dname = PREDS_DNAME / "ra_aid_predictions"
+        out_dname = project_root / PREDS_DNAME / "ra_aid_predictions"
 
-        # Initialize repo manager
-        repo_manager = RepoManager(REPOS_DNAME)
+        # Initialize repo manager with project root
+        repo_manager = RepoManager(project_root / REPOS_DNAME)
 
         # Update generate_predictions to pass repo_manager
         generate_predictions(dataset, out_dname, repo_manager)

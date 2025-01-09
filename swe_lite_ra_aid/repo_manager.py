@@ -14,9 +14,11 @@ class RepoManager:
         Initialize RepoManager with root directory for cached repos.
         
         Args:
-            cache_root: Root directory where cached repositories will be stored
+            cache_root: Root directory where cached repositories will be stored.
+                       Should be an absolute path to project_root/repos/
         """
-        self.cache_root = Path(cache_root)
+        self.cache_root = Path(cache_root).resolve()
+        print(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
         
     def get_cached_repo_path(self, repo_name: str) -> Path:
