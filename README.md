@@ -11,8 +11,8 @@ Many of the files in this repo have been modified from the source: https://githu
 ## Requirements
 
 - Python >=3.9, <3.13
-- Poetry for dependency management
-- RA-AID ^0.12.0
+- Poetry for this project's dependency management
+- RA-AID ^0.12.0 (must have `ra-aid` cli path working in the running shell)
 - uv for fast dependency installation for each attempt
 
 ## Installation
@@ -102,6 +102,11 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
   * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
   * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
   * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
+* Logging setup needed.
+* We don't automate `test_cmd` or run more attempts based on it. If we automate
+  this, we will have an indicator to run more attempts and get improved winner
+  attempt selection.
+* Winner attempt should be selected based on a hierchy. The attempt with the most passing tests should win.
 * Aider repomap will regenerate a repomap for each attempt, not optimal.
 * Would be nice to be ablee to extract and pass `test_cmd` and `lint_cmd` to aider when make code changes.
 * Need to modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
@@ -109,6 +114,7 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
 * Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
 * We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
+* Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
 
 ## Dataset Structure
 
