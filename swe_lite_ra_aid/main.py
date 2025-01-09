@@ -213,10 +213,9 @@ def process_single_attempt(task, attempt, git_tempdir):
     with change_directory(git_tempdir_path):
         # Setup virtual environment and dependencies
         setup_venv_and_deps(Path.cwd(), task["repo"], force_venv=False)
-        
-        # Switch to base commit for the actual task
         print(f"Switching to base commit {task['base_commit']}")
         repo.git.checkout(task['base_commit'])
+
         try:
             research_result = run_research_agent(
                 base_task_or_query=research_prompt,
@@ -237,8 +236,6 @@ def process_single_attempt(task, attempt, git_tempdir):
                 config=config,
             )
             print(f"planning_result={planning_result}")
-
-            print(diff_versus_commit(git_tempdir, task["base_commit"]))
 
             # Add all changes - otherwise diff doesnt work correctly
             repo.git.add("-A")
@@ -289,9 +286,7 @@ def ra_aid_prediction(task, out_dname):
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
                 print(f"Created temporary directory: {git_tempdir}")
-                # Ensure the directory exists
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
-                print(f"Directory exists: {Path(git_tempdir).exists()}")
 
                 model_patch, edited_files, research_result = process_single_attempt(
                     task, attempt, str(Path(git_tempdir).absolute())
