@@ -201,23 +201,6 @@ def process_single_attempt(task, attempt, git_tempdir):
             raise
 
 
-def write_result_file(out_fname, content):
-    """Write JSON content to file with error handling and verification"""
-    json_content = json.dumps(content, indent=4)
-    print(f"Writing to {out_fname} with content length: {len(json_content)}")
-
-    try:
-        out_fname.write_text(json_content)
-        if out_fname.exists():
-            print(f"Successfully wrote to {out_fname}")
-            print(f"File size: {out_fname.stat().st_size} bytes")
-            return True
-        else:
-            print(f"ERROR: File {out_fname} does not exist after write attempt!")
-            return False
-    except Exception as e:
-        print(f"Error writing to {out_fname}: {str(e)}")
-        return False
 
 
 def ra_aid_prediction(task, out_dname):
@@ -306,10 +289,6 @@ def process_task(task, out_dname):
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
 
 
-def setup_directories(out_dname):
-    """Create necessary directories for predictions and repos"""
-    out_dname.mkdir(exist_ok=True)
-    REPOS_DNAME.mkdir(exist_ok=True)
 
 
 def get_completed_instances(out_dname):
