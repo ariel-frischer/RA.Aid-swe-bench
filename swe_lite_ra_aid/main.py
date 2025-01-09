@@ -14,13 +14,14 @@ from swe_lite_ra_aid.utils import load_predictions
 from typing import List
 from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
-from ra_aid.agent_utils import run_planning_agent, run_research_agent
-from ra_aid.llm import initialize_llm
+from .agent_runner import initialize_model, run_agents, create_result_dict
 
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
+
+model = initialize_model()
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -81,9 +82,6 @@ def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> Non
     if pyproject_path.is_file() or setup_path.is_file():
         logging.info("Installing cloned project in editable mode.")
         uv_pip_install(repo_dir, ["-e", "."])
-
-model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
-
 
 def print_task_info(task):
     """Print basic task information"""
@@ -158,33 +156,6 @@ def prepare_planning_prompt(task):
     )
 
 
-def get_agent_config():
-    """Get configuration for research agent"""
-    return {
-        "expert_enabled": False,
-        "hil": False,
-        "web_research_enabled": True,
-        "configurable": {"thread_id": str(uuid.uuid4())},
-        "recursion_limit": 50,
-        "research_only": True,
-        "cowboy_mode": True,
-    }
-
-
-def create_result_dict(task, model_patch, edited_files, research_result, attempt):
-    """Create standardized result dictionary"""
-    return {
-        "instance_id": task["instance_id"],
-        "model_name_or_path": "ra-aid-model",
-        "model_patch": model_patch + "\n" if model_patch else "",
-        "edited_files": edited_files,
-        "research": research_result,
-        "attempt": attempt,
-        "timestamp": datetime.now().isoformat(),
-        "ra_aid_model": "openrouter/deepseek/deepseek-chat",
-        "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
-    }
-
 
 @contextmanager
 def change_directory(path):
@@ -217,25 +188,7 @@ def process_single_attempt(task, attempt, git_tempdir):
         repo.git.checkout(task['base_commit'])
 
         try:
-            research_result = run_research_agent(
-                base_task_or_query=research_prompt,
-                model=model,
-                expert_enabled=config["expert_enabled"],
-                research_only=config["research_only"],
-                hil=config["hil"],
-                web_research_enabled=config["web_research_enabled"],
-                config=config,
-            )
-            print(f"research_result={research_result}")
-
-            planning_result = run_planning_agent(
-                base_task=planning_prompt,
-                model=model,
-                expert_enabled=config["expert_enabled"],
-                hil=config["hil"],
-                config=config,
-            )
-            print(f"planning_result={planning_result}")
+            research_result, planning_result = run_agents(research_prompt, planning_prompt, model)
 
             # Add all changes - otherwise diff doesnt work correctly
             repo.git.add("-A")
