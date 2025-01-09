@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
+from typing import Optional
 
 
 def write_result_file(out_fname: Path, content: dict) -> bool:
@@ -28,8 +29,6 @@ def handle_result_file(out_fname: Path, content: dict) -> tuple[bool, Optional[s
         print(f"File size: {out_fname.stat().st_size} bytes")
         
         edited_files = content.get("edited_files", [])
-        model_patch = content.get("model_patch", "")
-        
         return True, str(out_fname), len(edited_files)
         
     except Exception as e:
