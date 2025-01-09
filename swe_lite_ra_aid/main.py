@@ -1,3 +1,5 @@
+import json
+import os
 import random
 from datetime import datetime
 import lox
@@ -10,7 +12,12 @@ from swe_lite_ra_aid.utils import load_predictions
 from typing import List
 from .git import diff_versus_commit, files_in_patch, checkout_repo
 from datasets import load_dataset
-from .agent_runner import initialize_model, run_agents, create_result_dict
+from .agent_runner import (
+    initialize_model,
+    run_agents,
+    create_result_dict,
+    uv_run_raaid,
+)
 from .io_utils import write_result_file, setup_directories, change_directory
 
 REPOS_DNAME = Path("repos")
@@ -19,6 +26,7 @@ MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
 model = initialize_model()
+
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -30,10 +38,12 @@ def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     cmd = ["uv", "venv", ".venv"]
     subprocess.run(cmd, cwd=repo_dir, check=True)
 
+
 def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     """Run uv pip install with given arguments."""
     cmd = ["uv", "pip", "install"] + args
     subprocess.run(cmd, cwd=repo_dir, check=True)
+
 
 def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> None:
     """
@@ -79,6 +89,7 @@ def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> Non
     if pyproject_path.is_file() or setup_path.is_file():
         logging.info("Installing cloned project in editable mode.")
         uv_pip_install(repo_dir, ["-e", "."])
+
 
 def print_task_info(task):
     """Print basic task information"""
@@ -153,18 +164,6 @@ def prepare_planning_prompt(task):
     )
 
 
-
-@contextmanager
-def change_directory(path):
-    """Context manager for changing directory"""
-    original_cwd = Path.cwd()
-    try:
-        os.chdir(path)
-        yield
-    finally:
-        os.chdir(original_cwd)
-
-
 def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
     git_tempdir_path = Path(git_tempdir)
@@ -172,8 +171,7 @@ def process_single_attempt(task, attempt, git_tempdir):
 
     # Clone repository at environment setup commit
     repo = checkout_repo(git_tempdir, task)
-    
-    config = get_agent_config()
+
     research_prompt = prepare_research_prompt(task)
     planning_prompt = prepare_planning_prompt(task)
 
@@ -182,10 +180,13 @@ def process_single_attempt(task, attempt, git_tempdir):
         # Setup virtual environment and dependencies
         setup_venv_and_deps(Path.cwd(), task["repo"], force_venv=False)
         print(f"Switching to base commit {task['base_commit']}")
-        repo.git.checkout(task['base_commit'])
+        repo.git.checkout(task["base_commit"])
+        os.environ["AIDER_MODEL"] = "openrouter/deepseek/deepseek-chat"
 
         try:
-            research_result, planning_result = run_agents(research_prompt, planning_prompt, model)
+            # research_result, planning_result = run_agents(
+            #     research_prompt, planning_prompt, model
+            # )
 
             # Add all changes - otherwise diff doesnt work correctly
             repo.git.add("-A")
@@ -199,8 +200,6 @@ def process_single_attempt(task, attempt, git_tempdir):
         except Exception as e:
             print(f"Error in process_single_attempt: {str(e)}")
             raise
-
-
 
 
 def ra_aid_prediction(task, out_dname):
@@ -287,8 +286,6 @@ def process_task(task, out_dname):
     except Exception as e:
         print(f"Error processing task {task.get('instance_id')}: {str(e)}")
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
-
-
 
 
 def get_completed_instances(out_dname):
