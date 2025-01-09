@@ -24,7 +24,7 @@ def checkout_repo_url_commit(git_tempdir, repo_url, commit):
 def checkout_repo(git_tempdir, entry):
     github_url = "https://github.com/"
     repo_url = github_url + entry["repo"]
-    commit = entry["base_commit"]
+    setup_commit = entry["environment_setup_commit"]
 
-    print(f"Cloning {repo_url} at commit {commit}")
-    return checkout_repo_url_commit(git_tempdir, repo_url, commit)
+    print(f"Cloning {repo_url} at environment setup commit {setup_commit}")
+    return checkout_repo_url_commit(git_tempdir, repo_url, setup_commit)

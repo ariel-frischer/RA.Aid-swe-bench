@@ -202,11 +202,15 @@ def process_single_attempt(task, attempt, git_tempdir):
     git_tempdir_path = Path(git_tempdir)
     print(f"Using temporary directory: {git_tempdir_path.absolute()}")
 
-    # Clone repository first
+    # Clone repository at environment setup commit
     repo = checkout_repo(git_tempdir, task)
     
     # Setup virtual environment and dependencies
     setup_venv_and_deps(Path(git_tempdir), task["repo"], force_venv=False)
+    
+    # Switch to base commit for the actual task
+    print(f"Switching to base commit {task['base_commit']}")
+    repo.git.checkout(task['base_commit'])
 
     config = get_agent_config()
     research_prompt = prepare_research_prompt(task)
