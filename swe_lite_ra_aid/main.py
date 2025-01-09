@@ -42,9 +42,36 @@ def build_prompt(problem_statement: str, fail_tests: list, pass_tests: list) -> 
     prompt += "\n\nYou must run all above tests both **before and after** making changes, and ensure they pass as you do your work. Do not write any new test cases."
     return prompt
 
-def prepare_prompt(task):
-    """Prepare the full prompt for the research agent"""
-    # Parse the JSON strings into lists
+def prepare_research_prompt(task):
+    """Prepare the prompt specifically for the research agent"""
+    fail_tests = json.loads(task["FAIL_TO_PASS"])
+    pass_tests = json.loads(task["PASS_TO_PASS"])
+    
+    problem_details = build_prompt(task["problem_statement"], fail_tests, pass_tests)
+    
+    return f"""
+    Repository: {task["repo"]}
+
+    Base Commit: {task["base_commit"]}
+    Code Changes (Patch):
+    {task["patch"]}
+
+    Test Changes:
+    {task["test_patch"]}
+
+    <Problem Statement and Tests>:
+    {problem_details}
+    </Problem Statement and Tests>
+
+    Additional Hints:
+    {task.get("hints_text", "")}
+
+    You are a research assistant tasked with finding all relevant context and information needed to solve this issue.
+    You must be comprehensive and thorough in gathering information about the codebase, related issues, and potential solutions.
+    """
+
+def prepare_planning_prompt(task):
+    """Prepare the prompt specifically for the planning agent"""
     fail_tests = json.loads(task["FAIL_TO_PASS"])
     pass_tests = json.loads(task["PASS_TO_PASS"])
     
@@ -120,13 +147,14 @@ def process_single_attempt(task, attempt, git_tempdir):
     repo = checkout_repo(git_tempdir, task)
 
     config = get_agent_config()
-    full_prompt = prepare_prompt(task)
+    research_prompt = prepare_research_prompt(task)
+    planning_prompt = prepare_planning_prompt(task)
 
     # Use context manager for directory changes
     with change_directory(git_tempdir_path):
         try:
             research_result = run_research_agent(
-                base_task_or_query=full_prompt,
+                base_task_or_query=research_prompt,
                 model=model,
                 expert_enabled=config["expert_enabled"],
                 research_only=config["research_only"],
@@ -137,7 +165,7 @@ def process_single_attempt(task, attempt, git_tempdir):
             print(f"research_result={research_result}")
 
             planning_result = run_planning_agent(                                                     
-                base_task=full_prompt,                                                       
+                base_task=planning_prompt,                                                       
                 model=model,                                                                          
                 expert_enabled=config["expert_enabled"],                                              
                 hil=config["hil"],                                                                    
