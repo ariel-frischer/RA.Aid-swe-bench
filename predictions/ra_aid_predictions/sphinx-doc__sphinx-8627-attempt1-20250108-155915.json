@@ -1,0 +1,15 @@
+{
+    "instance_id": "sphinx-doc__sphinx-8627",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 8d33409d5..7034ee32c 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -33,3 +33,4 @@ tests/build/\n utils/regression_test.js\n \n node_modules/\n+.aider*\ndiff --git a/sphinx/util/typing.py b/sphinx/util/typing.py\nindex 2d4f67bba..f295eee04 100644\n--- a/sphinx/util/typing.py\n+++ b/sphinx/util/typing.py\n@@ -89,11 +89,14 @@ def is_system_TypeVar(typ: Any) -> bool:\n def restify(cls: Optional[\"Type\"]) -> str:\n     \"\"\"Convert python class to a reST reference.\"\"\"\n     from sphinx.util import inspect  # lazy loading\n+    import struct\n \n     if cls is None or cls is NoneType:\n         return ':obj:`None`'\n     elif cls is Ellipsis:\n         return '...'\n+    elif cls is struct.Struct:\n+        return ':class:`struct.Struct`'\n     elif inspect.isNewType(cls):\n         return ':class:`%s`' % cls.__name__\n     elif cls.__module__ in ('__builtin__', 'builtins'):\n@@ -284,8 +287,11 @@ def _restify_py36(cls: Optional[\"Type\"]) -> str:\n def stringify(annotation: Any) -> str:\n     \"\"\"Stringify type annotation object.\"\"\"\n     from sphinx.util import inspect  # lazy loading\n+    import struct\n \n-    if isinstance(annotation, str):\n+    if annotation is struct.Struct:\n+        return 'struct.Struct'\n+    elif isinstance(annotation, str):\n         if annotation.startswith(\"'\") and annotation.endswith(\"'\"):\n             # might be a double Forward-ref'ed type.  Go unquoting.\n             return annotation[1:-1]\ndiff --git a/tests/test_util_typing.py b/tests/test_util_typing.py\nindex a2565f1e1..3b9f14ccd 100644\n--- a/tests/test_util_typing.py\n+++ b/tests/test_util_typing.py\n@@ -39,11 +39,13 @@ class BrokenType:\n \n \n def test_restify():\n+    import struct\n     assert restify(int) == \":class:`int`\"\n     assert restify(str) == \":class:`str`\"\n     assert restify(None) == \":obj:`None`\"\n     assert restify(Integral) == \":class:`numbers.Integral`\"\n     assert restify(Any) == \":obj:`Any`\"\n+    assert restify(struct.Struct) == \":class:`struct.Struct`\"\n \n \n def test_restify_type_hints_containers():\n@@ -120,11 +122,13 @@ def test_restify_broken_type_hints():\n \n \n def test_stringify():\n+    import struct\n     assert stringify(int) == \"int\"\n     assert stringify(str) == \"str\"\n     assert stringify(None) == \"None\"\n     assert stringify(Integral) == \"numbers.Integral\"\n     assert stringify(Any) == \"Any\"\n+    assert stringify(struct.Struct) == \"struct.Struct\"\n \n \n def test_stringify_type_hints_containers():\n",
+    "edited_files": [
+        ".gitignore",
+        "sphinx/util/typing.py",
+        "tests/test_util_typing.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 1,
+    "timestamp": "2025-01-08T15:59:15.399207",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

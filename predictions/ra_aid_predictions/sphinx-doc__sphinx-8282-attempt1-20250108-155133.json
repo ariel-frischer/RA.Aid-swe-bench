@@ -1,0 +1,14 @@
+{
+    "instance_id": "sphinx-doc__sphinx-8282",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 8d33409d5..7034ee32c 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -33,3 +33,4 @@ tests/build/\n utils/regression_test.js\n \n node_modules/\n+.aider*\ndiff --git a/sphinx/ext/autodoc/typehints.py b/sphinx/ext/autodoc/typehints.py\nindex 4f81a6eae..b41b307cb 100644\n--- a/sphinx/ext/autodoc/typehints.py\n+++ b/sphinx/ext/autodoc/typehints.py\n@@ -41,8 +41,6 @@ def record_typehints(app: Sphinx, objtype: str, name: str, obj: Any,\n def merge_typehints(app: Sphinx, domain: str, objtype: str, contentnode: Element) -> None:\n     if domain != 'py':\n         return\n-    if app.config.autodoc_typehints != 'description':\n-        return\n     if objtype == 'class' and app.config.autoclass_content not in ('init', 'both'):\n         return\n \n",
+    "edited_files": [
+        ".gitignore",
+        "sphinx/ext/autodoc/typehints.py"
+    ],
+    "research": "Agent run completed successfully",
+    "attempt": 1,
+    "timestamp": "2025-01-08T15:51:33.897701",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat"
+}

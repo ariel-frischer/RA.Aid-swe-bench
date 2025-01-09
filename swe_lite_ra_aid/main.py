@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import json
 import random
 from datetime import datetime
@@ -16,7 +17,7 @@ from ra_aid.llm import initialize_llm
 REPOS_DNAME = Path("repos")
 PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
-MAX_THREADS = 2
+MAX_THREADS = 1
 
 # Initialize the model
 model = initialize_llm(provider="openrouter", model_name="deepseek/deepseek-chat")
@@ -61,7 +62,7 @@ def get_agent_config():
         "web_research_enabled": True,
         "configurable": {"thread_id": str(uuid.uuid4())},
         "recursion_limit": 50,
-        "research_only": False,
+        "research_only": True,
         "cowboy_mode": True,
     }
 
@@ -91,17 +92,18 @@ def change_directory(path):
     finally:
         os.chdir(original_cwd)
 
+
 def process_single_attempt(task, attempt, git_tempdir):
     """Process a single attempt at solving the task"""
     git_tempdir_path = Path(git_tempdir)
     print(f"Using temporary directory: {git_tempdir_path.absolute()}")
-    
+
     # Clone repository first
     repo = checkout_repo(git_tempdir, task)
-    
+
     config = get_agent_config()
     full_prompt = prepare_prompt(task)
-    
+
     # Use context manager for directory changes
     with change_directory(git_tempdir_path):
         try:
@@ -116,6 +118,15 @@ def process_single_attempt(task, attempt, git_tempdir):
             )
             print(f"research_result={research_result}")
 
+            planning_result = run_planning_agent(                                                     
+                base_task=full_prompt,                                                       
+                model=model,                                                                          
+                expert_enabled=config["expert_enabled"],                                              
+                hil=config["hil"],                                                                    
+                config=config,                                                                        
+            )                                                                                         
+            print(f"planning_result={planning_result}") 
+
             print(diff_versus_commit(git_tempdir, task["base_commit"]))
 
             # Add all changes - otherwise diff doesnt work correctly
@@ -126,7 +137,7 @@ def process_single_attempt(task, attempt, git_tempdir):
             print(f"edited_files={edited_files}")
 
             return model_patch, edited_files, research_result
-            
+
         except Exception as e:
             print(f"Error in process_single_attempt: {str(e)}")
             raise
@@ -170,13 +181,13 @@ def ra_aid_prediction(task, out_dname):
                 # Ensure the directory exists
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
                 print(f"Directory exists: {Path(git_tempdir).exists()}")
-            
+
                 model_patch, edited_files, research_result = process_single_attempt(
                     task, attempt, str(Path(git_tempdir).absolute())
                 )
 
                 print("Successfully completed process_single_attempt")
-                
+
                 result = create_result_dict(
                     task, model_patch, edited_files, research_result, attempt
                 )
