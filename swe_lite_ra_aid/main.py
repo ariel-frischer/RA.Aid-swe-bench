@@ -103,21 +103,19 @@ def process_single_attempt(task, attempt, repo_manager):
     """Process a single attempt at solving the task"""
     github_url = "https://github.com/"
     repo_url = github_url + task["repo"]
-    
+
     # Get/setup cached base repo
     base_repo, cache_path = repo_manager.ensure_base_repo(
-        repo_url,
-        task["environment_setup_commit"]
+        repo_url, task["environment_setup_commit"]
     )
-    
+
     # Create worktree for this attempt
     worktree_path, venv_path = repo_manager.create_worktree(
-        base_repo, 
-        task["base_commit"]
+        base_repo, task["base_commit"]
     )
-    
+
     print(f"Using worktree at: {worktree_path}")
-    
+
     try:
         # Use context manager for directory changes
         with change_directory(worktree_path):
@@ -260,6 +258,7 @@ def generate_predictions(dataset, out_dname, repo_manager):
 
     def scatter(task):
         return process_task(task, out_dname, repo_manager)
+
     gather = None
 
     if MAX_THREADS > 1:
@@ -297,10 +296,10 @@ def main():
     try:
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         out_dname = PREDS_DNAME / "ra_aid_predictions"
-        
+
         # Initialize repo manager
         repo_manager = RepoManager(REPOS_DNAME)
-        
+
         # Update generate_predictions to pass repo_manager
         generate_predictions(dataset, out_dname, repo_manager)
 
