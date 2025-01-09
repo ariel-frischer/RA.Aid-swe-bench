@@ -21,39 +21,6 @@ def get_git_patch(repo_dir: Path) -> Optional[str]:
         return None
 
 
-def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
-    """
-    Call 'uv run ra-aid' with the given prompt in the environment,
-    streaming output directly to the console (capture_output=False).
-    Returns the patch if successful, else None.
-    """
-    cmd = [
-        "uv", "run", "ra-aid",
-        "--cowboy-mode",
-        "-m", prompt
-    ]
-    # We are NOT capturing output, so it streams live:
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=repo_dir,
-            text=True,
-            check=False,   # We manually handle exit code
-        )
-        if result.returncode != 0:
-            logging.error("ra-aid returned non-zero exit code.")
-            return None
-    except subprocess.TimeoutExpired:
-        logging.error("ra-aid timed out")
-        return None
-    except Exception as e:
-        logging.error(f"ra-aid error: {e}")
-        return None
-
-    # Collect patch
-    patch = get_git_patch(repo_dir)
-    return patch
-
 
 def diff_versus_commit(git_dname, commit) -> str:
     repo = Repo(git_dname)

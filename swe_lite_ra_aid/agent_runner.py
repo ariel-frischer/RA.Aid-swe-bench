@@ -1,9 +1,14 @@
 """Module for handling RA-AID agent configuration and execution."""
 
 import uuid
+import logging
+import subprocess
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
+from .git import get_git_patch
 
 def initialize_model():
     """Initialize the LLM model."""
@@ -52,6 +57,40 @@ def run_agents(research_prompt, planning_prompt, model):
     print(f"planning_result={planning_result}")
 
     return research_result, planning_result
+
+def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
+    """
+    Call 'uv run ra-aid' with the given prompt in the environment,
+    streaming output directly to the console (capture_output=False).
+    Returns the patch if successful, else None.
+    """
+    cmd = [
+        "uv", "run", "ra-aid",
+        "--cowboy-mode",
+        "-m", prompt
+    ]
+    # We are NOT capturing output, so it streams live:
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=repo_dir,
+            text=True,
+            check=False,   # We manually handle exit code
+        )
+        if result.returncode != 0:
+            logging.error("ra-aid returned non-zero exit code.")
+            return None
+    except subprocess.TimeoutExpired:
+        logging.error("ra-aid timed out")
+        return None
+    except Exception as e:
+        logging.error(f"ra-aid error: {e}")
+        return None
+
+    # Collect patch
+    patch = get_git_patch(repo_dir)
+    return patch
+
 
 def create_result_dict(task, model_patch, edited_files, research_result, attempt):
     """Create standardized result dictionary"""
