@@ -4,6 +4,7 @@ import os
 import uuid
 import logging
 import subprocess
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -59,33 +60,58 @@ def run_agents(research_prompt, planning_prompt, model):
 
     return research_result, planning_result
 
+@contextmanager
+def activate_venv(repo_dir: Path):
+    """
+    Context manager to activate and deactivate virtual environment.
+    Modifies PATH and VIRTUAL_ENV environment variables.
+    """
+    venv_path = repo_dir / ".venv"
+    venv_bin = venv_path / "bin"
+    
+    # Store original env vars
+    old_path = os.environ.get("PATH", "")
+    old_venv = os.environ.get("VIRTUAL_ENV")
+    
+    try:
+        # Modify PATH to prioritize venv
+        os.environ["PATH"] = f"{venv_bin}:{old_path}"
+        os.environ["VIRTUAL_ENV"] = str(venv_path)
+        yield
+    finally:
+        # Restore original env vars
+        os.environ["PATH"] = old_path
+        if old_venv:
+            os.environ["VIRTUAL_ENV"] = old_venv
+        else:
+            os.environ.pop("VIRTUAL_ENV", None)
+
 def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     """
-    Call 'uv run ra-aid' with the given prompt in the environment,
+    Call ra-aid with the given prompt in the activated virtual environment,
     streaming output directly to the console (capture_output=False).
     Returns the patch if successful, else None.
     """
     print(f"\nStarting RA.Aid in directory: {repo_dir}")
     print(f"Current working directory before: {os.getcwd()}")
     
-    # ra_aid_path = repo_dir / ".venv" / "bin" / "ra-aid"
     cmd = [
         "ra-aid",
         "--cowboy-mode",
         "-m", prompt
     ]
     
-    # print(f"Using ra-aid at: {ra_aid_path}")
     print(f"Full command: {' '.join(cmd)}")
     
     # We are NOT capturing output, so it streams live:
     try:
-        result = subprocess.run(
-            cmd,
-            cwd=repo_dir,
-            text=True,
-            check=False,   # We manually handle exit code
-        )
+        with activate_venv(repo_dir):
+            result = subprocess.run(
+                cmd,
+                cwd=repo_dir,
+                text=True,
+                check=False,   # We manually handle exit code
+            )
         print(f"Current working directory after: {os.getcwd()}")
         if result.returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
