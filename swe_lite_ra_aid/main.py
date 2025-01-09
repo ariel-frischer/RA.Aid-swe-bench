@@ -141,7 +141,7 @@ def process_single_attempt(task, attempt, repo_manager):
         repo_manager.cleanup_worktree(base_repo, worktree_path)
 
 
-def ra_aid_prediction(task, out_dname):
+def ra_aid_prediction(task, out_dname, repo_manager):
     """Process one task using RA-AID approach with retries and result tracking"""
     print_task_info(task)
     results = []
@@ -160,7 +160,7 @@ def ra_aid_prediction(task, out_dname):
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
 
                 model_patch, edited_files, research_result = process_single_attempt(
-                    task, attempt, str(Path(git_tempdir).absolute())
+                    task, attempt, repo_manager
                 )
 
                 print("Successfully completed process_single_attempt")
@@ -215,7 +215,7 @@ def process_task(task, out_dname, repo_manager):
     print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
 
     try:
-        result = ra_aid_prediction(task, out_dname)
+        result = ra_aid_prediction(task, out_dname, repo_manager)
         return {
             "instance_id": task["instance_id"],
             "result": result,
