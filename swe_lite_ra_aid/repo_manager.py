@@ -39,20 +39,32 @@ class RepoManager:
         repo_name = repo_url.split('github.com/')[-1]
         cache_path = self.get_cached_repo_path(repo_name)
         
-        if not cache_path.exists():
-            # Clone fresh repo
-            logging.info(f"Cloning {repo_url} to cache at {cache_path}")
-            repo = Repo.clone_from(repo_url, cache_path)
-            repo.git.checkout(setup_commit)
+        # Ensure parent directories exist
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            if not cache_path.exists():
+                # Clone fresh repo
+                logging.info(f"Cloning {repo_url} to cache at {cache_path}")
+                repo = Repo.clone_from(repo_url, cache_path)
+                repo.git.checkout(setup_commit)
+                
+                # Setup virtual environment in cached repo
+                from .venv_setup import setup_venv_and_deps
+                setup_venv_and_deps(cache_path, repo_name, force_venv=True)
+            else:
+                logging.info(f"Using cached repo at {cache_path}")
+                repo = Repo(cache_path)
+                
+            return repo, cache_path
             
-            # Setup virtual environment in cached repo
-            from .venv_setup import setup_venv_and_deps
-            setup_venv_and_deps(cache_path, repo_name, force_venv=True)
-        else:
-            logging.info(f"Using cached repo at {cache_path}")
-            repo = Repo(cache_path)
-            
-        return repo, cache_path
+        except Exception as e:
+            logging.error(f"Failed to ensure base repo exists at {cache_path}: {str(e)}")
+            # Clean up any partial clone
+            if cache_path.exists():
+                shutil.rmtree(cache_path)
+            # Re-raise with more context
+            raise RuntimeError(f"Failed to setup repository at {cache_path}: {str(e)}") from e
     
     def create_worktree(self, base_repo: Repo, base_commit: str) -> Tuple[Path, Path]:
         """
