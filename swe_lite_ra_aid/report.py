@@ -5,6 +5,7 @@ import shutil
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import TypedDict
 
 from datasets import load_dataset
 from swebench.harness.grading import (
@@ -12,6 +13,21 @@ from swebench.harness.grading import (
     get_resolution_status,
     ResolvedStatus,
 )
+from swebench.harness.test_spec import make_test_spec
+
+class SWEbenchInstance(TypedDict):
+    repo: str
+    instance_id: str
+    base_commit: str
+    patch: str
+    test_patch: str
+    problem_statement: str
+    hints_text: str
+    created_at: str
+    version: str
+    FAIL_TO_PASS: str
+    PASS_TO_PASS: str
+    environment_setup_commit: str
 
 from .dump import dump  # noqa: F401
 
@@ -45,16 +61,26 @@ def run_evals(_log_dir, predictions_jsonl):
 
 def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
     try:
-        # Extract only required fields for test spec
-        test_spec = {
-            item['instance_id']: {
-                'instance_id': item['instance_id'],
-                'FAIL_TO_PASS': item.get('FAIL_TO_PASS', []),
-                'PASS_TO_PASS': item.get('PASS_TO_PASS', [])
-            }
-            for item in dataset
-        }
-        print(f"Created test spec with {len(test_spec)} entries")
+        # Create test specs using make_test_spec
+        test_spec = {}
+        for item in dataset:
+            # Convert dataset item to SWEbenchInstance format
+            swe_instance = SWEbenchInstance(
+                repo=item['repo'],
+                instance_id=item['instance_id'],
+                base_commit=item['base_commit'],
+                patch=item['patch'],
+                test_patch=item['test_patch'],
+                problem_statement=item['problem_statement'],
+                hints_text=item.get('hints_text', ''),
+                created_at=item['created_at'],
+                version=item.get('version', '1.0'),
+                FAIL_TO_PASS=item['FAIL_TO_PASS'],
+                PASS_TO_PASS=item['PASS_TO_PASS'],
+                environment_setup_commit=item['environment_setup_commit']
+            )
+            test_spec[item['instance_id']] = make_test_spec(swe_instance)
+        print(f"Created test specs with {len(test_spec)} entries")
 
         # Process predictions one at a time from JSONL
         report = {}
