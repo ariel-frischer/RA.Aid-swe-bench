@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
-from .config import RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT
+from .config import RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
 
 
 def initialize_model():
@@ -183,6 +183,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         with activate_venv(repo_dir):
             if STREAM_OUTPUT:
                 process = create_streaming_process(cmd, repo_dir)
+                process.timeout = TIMEOUT
                 
                 handle_stdout_stream(process, output)
                 handle_stderr_stream(process, error_output)
@@ -194,7 +195,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             else:
                 # Just capture output without streaming
                 result = subprocess.run(
-                    cmd, cwd=repo_dir, text=True, capture_output=True, check=False
+                    cmd, cwd=repo_dir, text=True, capture_output=True, check=False, timeout=TIMEOUT
                 )
 
         print(f"Current working directory after: {os.getcwd()}")

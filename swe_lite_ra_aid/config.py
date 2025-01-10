@@ -1,6 +1,9 @@
 """Configuration constants for RA-AID."""
 from pathlib import Path
 
+# Timeout Configuration (in seconds)
+TIMEOUT = 2700  # 45 minutes
+
 # RA-AID Configuration
 RA_AID_PROVIDER = "openrouter"
 RA_AID_MODEL = "deepseek/deepseek-chat"
