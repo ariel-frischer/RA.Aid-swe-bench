@@ -46,8 +46,16 @@ def run_evals(_log_dir, predictions_jsonl):
 
 def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
     try:
-        test_spec = list(dataset)
-        print(f"test_spec={test_spec}")
+        # Extract only required fields for test spec
+        test_spec = {
+            item['instance_id']: {
+                'instance_id': item['instance_id'],
+                'FAIL_TO_PASS': item.get('FAIL_TO_PASS', []),
+                'PASS_TO_PASS': item.get('PASS_TO_PASS', [])
+            }
+            for item in dataset
+        }
+        print(f"Created test spec with {len(test_spec)} entries")
 
         report = get_eval_report(
             test_spec=test_spec,
