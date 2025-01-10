@@ -19,7 +19,6 @@ from .config import (
     SUBMISSION_MODE,
 )
 from .agent_runner import (
-    initialize_model,
     create_result_dict,
     uv_run_raaid,
 )
@@ -30,9 +29,6 @@ from .io_utils import (
     handle_result_file,
     update_winner_file,
 )
-
-model = initialize_model()
-
 
 def print_task_info(task):
     """Print basic task information"""
