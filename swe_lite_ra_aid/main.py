@@ -10,7 +10,14 @@ from swe_lite_ra_aid.utils import load_predictions
 from .git import files_in_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
-from .config import RA_AID_AIDER_MODEL
+from .config import (
+    RA_AID_AIDER_MODEL,
+    REPOS_DNAME,
+    PREDS_DNAME,
+    MAX_ATTEMPTS,
+    MAX_THREADS,
+    SUBMISSION_MODE,
+)
 from .agent_runner import (
     initialize_model,
     create_result_dict,
@@ -23,21 +30,6 @@ from .io_utils import (
     handle_result_file,
     update_winner_file,
 )
-
-REPOS_DNAME = Path("repos")
-PREDS_DNAME = Path("predictions")
-MAX_ATTEMPTS = 3
-MAX_THREADS = 1
-
-# Submission checklist:
-# https://github.com/swe-bench/experiments/blob/main/checklist.md
-# When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
-# Sets env variable TAVILY_API_KEY to emptry str to avoid web search
-# Sets MAX_ATTEMPTS to 1, that is the submission rules: pass@1
-# We already dont use hints in prompt, enabled or not.
-SUBMISSION_MODE = True
-if SUBMISSION_MODE:
-    MAX_ATTEMPTS = 1
 
 model = initialize_model()
 
