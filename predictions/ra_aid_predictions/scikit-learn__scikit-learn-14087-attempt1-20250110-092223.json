@@ -1,0 +1,16 @@
+{
+    "instance_id": "scikit-learn__scikit-learn-14087",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 73feb51e7..c34c647bc 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -76,3 +76,4 @@ _configtest.o.d\n sklearn/utils/seq_dataset.pyx\n sklearn/utils/seq_dataset.pxd\n sklearn/linear_model/sag_fast.pyx\n+.aider*\ndiff --git a/sklearn/linear_model/logistic.py b/sklearn/linear_model/logistic.py\nindex 1999f1dae..5cc46546e 100644\n--- a/sklearn/linear_model/logistic.py\n+++ b/sklearn/linear_model/logistic.py\n@@ -2171,7 +2171,7 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,\n                 # all coefficients corresponding to the best scores.\n                 best_indices = np.argmax(scores, axis=1)\n                 if self.multi_class == 'ovr':\n-                    w = np.mean([coefs_paths[i, best_indices[i], :]\n+                    w = np.mean([coefs_paths[i, :, best_indices[i], :]\n                                  for i in range(len(folds))], axis=0)\n                 else:\n                     w = np.mean([coefs_paths[:, i, best_indices[i], :]\n",
+    "edited_files": [
+        ".gitignore",
+        "sklearn/linear_model/logistic.py"
+    ],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-10T09:22:23.730330",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
+    "is_winner": true,
+    "trajectory_file": "/home/ari/repos/swe-lite-raid/predictions/ra_aid_predictions/traj_scikit-learn__scikit-learn-14087_attempt1_20250110-092223.txt"
+}

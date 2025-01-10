@@ -19,6 +19,7 @@ def initialize_model():
     return initialize_llm(provider=RA_AID_PROVIDER, model_name=RA_AID_MODEL)
 
 
+# DEPRECATED using uv_run_raaid method instead
 def get_agent_config():
     """Get configuration for research agent"""
     return {

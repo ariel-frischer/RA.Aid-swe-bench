@@ -32,13 +32,6 @@ from .io_utils import (
 )
 
 
-def print_task_info(task):
-    """Print basic task information"""
-    print(f"instance_id={task['instance_id']}")
-    print(f"base_commit={task['base_commit']}")
-    # print(f"problem_statement={task['problem_statement']}")
-
-
 def process_single_attempt(task, _attempt, repo_manager):
     """Process a single attempt at solving the task"""
     github_url = "https://github.com/"
@@ -90,7 +83,6 @@ def process_single_attempt(task, _attempt, repo_manager):
 
 def ra_aid_prediction(task, out_dname, repo_manager):
     """Process one task using RA-AID approach with retries and result tracking"""
-    print_task_info(task)
     results = []
     output_files = []
     winner_file = None
@@ -103,14 +95,12 @@ def ra_aid_prediction(task, out_dname, repo_manager):
 
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
-                print(f"Created temporary directory: {git_tempdir}")
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
 
                 model_patch, edited_files, research_result, trajectory_output = (
                     process_single_attempt(task, attempt, repo_manager)
                 )
 
-                # Save trajectory and get filename if output exists
                 traj_fname = save_trajectory(
                     out_dname, task, attempt, trajectory_output
                 )

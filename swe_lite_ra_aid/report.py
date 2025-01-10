@@ -91,14 +91,12 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                             log_path=str(instance_log_path),
                             include_tests_status=True,
                         )
-                        print(f"single_report={single_report}")
                     else:
                         print(f"Warning: Log file not found at {instance_log_path}")
                         continue
                     if single_report:
                         report[instance_id] = single_report.get(instance_id, {})
                         
-        print(f"report={report}")
 
         report_stats = {
             "resolved": set(),
