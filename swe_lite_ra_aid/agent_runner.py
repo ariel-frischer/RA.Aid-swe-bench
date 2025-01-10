@@ -125,6 +125,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
 
     output = []
     error_output = []
+    current_line = []  # Buffer for building current line
 
     try:
         with activate_venv(repo_dir):
@@ -140,15 +141,34 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
                     universal_newlines=True,
                 )
 
-                # Stream and capture stdout
-                for line in process.stdout:
-                    print(line, end="")  # Stream to console
-                    output.append(line)  # Save for later
+                def process_char(c):
+                    if c == '\r':  # Carriage return
+                        current_line.clear()
+                    elif c == '\n':  # Newline
+                        line = ''.join(current_line)
+                        output.append(line + '\n')
+                        current_line.clear()
+                        print(line)  # Stream to console
+                    else:
+                        current_line.append(c)
 
-                # Stream and capture stderr
+                # Stream and capture stdout character by character
+                while True:
+                    char = process.stdout.read(1)
+                    if not char:
+                        break
+                    process_char(char)
+
+                # Flush any remaining content in current_line
+                if current_line:
+                    line = ''.join(current_line)
+                    output.append(line)
+                    print(line, end='')
+
+                # Capture stderr
                 for line in process.stderr:
-                    print(line, end="", file=sys.stderr)  # Stream to console
-                    error_output.append(line)  # Save for later
+                    print(line, end="", file=sys.stderr)
+                    error_output.append(line)
 
                 process.wait()
                 returncode = process.returncode
