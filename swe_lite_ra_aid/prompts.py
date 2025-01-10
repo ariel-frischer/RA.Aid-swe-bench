@@ -1,7 +1,7 @@
 """Module for handling prompt generation and formatting."""
 
 import json
-from swe_lite_ra_aid.main import SUBMISSION_MODE
+from swe_lite_ra_aid.config import SUBMISSION_MODE
 
 def build_prompt(problem_statement: str, fail_tests: list = None, pass_tests: list = None) -> str:
     """Construct the prompt text from problem_statement, and optionally FAIL_TO_PASS, PASS_TO_PASS."""
