@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
-from .git import get_git_patch
 from .config import RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT
 
 
