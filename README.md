@@ -35,7 +35,7 @@ The main workflow consists of:
 make run
 ```
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
-You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/main.py`.
+You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
 The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
 
 2. (WIP) Evaluate predictions and generate a report:
@@ -56,11 +56,11 @@ make test            # Run tests using pytest
 make clean           # Remove Python cache files and predictions
 make format          # Format code using black
 make clean-repos     # Clean up cloned repositories
-make clean-predictions # Remove all prediction files (with confirmation)
+make clean-predictions # Remove all prediction + traj files (with confirmation)
 make add-model-name  # Add model metadata to predictions
 make evaluate        # Run evaluation and generate report
 make check          # Run ruff linter with auto-fix
-make aider          # Run aider in the current directory
+make aider          # Run aider in the current directory with auto lint
 ```
 
 ## Repository Management
@@ -81,37 +81,23 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
 - Reusing installed dependencies
 - Sharing virtual environments across attempts
 
-## Winner File Selection
-
-For each task, the system makes up to 3 attempts to solve the problem. Each prediction file includes an `is_winner` boolean field that indicates whether it's currently considered the best solution. The winner is selected based on these criteria:
-
-1. The attempt that modifies the most files wins (higher `num_edited_files`)
-2. If multiple attempts modify the same number of files, the one with the longer patch wins (longer `model_patch`)
-3. Earlier attempts are replaced as winners if later attempts score better on these criteria
-
-The `is_winner` field is automatically updated in all related prediction files when a new winner is selected. When evaluating results, you can filter for files with `is_winner=true` to get the best prediction for each task.
-
-Note: As mentioned in Problems/Improvements below, this selection criteria may not be optimal - using the number of passing tests would be a better metric.
-
 ## Problems/Improvements
-* RA.Aid does get stuck often, multiple different errors.
+* [ ] RA.Aid does get stuck often, multiple different errors.
   * Tool Error: Error executing code: invalid syntax (, line 4)
   * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
   * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
   * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
-* Logging setup needed.
-* We don't automate `test_cmd` or run more attempts based on it. If we automate
-  this, we will have an indicator to run more attempts and get improved winner
-  attempt selection.
-* Winner attempt should be selected based on a hierchy. The attempt with the most passing tests should win.
-* Aider repomap will regenerate a repomap for each attempt, not optimal.
-* Would be nice to be ablee to extract and pass `test_cmd` and `lint_cmd` to aider when make code changes.
-* Need to modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
-* Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
-* Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
-* We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
+
+* [ ] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
+* [ ] Logging setup needed.
+* [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
+* [ ] Need to modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
+* [ ] Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
+* [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
+  * Fixed with os.env setting
+* [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
+* [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
-* Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
 
 ## SWE Bench Submission Guidelines
 
