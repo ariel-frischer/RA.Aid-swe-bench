@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # Timeout Configuration (in seconds)
-TIMEOUT = 2700  # 45 minutes
+TIMEOUT = 45 * 60  # 45 minutes
 
 # RA-AID Configuration
 RA_AID_PROVIDER = "openrouter"

@@ -34,7 +34,7 @@ def checkout_repo(git_tempdir, entry):
 def stage_and_get_patch(worktree_path: str) -> str:
     """Stage all changes and generate a patch against HEAD."""
     repo = Repo(worktree_path)
-    # Add all files except .venv directory
+    # Add all files except .venv directory because .venv is symbolinked, will be edited everytime
     repo.git.add('.')  # Stage all tracked files
     repo.git.add('*')  # Stage new files
     repo.git.reset('HEAD', '.venv', '--')  # Unstage .venv directory if it was staged

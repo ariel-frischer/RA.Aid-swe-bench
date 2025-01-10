@@ -36,8 +36,7 @@ make run
 ```
 This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
 You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/main.py`.
-
-NOTE: Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
+The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
 
 2. (WIP) Evaluate predictions and generate a report:
 
@@ -47,7 +46,6 @@ IN DEVELOPMENT
 make evaluate
 ```
 This will run the evaluation pipeline and generate a detailed report of model performance.
-
 
 ### Available Make Commands
 
@@ -65,30 +63,18 @@ make check          # Run ruff linter with auto-fix
 make aider          # Run aider in the current directory
 ```
 
-### Repository Management
+## Repository Management
 
-The project uses a `RepoManager` class to efficiently handle repository operations:
-
-1. **Repository Caching**:
-   - Base repositories are cached in the `repos/` directory
-   - Each repository is cloned once and reused across multiple attempts
-   - Dependencies are installed in a virtual environment within the cached repo
-   - Format: `repos/owner__repo/` (e.g., `repos/django__django/`)
-
-2. **Worktree System**:
-   - For each attempt, a new git worktree is created from the cached repo
-   - Worktrees share the same .venv through symlinks to save space and setup time
-   - Each worktree gets a unique name: `worktree-{commit}-{random}`
-   - Worktrees are automatically cleaned up after each attempt
-
-3. **Dependency Management**:
-   - Uses `uv` for fast Python package installation
-   - Virtual environments are created once per cached repo
-   - Handles various dependency files:
-     - pyproject.toml
-     - requirements.txt
-     - requirements-dev.txt
-     - setup.py
+- Caches repositories in `repos/` directory (format: `repos/owner__repo/`)
+- Creates one virtual environment per cached repo
+- Uses git worktrees for parallel attempts:
+  - Each attempt gets a unique worktree
+  - Worktrees share the cached repo's virtual environment
+  - Auto-cleanup after each attempt
+- Fast dependency installation with `uv`:
+  - Handles pyproject.toml, requirements.txt, and setup.py
+  - Installs dependencies once per cached repo
+  - Reuses environments across attempts
 
 This system significantly reduces disk usage and speeds up multiple attempts by:
 - Avoiding repeated cloning of repositories
@@ -126,6 +112,10 @@ Note: As mentioned in Problems/Improvements below, this selection criteria may n
 * We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 * Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
+
+## SWE Bench Submission Guidelines
+
+https://www.swebench.com/submit.html
 
 ## Dataset Structure
 

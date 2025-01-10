@@ -23,9 +23,7 @@ from .utils import (
 )
 
 using_dataset = "lite"
-
 NUM_EVAL_PROCS = 5
-
 
 def run_evals(_log_dir, predictions_jsonl):
     from swebench.harness.run_evaluation import main as run_evaluation

@@ -31,6 +31,7 @@ from .io_utils import (
     save_trajectory,
 )
 
+
 def print_task_info(task):
     """Print basic task information"""
     print(f"instance_id={task['instance_id']}")
@@ -38,16 +39,16 @@ def print_task_info(task):
     # print(f"problem_statement={task['problem_statement']}")
 
 
-def process_single_attempt(task, attempt, repo_manager):
+def process_single_attempt(task, _attempt, repo_manager):
     """Process a single attempt at solving the task"""
     github_url = "https://github.com/"
     repo_url = github_url + task["repo"]
 
-    base_repo, cache_path = repo_manager.ensure_base_repo(
+    base_repo, _cache_path = repo_manager.ensure_base_repo(
         repo_url, task["environment_setup_commit"]
     )
 
-    worktree_path, venv_path = repo_manager.create_worktree(
+    worktree_path, _venv_path = repo_manager.create_worktree(
         base_repo, task["base_commit"]
     )
 
@@ -61,7 +62,7 @@ def process_single_attempt(task, attempt, repo_manager):
             if SUBMISSION_MODE:
                 os.environ["TAVILY_API_KEY"] = ""
 
-            trajectory_output, returncode = uv_run_raaid(
+            trajectory_output, _returncode = uv_run_raaid(
                 worktree_path, planning_prompt
             )
 
@@ -110,7 +111,9 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 )
 
                 # Save trajectory and get filename if output exists
-                traj_fname = save_trajectory(out_dname, task, attempt, trajectory_output)
+                traj_fname = save_trajectory(
+                    out_dname, task, attempt, trajectory_output
+                )
 
                 print("Successfully completed process_single_attempt")
 
