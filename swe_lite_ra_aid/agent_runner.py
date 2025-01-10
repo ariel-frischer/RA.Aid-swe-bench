@@ -144,6 +144,13 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
                 returncode = process.returncode
                 stdout = ''.join(output)
                 stderr = ''.join(error_output)
+                
+                # Create a result object to match the non-streaming case
+                result = type('Result', (), {
+                    'returncode': returncode,
+                    'stdout': stdout,
+                    'stderr': stderr
+                })()
             else:
                 # Just capture output without streaming
                 result = subprocess.run(
@@ -153,9 +160,6 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
                     capture_output=True,
                     check=False
                 )
-                returncode = result.returncode
-                stdout = result.stdout
-                stderr = result.stderr
         
         print(f"Current working directory after: {os.getcwd()}")
         
