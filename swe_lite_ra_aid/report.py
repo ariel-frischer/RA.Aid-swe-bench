@@ -15,6 +15,13 @@ from swebench.harness.grading import (
 )
 from swebench.harness.test_spec import make_test_spec
 
+from .dump import dump  # noqa: F401
+from .utils import (
+    choose_predictions,
+    load_predictions,
+    old,
+)
+
 class SWEbenchInstance(TypedDict):
     repo: str
     instance_id: str
@@ -28,14 +35,6 @@ class SWEbenchInstance(TypedDict):
     FAIL_TO_PASS: str
     PASS_TO_PASS: str
     environment_setup_commit: str
-
-from .dump import dump  # noqa: F401
-
-from .utils import (
-    choose_predictions,
-    load_predictions,
-    old,
-)
 
 using_dataset = "lite"
 NUM_EVAL_PROCS = 5
