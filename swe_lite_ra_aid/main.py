@@ -4,12 +4,9 @@ import random
 from datetime import datetime
 import lox
 import tempfile
-import logging
-import subprocess
 from pathlib import Path
 
 from swe_lite_ra_aid.utils import load_predictions
-from typing import List
 from .git import files_in_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
