@@ -13,8 +13,7 @@ from swebench.harness.grading import (
     get_resolution_status,
     ResolvedStatus,
 )
-from typing import Union, cast
-from swebench.harness.test_spec import TestSpec, get_test_specs_from_dataset
+from swebench.harness.test_spec import get_test_specs_from_dataset
 
 from .dump import dump  # noqa: F401
 from .utils import (
