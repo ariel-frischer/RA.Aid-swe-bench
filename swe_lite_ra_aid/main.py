@@ -10,7 +10,7 @@ from swe_lite_ra_aid.utils import load_predictions
 from .git import files_in_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
-from .config import RA_AID_FULL_MODEL, RA_AID_AIDER_MODEL
+from .config import RA_AID_AIDER_MODEL
 from .agent_runner import (
     initialize_model,
     create_result_dict,
