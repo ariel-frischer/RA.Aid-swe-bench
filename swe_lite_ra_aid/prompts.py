@@ -2,24 +2,35 @@
 
 import json
 
-def build_prompt(problem_statement: str, fail_tests: list, pass_tests: list) -> str:
-    """Construct the prompt text from problem_statement, FAIL_TO_PASS, PASS_TO_PASS."""
-    prompt = f"{problem_statement}\n\nTests that need to be fixed:\n```\n"
-    for t in fail_tests:
-        prompt += f"- {t}\n"
-    prompt += "```\n\n"
+def build_prompt(problem_statement: str, fail_tests: list = None, pass_tests: list = None) -> str:
+    """Construct the prompt text from problem_statement, and optionally FAIL_TO_PASS, PASS_TO_PASS."""
+    prompt = f"{problem_statement}\n\n"
+    
+    if fail_tests:
+        prompt += "Tests that need to be fixed:\n```\n"
+        for t in fail_tests:
+            prompt += f"- {t}\n"
+        prompt += "```\n\n"
+        
     if pass_tests:
         prompt += "Tests that must remain passing:\n```\n"
         for t in pass_tests:
             prompt += f"- {t}\n"
         prompt += "```\n\n"
-    prompt += "\n\nYou must run all above tests both **before and after** making changes, and ensure they pass as you do your work. Do not write any new test cases."
+        
+    prompt += "\n\nYou must run all tests both **before and after** making changes, and ensure they pass as you do your work. Do not write any new test cases."
     return prompt
 
 def prepare_base_prompt(task):
     """Prepare the common base prompt used by both agents"""
-    fail_tests = json.loads(task["FAIL_TO_PASS"])
-    pass_tests = json.loads(task["PASS_TO_PASS"])
+    from swe_lite_ra_aid.main import SUBMISSION_MODE
+    
+    if not SUBMISSION_MODE:
+        fail_tests = json.loads(task["FAIL_TO_PASS"])
+        pass_tests = json.loads(task["PASS_TO_PASS"])
+    else:
+        fail_tests = None
+        pass_tests = None
 
     problem_details = build_prompt(task["problem_statement"], fail_tests, pass_tests)
 

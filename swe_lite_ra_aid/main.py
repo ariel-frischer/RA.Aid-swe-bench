@@ -31,6 +31,9 @@ PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
+# Configuration
+SUBMISSION_MODE = True
+
 # RA-AID Configuration
 RA_AID_PROVIDER = "openrouter"
 RA_AID_MODEL = "deepseek/deepseek-chat"
