@@ -131,16 +131,16 @@ def process_single_attempt(task, attempt, repo_manager):
             planning_prompt = prepare_planning_prompt(task)
             os.environ["AIDER_MODEL"] = RA_AID_AIDER_MODEL
 
-            model_patch = uv_run_raaid(worktree_path, planning_prompt)
+            model_patch, trajectory_output = uv_run_raaid(worktree_path, planning_prompt)
 
             if not model_patch:
                 print("No changes made by RA.Aid")
-                return None, [], None
+                return None, [], None, None
 
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
 
-            return model_patch, edited_files, None
+            return model_patch, edited_files, None, trajectory_output
 
     except Exception as e:
         print(f"Error in process_single_attempt: {str(e)}")
@@ -168,9 +168,19 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 print(f"Created temporary directory: {git_tempdir}")
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
 
-                model_patch, edited_files, research_result = process_single_attempt(
+                model_patch, edited_files, research_result, trajectory_output = process_single_attempt(
                     task, attempt, repo_manager
                 )
+
+                # Save trajectory output if we have it
+                if trajectory_output:
+                    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                    traj_fname = (
+                        out_dname
+                        / f"traj_{task['instance_id']}_attempt{attempt}_{timestamp}.txt"
+                    )
+                    traj_fname.write_text(trajectory_output)
+                    print(f"Saved trajectory to {traj_fname}")
 
                 print("Successfully completed process_single_attempt")
 

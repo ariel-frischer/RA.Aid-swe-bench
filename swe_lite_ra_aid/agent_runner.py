@@ -122,12 +122,19 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
                 cmd,
                 cwd=repo_dir,
                 text=True,
+                capture_output=True,
                 check=False,   # We manually handle exit code
             )
         print(f"Current working directory after: {os.getcwd()}")
+        
+        # Print output to console as before
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+            
         if result.returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
-            return None
+            return None, None
     except subprocess.TimeoutExpired:
         logging.error("ra-aid timed out")
         return None
@@ -137,7 +144,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
 
     # Collect patch
     patch = get_git_patch(repo_dir)
-    return patch
+    return patch, result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
 
 
 def create_result_dict(task, model_patch, edited_files, research_result, attempt):
