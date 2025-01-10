@@ -203,7 +203,7 @@ def preds_to_jsonl(dname, predictions):
     return predictions_jsonl
 
 
-def run_evals_on_dname(dname):
+def run_evals_on_dname(dname, dataset):
     dname = Path(dname)
 
     predictions = load_predictions([dname])
@@ -221,7 +221,7 @@ def run_evals_on_dname(dname):
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
         report = get_report(
-            "princeton-nlp/SWE-bench_Lite",
+            dataset,
             log_dir,
             predictions_jsonl,
             model_name_or_path,
@@ -260,11 +260,11 @@ def combine_jsonl_logs(predictions, model_name_or_path):
     return predictions_jsonl, log_dir
 
 
-def process_predictions_directories(dnames):
+def process_predictions_directories(dnames, dataset):
     """Process all prediction directories and run evaluations."""
     for dname in dnames:
         dump(dname)
-        run_evals_on_dname(dname)
+        run_evals_on_dname(dname, dataset)
 
 
 def setup_output_directory(model_name_or_path):
@@ -463,7 +463,7 @@ def main():
     # Load dataset once
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
-    process_predictions_directories(dnames)
+    process_predictions_directories(dnames, dataset)
     _preds_dir = setup_output_directory(model_name_or_path)
 
     predictions = choose_predictions(
