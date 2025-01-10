@@ -5,6 +5,7 @@ from datetime import datetime
 import lox
 import tempfile
 from pathlib import Path
+from git import Repo
 
 from swe_lite_ra_aid.utils import load_predictions
 from .git import files_in_patch
