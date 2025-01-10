@@ -71,6 +71,7 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                         log_path=str(log_dir),
                         include_tests_status=True,
                     )
+                    print(f"single_report={single_report}")
                     if single_report:
                         report[instance_id] = single_report.get(instance_id, {})
                         
