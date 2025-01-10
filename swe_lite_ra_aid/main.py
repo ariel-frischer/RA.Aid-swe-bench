@@ -32,6 +32,7 @@ MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
 # Configuration
+# When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
 SUBMISSION_MODE = True
 
 # RA-AID Configuration
