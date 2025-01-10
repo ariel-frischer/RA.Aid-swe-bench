@@ -66,7 +66,7 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                 # Only process if we have test specs for this instance
                 if instance_id in test_spec:
                     # Construct specific log path for this instance
-                    instance_log_path = log_dir / "run_evaluation/ra_aid_eval/ra-aid-model" / f"{instance_id.replace('/', '__')}/run_instance.log"
+                    instance_log_path = Path("logs") / "run_evaluation/ra_aid_eval/ra-aid-model" / f"{instance_id.replace('/', '__')}/run_instance.log"
                     
                     if instance_log_path.exists():
                         single_report = get_eval_report(
