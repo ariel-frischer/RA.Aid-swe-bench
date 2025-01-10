@@ -205,7 +205,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             if stderr:
                 print(stderr)
 
-        if returncode != 0:
+        if result.returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
             return None
     except subprocess.TimeoutExpired:
@@ -216,7 +216,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         return None
 
     trajectory_output = result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
-    return trajectory_output, str(returncode)
+    return trajectory_output, str(result.returncode)
 
 
 def create_result_dict(
