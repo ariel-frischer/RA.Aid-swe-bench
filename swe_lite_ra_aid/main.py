@@ -68,7 +68,6 @@ def process_single_attempt(task, attempt, repo_manager):
                 print("No output from RA.Aid")
                 return None, [], None, None
 
-            # Stage all changes and generate patch
             model_patch = stage_and_get_patch(worktree_path)
 
             if not model_patch:
@@ -84,7 +83,6 @@ def process_single_attempt(task, attempt, repo_manager):
         print(f"Error in process_single_attempt: {str(e)}")
         raise
     finally:
-        # Cleanup worktree
         repo_manager.cleanup_worktree(base_repo, worktree_path)
 
 
