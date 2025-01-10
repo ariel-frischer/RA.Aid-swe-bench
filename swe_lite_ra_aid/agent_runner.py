@@ -101,11 +101,11 @@ def activate_venv(repo_dir: Path):
             os.environ.pop("VIRTUAL_ENV", None)
 
 
-def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
+def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     """
     Call ra-aid with the given prompt in the activated virtual environment.
     If STREAM_OUTPUT is True, streams output to console while capturing.
-    Returns the patch if successful, else None.
+    Returns tuple of (trajectory_output, returncode) if successful, else None.
     """
     print("\nStarting RA.Aid...")
 
@@ -178,7 +178,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
 
         if returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
-            return None, None
+            return None
     except subprocess.TimeoutExpired:
         logging.error("ra-aid timed out")
         return None
@@ -186,11 +186,8 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
         logging.error(f"ra-aid error: {e}")
         return None
 
-    # Collect patch
-    patch = get_git_patch(repo_dir)
-    return patch, result.stdout + (
-        f"\nSTDERR:\n{result.stderr}" if result.stderr else ""
-    )
+    trajectory_output = result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
+    return trajectory_output, str(returncode)
 
 
 def create_result_dict(

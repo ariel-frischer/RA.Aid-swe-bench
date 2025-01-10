@@ -60,13 +60,22 @@ def process_single_attempt(task, attempt, repo_manager):
             if SUBMISSION_MODE:
                 os.environ["TAVILY_API_KEY"] = ""
 
-            model_patch, trajectory_output = uv_run_raaid(
+            trajectory_output, returncode = uv_run_raaid(
                 worktree_path, planning_prompt
             )
 
+            if not trajectory_output:
+                print("No output from RA.Aid")
+                return None, [], None, None
+
+            # Stage all changes and generate patch
+            repo = Repo(worktree_path)
+            repo.git.add('-A')
+            model_patch = repo.git.diff('HEAD')
+
             if not model_patch:
                 print("No changes made by RA.Aid")
-                return None, [], None, None
+                return None, [], None, trajectory_output
 
             edited_files = files_in_patch(model_patch)
             print(f"edited_files={edited_files}")
