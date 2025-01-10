@@ -168,9 +168,11 @@ def pick_winner_aider(results):
     if results:
         return results[0]
 
-def pick_winner(results):
+def deprecated_pick_winner(results):
     """
     Select best prediction from multiple results based on model_patch and edited_files.
+    
+    DEPRECATED: Use pick_winner() instead which selects based on is_winner flag.
 
     Args:
         results (list): List of prediction results
@@ -229,6 +231,24 @@ def filter_preds_by_devin(predictions):
     predictions = dict((inst, pred) for (inst, pred) in predictions.items() if inst in devin_insts)
     return predictions
 
+
+def pick_winner(results):
+    """
+    Select best prediction from multiple results based on is_winner flag.
+
+    Args:
+        results (list): List of prediction results
+
+    Returns:
+        dict: First prediction marked with is_winner=True, or first result if none are winners
+    """
+    # First try to find results marked as winners
+    winners = [r for r in results if r.get("is_winner", False)]
+    if winners:
+        return winners[0]
+    
+    # Last resort - return first result if any exist
+    return results[0] if results else None
 
 def old(fname):
     """
