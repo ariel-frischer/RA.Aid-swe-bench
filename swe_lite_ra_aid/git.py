@@ -1,20 +1,4 @@
-import logging
-import subprocess
-from pathlib import Path
 from git import Repo
-from typing import Optional
-
-
-def get_git_patch(repo_dir: Path) -> Optional[str]:
-    """Get the current git diff as a patch string."""
-    try:
-        result = subprocess.run(
-            ["git", "diff"], cwd=repo_dir, capture_output=True, text=True, check=True
-        )
-        return result.stdout if result.stdout else None
-    except subprocess.CalledProcessError:
-        logging.error("Failed to get git diff")
-        return None
 
 
 def diff_versus_commit(git_dname, commit) -> str:
