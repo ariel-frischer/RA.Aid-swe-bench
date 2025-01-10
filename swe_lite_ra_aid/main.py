@@ -20,10 +20,10 @@ from .agent_runner import (
 )
 from .prompts import prepare_planning_prompt
 from .io_utils import (
-    setup_directories, 
-    change_directory, 
+    setup_directories,
+    change_directory,
     handle_result_file,
-    update_winner_file
+    update_winner_file,
 )
 
 REPOS_DNAME = Path("repos")
@@ -31,8 +31,11 @@ PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
-# Configuration
+# Submission checklist:
+# https://github.com/swe-bench/experiments/blob/main/checklist.md
 # When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
+# Sets env variable TAVILY_API_KEY to emptry str to avoid web search
+# We already dont use hints in prompt, enabled or not.
 SUBMISSION_MODE = True
 
 # RA-AID Configuration
@@ -44,6 +47,7 @@ RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL
 
 model = initialize_model()
+
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -135,7 +139,12 @@ def process_single_attempt(task, attempt, repo_manager):
             planning_prompt = prepare_planning_prompt(task)
             os.environ["AIDER_MODEL"] = RA_AID_AIDER_MODEL
 
-            model_patch, trajectory_output = uv_run_raaid(worktree_path, planning_prompt)
+            if SUBMISSION_MODE:
+                os.environ["TAVILY_API_KEY"] = ""
+
+            model_patch, trajectory_output = uv_run_raaid(
+                worktree_path, planning_prompt
+            )
 
             if not model_patch:
                 print("No changes made by RA.Aid")
@@ -172,8 +181,8 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 print(f"Created temporary directory: {git_tempdir}")
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
 
-                model_patch, edited_files, research_result, trajectory_output = process_single_attempt(
-                    task, attempt, repo_manager
+                model_patch, edited_files, research_result, trajectory_output = (
+                    process_single_attempt(task, attempt, repo_manager)
                 )
 
                 # Save trajectory output if we have it
@@ -191,8 +200,12 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 print("Successfully completed process_single_attempt")
 
                 result = create_result_dict(
-                    task, model_patch, edited_files, research_result, attempt,
-                    trajectory_file=traj_fname
+                    task,
+                    model_patch,
+                    edited_files,
+                    research_result,
+                    attempt,
+                    trajectory_file=traj_fname,
                 )
                 results.append(result)
 
@@ -202,11 +215,18 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
                 )
 
-                success, result_file, num_edited = handle_result_file(attempt_fname, result)
+                success, result_file, num_edited = handle_result_file(
+                    attempt_fname, result
+                )
                 if success:
                     winner_file, max_edited_files = update_winner_file(
-                        output_files, attempt_fname, result_file, 
-                        num_edited, result, winner_file, max_edited_files
+                        output_files,
+                        attempt_fname,
+                        result_file,
+                        num_edited,
+                        result,
+                        winner_file,
+                        max_edited_files,
                     )
 
                 if model_patch:
