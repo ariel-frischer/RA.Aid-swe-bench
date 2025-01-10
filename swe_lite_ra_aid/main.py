@@ -28,6 +28,7 @@ from .io_utils import (
     change_directory,
     handle_result_file,
     update_winner_file,
+    save_trajectory,
 )
 
 def print_task_info(task):
