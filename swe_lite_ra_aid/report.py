@@ -56,12 +56,24 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
         }
         print(f"Created test spec with {len(test_spec)} entries")
 
-        report = get_eval_report(
-            test_spec=test_spec,
-            prediction=predictions_jsonl,
-            log_path=str(log_dir),
-            include_tests_status=True,
-        )
+        # Process predictions one at a time from JSONL
+        report = {}
+        with open(predictions_jsonl, 'r') as f:
+            for line in f:
+                prediction = json.loads(line)
+                instance_id = prediction['instance_id']
+                
+                # Only process if we have test specs for this instance
+                if instance_id in test_spec:
+                    single_report = get_eval_report(
+                        test_spec={instance_id: test_spec[instance_id]},
+                        prediction=prediction,
+                        log_path=str(log_dir),
+                        include_tests_status=True,
+                    )
+                    if single_report:
+                        report[instance_id] = single_report.get(instance_id, {})
+                        
         print(f"report={report}")
 
         # Initialize report_stats with empty sets
