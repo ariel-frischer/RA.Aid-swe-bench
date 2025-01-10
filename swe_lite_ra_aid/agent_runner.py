@@ -1,6 +1,7 @@
 """Module for handling RA-AID agent configuration and execution."""
 
 import os
+import sys
 import uuid
 import logging
 import subprocess
@@ -97,10 +98,11 @@ def activate_venv(repo_dir: Path):
 
 def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     """
-    Call ra-aid with the given prompt in the activated virtual environment,
-    streaming output directly to the console (capture_output=False).
+    Call ra-aid with the given prompt in the activated virtual environment.
+    If STREAM_OUTPUT is True, streams output to console while capturing.
     Returns the patch if successful, else None.
     """
+    from .config import STREAM_OUTPUT
     print("\nStarting RA.Aid...")
     
     cmd = [
@@ -111,26 +113,59 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
         "-m", prompt
     ]
     
-    # print(f"Full command: {' '.join(cmd)}")
+    output = []
+    error_output = []
     
-    # We are NOT capturing output, so it streams live:
     try:
         with activate_venv(repo_dir):
-            result = subprocess.run(
-                cmd,
-                cwd=repo_dir,
-                text=True,
-                capture_output=True,
-                check=False,   # We manually handle exit code
-            )
+            if STREAM_OUTPUT:
+                # Use Popen to stream and capture output
+                process = subprocess.Popen(
+                    cmd,
+                    cwd=repo_dir,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    bufsize=1,
+                    universal_newlines=True
+                )
+                
+                # Stream and capture stdout
+                for line in process.stdout:
+                    print(line, end='')  # Stream to console
+                    output.append(line)   # Save for later
+                
+                # Stream and capture stderr
+                for line in process.stderr:
+                    print(line, end='', file=sys.stderr)  # Stream to console
+                    error_output.append(line)   # Save for later
+                
+                process.wait()
+                returncode = process.returncode
+                stdout = ''.join(output)
+                stderr = ''.join(error_output)
+            else:
+                # Just capture output without streaming
+                result = subprocess.run(
+                    cmd,
+                    cwd=repo_dir,
+                    text=True,
+                    capture_output=True,
+                    check=False
+                )
+                returncode = result.returncode
+                stdout = result.stdout
+                stderr = result.stderr
+        
         print(f"Current working directory after: {os.getcwd()}")
         
-        # Print output to console as before
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr)
+        if not STREAM_OUTPUT:
+            # Print output only if we didn't stream it
+            print(stdout)
+            if stderr:
+                print(stderr)
             
-        if result.returncode != 0:
+        if returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
             return None, None
     except subprocess.TimeoutExpired:
