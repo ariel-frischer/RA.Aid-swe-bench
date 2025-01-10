@@ -78,7 +78,7 @@ class RepoManager:
                 repo.git.checkout(setup_commit)
 
                 # Setup virtual environment in cached repo
-                from .venv_setup import setup_venv_and_deps
+                from .uv_utils import setup_venv_and_deps
 
                 setup_venv_and_deps(cache_path, repo_name, force_venv=True)
             else:
