@@ -62,7 +62,7 @@ def get_dataset(dataset, fname):
     return res
 
 
-def load_predictions(paths, devin_only=False):
+def load_predictions(paths):
     prediction_paths = []
     for path in paths:
         path = Path(path)
@@ -91,8 +91,6 @@ def load_predictions(paths, devin_only=False):
         pred["json_fname"] = str(fname)
         predictions[inst] = pred
 
-    if devin_only:
-        predictions = filter_preds_by_devin(predictions)
 
     return predictions
 
@@ -196,40 +194,6 @@ def deprecated_pick_winner(results):
     return results[0] if results else None
 
 
-def get_devin_instance_ids():
-    """
-    Get set of instance IDs from Devin benchmark results.
-
-    Returns:
-        set: Instance IDs from Devin benchmark output diffs
-    """
-    dname = Path("devin-swebench-results/output_diffs")
-
-    ids = [fname for fname in dname.glob("*/*.txt")]
-
-    suffix = "-diff.txt"
-    for iid in ids:
-        assert iid.name.endswith(suffix)
-
-    ids = set(iid.name[: -len(suffix)] for iid in ids)
-
-    print("devin ids", len(ids))
-    return ids
-
-
-def filter_preds_by_devin(predictions):
-    """
-    Filter predictions to only include Devin benchmark instances.
-
-    Args:
-        predictions (dict): Full predictions dictionary
-
-    Returns:
-        dict: Filtered predictions containing only Devin instances
-    """
-    devin_insts = get_devin_instance_ids()
-    predictions = dict((inst, pred) for (inst, pred) in predictions.items() if inst in devin_insts)
-    return predictions
 
 
 def pick_winner(results):
@@ -303,8 +267,8 @@ def choose_pred(inst, all_preds, dnames):
     return pick_winner(results)
 
 
-def choose_predictions(dnames, model_name_or_path=None, copy_md=False, devin_only=False):
-    all_preds = [load_predictions([dname], devin_only=devin_only) for dname in dnames]
+def choose_predictions(dnames, model_name_or_path=None, copy_md=False):
+    all_preds = [load_predictions([dname]) for dname in dnames]
     all_instances = set()
     for preds in all_preds:
         all_instances.update(preds.keys())

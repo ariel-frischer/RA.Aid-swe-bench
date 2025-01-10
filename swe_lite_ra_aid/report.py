@@ -17,7 +17,6 @@ from .dump import dump  # noqa: F401
 
 from .utils import (
     choose_predictions,
-    get_devin_instance_ids,
     load_predictions,
     old,
 )
@@ -207,7 +206,7 @@ def preds_to_jsonl(dname, predictions):
 def run_evals_on_dname(dname):
     dname = Path(dname)
 
-    predictions = load_predictions([dname], devin_only=(using_dataset == "devin"))
+    predictions = load_predictions([dname])
 
     predictions_jsonl = preds_to_jsonl(dname, predictions)
 
@@ -337,10 +336,7 @@ def calculate_costs(predictions, dataset):
         spent = sum(costs)
         print(f"spent: ${spent:.2f}")
 
-        if using_dataset == "devin":
-            num_instances = len(get_devin_instance_ids())
-        else:
-            num_instances = len(list(dataset))
+        num_instances = len(list(dataset))
 
         expected_cost = num_instances * avg_cost
         print(f"expected_cost: ${expected_cost:.2f}")
@@ -471,7 +467,7 @@ def main():
     _preds_dir = setup_output_directory(model_name_or_path)
 
     predictions = choose_predictions(
-        dnames, model_name_or_path, copy_md=True, devin_only=(using_dataset == "devin")
+        dnames, model_name_or_path, copy_md=True
     )
     if not predictions:
         print("No predictions")
