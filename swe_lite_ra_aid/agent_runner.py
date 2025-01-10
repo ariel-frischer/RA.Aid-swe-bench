@@ -11,10 +11,10 @@ from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
 from .git import get_git_patch
+from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
 
 def initialize_model():
     """Initialize the LLM model."""
-    from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
     return initialize_llm(provider=RA_AID_PROVIDER, model_name=RA_AID_MODEL)
 
 def get_agent_config():
@@ -101,10 +101,8 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     streaming output directly to the console (capture_output=False).
     Returns the patch if successful, else None.
     """
-    print(f"\nStarting RA.Aid in directory: {repo_dir}")
-    print(f"Current working directory before: {os.getcwd()}")
+    print("\nStarting RA.Aid...")
     
-    from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
     cmd = [
         "ra-aid",
         "--cowboy-mode",
