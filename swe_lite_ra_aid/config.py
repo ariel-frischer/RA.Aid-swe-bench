@@ -7,8 +7,11 @@ RA_AID_MODEL = "deepseek/deepseek-chat"
 RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
 
-# Output Configuration
-STREAM_OUTPUT = True  # Whether to stream ra-aid output to console while capturing
+# Whether to stream ra-aid output to console while capturing
+# Unfortunately the aider streaming portion is borked but we need to capture STDOUT for trajectory_output file generation.
+# When MAX_THREADS > 1 stream will be borked
+# TODO: Perhaps, disable traj/stdout capture while debugging with some configurable boolean.
+STREAM_OUTPUT = True
 
 # Directory Configuration
 REPOS_DNAME = Path("repos")
