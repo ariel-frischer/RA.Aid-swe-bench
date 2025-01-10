@@ -33,11 +33,13 @@ MAX_THREADS = 1
 # https://github.com/swe-bench/experiments/blob/main/checklist.md
 # When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
 # Sets env variable TAVILY_API_KEY to emptry str to avoid web search
+# Sets MAX_ATTEMPTS to 1, that is the submission rules: pass@1
 # We already dont use hints in prompt, enabled or not.
 SUBMISSION_MODE = True
+if SUBMISSION_MODE:
+    MAX_ATTEMPTS = 1
 
 model = initialize_model()
-
 
 
 def print_task_info(task):

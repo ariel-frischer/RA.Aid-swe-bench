@@ -7,4 +7,4 @@ RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
 
 # Output Configuration
-STREAM_OUTPUT = True  # Whether to stream output to console while capturing
+STREAM_OUTPUT = True  # Whether to stream ra-aid output to console while capturing
