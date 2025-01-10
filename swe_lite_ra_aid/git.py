@@ -29,3 +29,10 @@ def checkout_repo(git_tempdir, entry):
 
     print(f"Cloning {repo_url} at environment setup commit {setup_commit}")
     return checkout_repo_url_commit(git_tempdir, repo_url, setup_commit)
+
+
+def stage_and_get_patch(worktree_path: str) -> str:
+    """Stage all changes and generate a patch against HEAD."""
+    repo = Repo(worktree_path)
+    repo.git.add('-A')
+    return repo.git.diff('HEAD')

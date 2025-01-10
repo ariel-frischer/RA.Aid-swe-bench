@@ -8,7 +8,7 @@ from pathlib import Path
 from git import Repo
 
 from swe_lite_ra_aid.utils import load_predictions
-from .git import files_in_patch
+from .git import files_in_patch, stage_and_get_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
 from .config import (
@@ -70,9 +70,7 @@ def process_single_attempt(task, attempt, repo_manager):
                 return None, [], None, None
 
             # Stage all changes and generate patch
-            repo = Repo(worktree_path)
-            repo.git.add('-A')
-            model_patch = repo.git.diff('HEAD')
+            model_patch = stage_and_get_patch(worktree_path)
 
             if not model_patch:
                 print("No changes made by RA.Aid")
