@@ -10,6 +10,7 @@ from swe_lite_ra_aid.utils import load_predictions
 from .git import files_in_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
+from .config import RA_AID_FULL_MODEL, RA_AID_AIDER_MODEL
 from .agent_runner import (
     initialize_model,
     create_result_dict,
@@ -34,14 +35,6 @@ MAX_THREADS = 1
 # Sets env variable TAVILY_API_KEY to emptry str to avoid web search
 # We already dont use hints in prompt, enabled or not.
 SUBMISSION_MODE = True
-
-# RA-AID Configuration
-RA_AID_PROVIDER = "openrouter"
-RA_AID_MODEL = "deepseek/deepseek-chat"
-RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
-
-# Free to have different models for ra-aid researcher + aider-coder
-RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL
 
 model = initialize_model()
 

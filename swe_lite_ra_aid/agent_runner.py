@@ -11,7 +11,7 @@ from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
 from .git import get_git_patch
-from swe_lite_ra_aid.main import RA_AID_PROVIDER, RA_AID_MODEL
+from .config import RA_AID_PROVIDER, RA_AID_MODEL
 
 def initialize_model():
     """Initialize the LLM model."""
@@ -147,7 +147,7 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
 
 def create_result_dict(task, model_patch, edited_files, research_result, attempt, trajectory_file=None):
     """Create standardized result dictionary"""
-    from swe_lite_ra_aid.main import RA_AID_FULL_MODEL
+    from .config import RA_AID_FULL_MODEL
     result = {
         "instance_id": task["instance_id"],
         "model_name_or_path": "ra-aid-model",
