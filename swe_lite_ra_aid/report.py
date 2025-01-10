@@ -150,7 +150,9 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
         return report_stats
 
     except Exception as e:
+        import traceback
         print(f"Error generating report: {e}")
+        traceback.print_exc()
         return dict()
 
 
