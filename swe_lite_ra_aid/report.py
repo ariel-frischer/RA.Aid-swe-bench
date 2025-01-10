@@ -72,9 +72,14 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                     instance_log_path = Path("logs") / "run_evaluation/ra_aid_eval/ra-aid-model" / f"{instance_id.replace('/', '__')}/run_instance.log"
                     
                     if instance_log_path.exists():
-                        # Pass only the specific instance's test spec, not wrapped in a dict
+                        # Flatten the test spec structure for get_eval_report
+                        instance_test_spec = {
+                            'instance_id': instance_id,
+                            'FAIL_TO_PASS': test_spec[instance_id]['FAIL_TO_PASS'],
+                            'PASS_TO_PASS': test_spec[instance_id]['PASS_TO_PASS']
+                        }
                         single_report = get_eval_report(
-                            test_spec=test_spec[instance_id],
+                            test_spec=instance_test_spec,
                             prediction=prediction,
                             log_path=str(instance_log_path),
                             include_tests_status=True,
