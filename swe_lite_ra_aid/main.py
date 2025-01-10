@@ -108,17 +108,8 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     process_single_attempt(task, attempt, repo_manager)
                 )
 
-                # Save trajectory output if we have it
                 # Save trajectory and get filename if output exists
-                traj_fname = None
-                if trajectory_output:
-                    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-                    traj_fname = (
-                        out_dname
-                        / f"traj_{task['instance_id']}_attempt{attempt}_{timestamp}.txt"
-                    )
-                    traj_fname.write_text(trajectory_output)
-                    print(f"Saved trajectory to {traj_fname}")
+                traj_fname = save_trajectory(out_dname, task, attempt, trajectory_output)
 
                 print("Successfully completed process_single_attempt")
 

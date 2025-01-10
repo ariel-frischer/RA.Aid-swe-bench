@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 from typing import Optional
+from datetime import datetime
 
 
 def write_result_file(out_fname: Path, content: dict) -> bool:
@@ -95,3 +96,18 @@ def change_directory(path: Path):
         yield
     finally:
         os.chdir(original_cwd)
+
+
+def save_trajectory(out_dname: Path, task: dict, attempt: int, trajectory_output: str) -> Optional[Path]:
+    """Save trajectory output to a file and return the filename."""
+    if not trajectory_output:
+        return None
+        
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    traj_fname = (
+        out_dname
+        / f"traj_{task['instance_id']}_attempt{attempt}_{timestamp}.txt"
+    )
+    traj_fname.write_text(trajectory_output)
+    print(f"Saved trajectory to {traj_fname}")
+    return traj_fname
