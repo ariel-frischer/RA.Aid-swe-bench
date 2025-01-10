@@ -147,10 +147,10 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[str]:
     return patch, result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
 
 
-def create_result_dict(task, model_patch, edited_files, research_result, attempt):
+def create_result_dict(task, model_patch, edited_files, research_result, attempt, trajectory_file=None):
     """Create standardized result dictionary"""
     from swe_lite_ra_aid.main import RA_AID_FULL_MODEL
-    return {
+    result = {
         "instance_id": task["instance_id"],
         "model_name_or_path": "ra-aid-model",
         "model_patch": model_patch + "\n" if model_patch else "",
@@ -162,3 +162,6 @@ def create_result_dict(task, model_patch, edited_files, research_result, attempt
         "ra_aid_editor": RA_AID_FULL_MODEL,
         "is_winner": False,  # Default to False, will be updated by winner selection logic
     }
+    if trajectory_file:
+        result["trajectory_file"] = str(trajectory_file)
+    return result

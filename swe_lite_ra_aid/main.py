@@ -173,6 +173,8 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 )
 
                 # Save trajectory output if we have it
+                # Save trajectory and get filename if output exists
+                traj_fname = None
                 if trajectory_output:
                     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
                     traj_fname = (
@@ -185,7 +187,8 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 print("Successfully completed process_single_attempt")
 
                 result = create_result_dict(
-                    task, model_patch, edited_files, research_result, attempt
+                    task, model_patch, edited_files, research_result, attempt,
+                    trajectory_file=traj_fname
                 )
                 results.append(result)
 
