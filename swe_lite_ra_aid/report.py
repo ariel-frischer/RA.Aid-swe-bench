@@ -13,7 +13,8 @@ from swebench.harness.grading import (
     get_resolution_status,
     ResolvedStatus,
 )
-from swebench.harness.test_spec import make_test_spec
+from typing import Union, cast
+from swebench.harness.test_spec import TestSpec, get_test_specs_from_dataset
 
 from .dump import dump  # noqa: F401
 from .utils import (
@@ -46,11 +47,10 @@ def run_evals(_log_dir, predictions_jsonl):
 
 def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
     try:
-        # Create test specs using make_test_spec
-        test_spec = {}
+        # Convert dataset items to SWEbenchInstance format
+        swe_instances = []
         for item in dataset:
-            # Convert dataset item to SWEbenchInstance format
-            swe_instance = SWEbenchInstance(
+            swe_instances.append(SWEbenchInstance(
                 repo=item['repo'],
                 instance_id=item['instance_id'],
                 base_commit=item['base_commit'],
@@ -63,8 +63,11 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                 FAIL_TO_PASS=item['FAIL_TO_PASS'],
                 PASS_TO_PASS=item['PASS_TO_PASS'],
                 environment_setup_commit=item['environment_setup_commit']
-            )
-            test_spec[item['instance_id']] = make_test_spec(swe_instance)
+            ))
+        
+        # Create test specs using get_test_specs_from_dataset
+        test_specs = get_test_specs_from_dataset(swe_instances)
+        test_spec = {spec.instance_id: spec for spec in test_specs}
         print(f"Created test specs with {len(test_spec)} entries")
 
         # Process predictions one at a time from JSONL
