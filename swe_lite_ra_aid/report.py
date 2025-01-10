@@ -98,7 +98,6 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                         
         print(f"report={report}")
 
-        # Initialize report_stats with empty sets
         report_stats = {
             "resolved": set(),
             "generated": set(),
@@ -107,8 +106,6 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
             "no_apply": set(),
             "no_generation": set(),
         }
-
-        print(f"Raw report: {report}")  # Debug print
 
         if not isinstance(report, dict):
             print(f"Warning: report is not a dictionary, got {type(report)}")
