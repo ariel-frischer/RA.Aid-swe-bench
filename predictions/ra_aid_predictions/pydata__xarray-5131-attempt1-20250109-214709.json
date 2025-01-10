@@ -1,0 +1,17 @@
+{
+    "instance_id": "pydata__xarray-5131",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "diff --git a/.gitignore b/.gitignore\nindex 90f4a10e..b975c929 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -73,3 +73,4 @@ Icon*\n \n .ipynb_checkpoints\n doc/rasm.zarr\n+.aider*\ndiff --git a/xarray/core/groupby.py b/xarray/core/groupby.py\nindex 8a097251..af5abd9a 100644\n--- a/xarray/core/groupby.py\n+++ b/xarray/core/groupby.py\n@@ -436,7 +436,7 @@ class GroupBy(SupportsArithmetic):\n         return zip(self._unique_coord.values, self._iter_grouped())\n \n     def __repr__(self):\n-        return \"{}, grouped over {!r} \\n{!r} groups with labels {}.\".format(\n+        return \"{}, grouped over {!r}\\n{!r} groups with labels {}.\".format(\n             self.__class__.__name__,\n             self._unique_coord.name,\n             self._unique_coord.size,\ndiff --git a/xarray/tests/test_groupby.py b/xarray/tests/test_groupby.py\nindex 5ef7677c..081ebba7 100644\n--- a/xarray/tests/test_groupby.py\n+++ b/xarray/tests/test_groupby.py\n@@ -388,7 +388,7 @@ repr_da = xr.DataArray(\n def test_groupby_repr(obj, dim):\n     actual = repr(obj.groupby(dim))\n     expected = \"%sGroupBy\" % obj.__class__.__name__\n-    expected += \", grouped over %r \" % dim\n+    expected += \", grouped over %r\" % dim\n     expected += \"\\n%r groups with labels \" % (len(np.unique(obj[dim])))\n     if dim == \"x\":\n         expected += \"1, 2, 3, 4, 5.\"\n",
+    "edited_files": [
+        ".gitignore",
+        "xarray/core/groupby.py",
+        "xarray/tests/test_groupby.py"
+    ],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-09T21:47:09.185753",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
+    "is_winner": true,
+    "trajectory_file": "/home/ari/repos/swe-lite-raid/predictions/ra_aid_predictions/traj_pydata__xarray-5131_attempt1_20250109-214709.txt"
+}

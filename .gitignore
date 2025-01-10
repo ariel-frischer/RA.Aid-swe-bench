@@ -172,7 +172,6 @@ cython_debug/
 .aider*
 
 # Exclude all .txt files in predictions directory to prevent sensitive data exposure
-# These files may contain model outputs and internal debugging information
 predictions/**/*.txt
 
 repos/

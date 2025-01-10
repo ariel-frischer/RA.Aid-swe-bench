@@ -1,0 +1,13 @@
+{
+    "instance_id": "matplotlib__matplotlib-25433",
+    "model_name_or_path": "ra-aid-model",
+    "model_patch": "",
+    "edited_files": [],
+    "research": null,
+    "attempt": 1,
+    "timestamp": "2025-01-09T21:44:44.739949",
+    "ra_aid_model": "openrouter/deepseek/deepseek-chat",
+    "ra_aid_editor": "openrouter/deepseek/deepseek-chat",
+    "is_winner": false,
+    "trajectory_file": "/home/ari/repos/swe-lite-raid/predictions/ra_aid_predictions/traj_matplotlib__matplotlib-25433_attempt1_20250109-214444.txt"
+}

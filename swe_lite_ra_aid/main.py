@@ -269,7 +269,6 @@ def main():
         # Initialize repo manager with project root
         repo_manager = RepoManager(project_root / REPOS_DNAME)
 
-        # Update generate_predictions to pass repo_manager
         generate_predictions(dataset, out_dname, repo_manager)
 
         print(f"Predictions saved to {out_dname}")
