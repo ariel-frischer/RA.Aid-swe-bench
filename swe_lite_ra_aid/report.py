@@ -5,9 +5,9 @@ import shutil
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import TypedDict
 
 from datasets import load_dataset
+from swebench.harness.constants import SWEbenchInstance
 from swebench.harness.grading import (
     get_eval_report,
     get_resolution_status,
@@ -21,20 +21,6 @@ from .utils import (
     load_predictions,
     old,
 )
-
-class SWEbenchInstance(TypedDict):
-    repo: str
-    instance_id: str
-    base_commit: str
-    patch: str
-    test_patch: str
-    problem_statement: str
-    hints_text: str
-    created_at: str
-    version: str
-    FAIL_TO_PASS: str
-    PASS_TO_PASS: str
-    environment_setup_commit: str
 
 using_dataset = "lite"
 NUM_EVAL_PROCS = 5
