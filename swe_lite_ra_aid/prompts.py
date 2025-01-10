@@ -36,9 +36,7 @@ def prepare_base_prompt(task):
     <Problem Statement and Tests>:
     {problem_details}
     </Problem Statement and Tests>
-
-    Additional Hints:
-    {task.get("hints_text", "")}"""
+    """
 
 def prepare_research_prompt(task):
     """Prepare the prompt specifically for the research agent"""
