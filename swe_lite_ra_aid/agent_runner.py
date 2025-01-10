@@ -123,64 +123,74 @@ def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         prompt,
     ]
 
+    def create_streaming_process(cmd, cwd):
+        """Create a subprocess with streaming output configuration."""
+        return subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=1,
+            universal_newlines=True,
+        )
+
+    def process_char(c, current_line, output):
+        """Process a single character from stdout stream."""
+        if c == '\r':  # Carriage return
+            current_line.clear()
+        elif c == '\n':  # Newline
+            line = ''.join(current_line)
+            output.append(line + '\n')
+            current_line.clear()
+            print(line)  # Stream to console
+        else:
+            current_line.append(c)
+
+    def handle_stdout_stream(process, output):
+        """Handle streaming stdout output character by character."""
+        current_line = []
+        while True:
+            char = process.stdout.read(1)
+            if not char:
+                break
+            process_char(char, current_line, output)
+        
+        # Flush any remaining content
+        if current_line:
+            line = ''.join(current_line)
+            output.append(line)
+            print(line, end='')
+
+    def handle_stderr_stream(process, error_output):
+        """Handle streaming stderr output line by line."""
+        for line in process.stderr:
+            print(line, end="", file=sys.stderr)
+            error_output.append(line)
+
+    def create_result_object(returncode, stdout, stderr):
+        """Create a result object matching the non-streaming case."""
+        return type(
+            "Result",
+            (),
+            {"returncode": returncode, "stdout": stdout, "stderr": stderr},
+        )()
+
     output = []
     error_output = []
-    current_line = []  # Buffer for building current line
 
     try:
         with activate_venv(repo_dir):
             if STREAM_OUTPUT:
-                # Use Popen to stream and capture output
-                process = subprocess.Popen(
-                    cmd,
-                    cwd=repo_dir,
-                    text=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    bufsize=1,
-                    universal_newlines=True,
-                )
-
-                def process_char(c):
-                    if c == '\r':  # Carriage return
-                        current_line.clear()
-                    elif c == '\n':  # Newline
-                        line = ''.join(current_line)
-                        output.append(line + '\n')
-                        current_line.clear()
-                        print(line)  # Stream to console
-                    else:
-                        current_line.append(c)
-
-                # Stream and capture stdout character by character
-                while True:
-                    char = process.stdout.read(1)
-                    if not char:
-                        break
-                    process_char(char)
-
-                # Flush any remaining content in current_line
-                if current_line:
-                    line = ''.join(current_line)
-                    output.append(line)
-                    print(line, end='')
-
-                # Capture stderr
-                for line in process.stderr:
-                    print(line, end="", file=sys.stderr)
-                    error_output.append(line)
+                process = create_streaming_process(cmd, repo_dir)
+                
+                handle_stdout_stream(process, output)
+                handle_stderr_stream(process, error_output)
 
                 process.wait()
-                returncode = process.returncode
                 stdout = "".join(output)
                 stderr = "".join(error_output)
-
-                # Create a result object to match the non-streaming case
-                result = type(
-                    "Result",
-                    (),
-                    {"returncode": returncode, "stdout": stdout, "stderr": stderr},
-                )()
+                result = create_result_object(process.returncode, stdout, stderr)
             else:
                 # Just capture output without streaming
                 result = subprocess.run(
