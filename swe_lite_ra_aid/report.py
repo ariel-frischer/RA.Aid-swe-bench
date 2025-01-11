@@ -235,7 +235,6 @@ def run_evals_on_dname(dname, dataset):
     dname = Path(dname)
 
     predictions = load_predictions([dname])
-
     predictions_jsonl = preds_to_jsonl(dname, predictions)
 
     log_dir = Path("logs") / dname.name
@@ -279,10 +278,7 @@ def combine_jsonl_logs(predictions, model_name_or_path):
             print("Missing", pred["dname"], inst)
             continue
         from_fname = from_fname[0]
-        # dump(from_fname)
-
         to_fname = log_dir / f"{inst}.{model_name_or_path}.eval.log"
-        # dump(from_fname, to_fname)
         shutil.copyfile(from_fname, to_fname)
 
     return predictions_jsonl, log_dir
@@ -525,6 +521,7 @@ def run_detailed_analysis(dnames: list, dataset, model_name_or_path: str = "ra_a
         dataset: Loaded SWE-bench dataset
         model_name_or_path: Name of the model/prediction set
     """
+    print("Running run_detailed_analysis")
     _preds_dir = setup_output_directory(model_name_or_path)
 
     predictions = choose_predictions(dnames, model_name_or_path, copy_md=True)
