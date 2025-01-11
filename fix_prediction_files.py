@@ -13,6 +13,24 @@ from pathlib import Path
 from datetime import datetime
 
 
+def reset_evaluation_fields(json_file, data):
+    """Reset evaluation fields in prediction data to False.
+    
+    Args:
+        json_file (Path): Path to the JSON file
+        data (dict): Prediction data dictionary
+        
+    Returns:
+        bool: True if fields were modified
+    """
+    modified = False
+    data["resolved"] = False
+    data["evaluated"] = False
+    modified = True
+    print(f"Reset evaluation fields for {json_file}")
+    return modified
+
+
 def fix_prediction_files(reset_eval=False):
     """
     Fix prediction files by adding missing fields or resetting evaluation status.
@@ -49,10 +67,7 @@ def fix_prediction_files(reset_eval=False):
 
         # Reset evaluation fields if requested
         if reset_eval:
-            data["resolved"] = False
-            data["evaluated"] = False
-            modified = True
-            print(f"Reset evaluation fields for {json_file}")
+            modified = reset_evaluation_fields(json_file, data) or modified
 
         if modified:
             json_file.write_text(json.dumps(data, indent=4))
