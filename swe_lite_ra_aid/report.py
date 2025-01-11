@@ -260,7 +260,7 @@ def run_evals_on_dname(dname, dataset):
     dname = Path(dname)
 
     predictions = load_predictions([dname])
-    predictions_jsonl = preds_to_jsonl(dname, predictions)
+    # predictions_jsonl = preds_to_jsonl(dname, predictions)
 
     log_dir = Path("logs") / dname.name
     log_dir.mkdir(exist_ok=True, parents=True)
