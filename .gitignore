@@ -171,8 +171,8 @@ cython_debug/
 .pypirc
 .aider*
 
-# Exclude all .txt files in predictions directory to prevent sensitive data exposure
-predictions/**/*.txt
+# Exclude all predictions prevent possible sensitive data exposure and keep tracked git repo minimal
+predictions/
 
 repos/
 logs/

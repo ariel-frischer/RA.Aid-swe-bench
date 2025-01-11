@@ -118,12 +118,15 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
 * [ ] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
 * [ ] Logging setup needed.
+* [ ] Fix `get_report` in report.py will allow us to get resolved status for
+      each prediction file. Also gets more detail report stat information.
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
-* [ ] Need to modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
 * [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
   * Fixed with os.env setting
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
+* [ ] Post process eval needs work
+  * [ ] Modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
 * [ ] Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 
