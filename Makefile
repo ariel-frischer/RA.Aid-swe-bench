@@ -50,5 +50,8 @@ add-model-name:
 evaluate:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 
+evaluate-post:
+	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
+
 aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
