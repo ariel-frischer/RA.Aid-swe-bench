@@ -10,8 +10,6 @@ from datasets import load_dataset
 from swebench.harness.constants import SWEbenchInstance
 from swebench.harness.grading import (
     get_eval_report,
-    get_resolution_status,
-    ResolvedStatus,
 )
 from swebench.harness.test_spec import get_test_specs_from_dataset
 
