@@ -8,6 +8,7 @@ help:
 	@echo "  clean           - Remove Python cache files and bytecode"
 	@echo "  clean-repos     - Remove all cached repositories from repos directory"
 	@echo "  clean-predictions - Remove all prediction files and old directories (asks for confirmation)"
+	@echo "  clean-logs      - Remove all files in logs directory while preserving the directory (asks for confirmation)"
 	@echo "  format          - Format code using black"
 	@echo "  check           - Run ruff linter with auto-fix enabled"
 	@echo "  fix-predictions - Helper command when prediction files are borked/old adds missing fields"
@@ -44,6 +45,10 @@ clean-predictions:
 	rm -rf predictions/ra_aid_predictions/*.txt
 	rm -rf predictions/ra_aid_selected_predictions/*.jsonl
 	rm -rf predictions/old
+
+clean-logs:
+	@echo "This will remove all files in logs directory. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+	rm -rf logs/*
 
 format:
 	poetry run black .
