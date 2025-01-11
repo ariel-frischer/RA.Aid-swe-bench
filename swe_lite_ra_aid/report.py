@@ -30,7 +30,7 @@ def run_evals(_log_dir, predictions_jsonl):
 
     # Run evaluation using the swebench package directly
     run_evaluation(
-        dataset_name="princeton-nlp/SWE-bench_Lite",
+        dataset_name=LITE_DATASET,
         split="test",
         instance_ids=None,
         predictions_path=predictions_jsonl,
@@ -46,7 +46,6 @@ def run_evals(_log_dir, predictions_jsonl):
 
 def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
     try:
-        # Convert dataset items to SWEbenchInstance format
         swe_instances = []
         for item in dataset:
             swe_instances.append(SWEbenchInstance(
@@ -81,7 +80,7 @@ def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
                     print(f"\nProcessing instance: {instance_id}")
                     
                     # Construct specific log path for this instance
-                    instance_log_path = Path("logs") / "run_evaluation/ra_aid_eval/ra-aid-model" / f"{instance_id.replace('/', '__')}/run_instance.log"
+                    instance_log_path = Path("logs") / f"run_evaluation/ra_aid_eval/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
                     
                     if instance_log_path.exists():
                         # Use the existing test spec that was properly created with make_test_spec
