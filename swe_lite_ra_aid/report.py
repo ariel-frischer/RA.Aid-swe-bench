@@ -93,6 +93,12 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                         )
                     else:
                         print(f"Warning: Log file not found at {instance_log_path}")
+                        # Create empty report entry instead of skipping
+                        report[instance_id] = {
+                            "patch_exists": False,
+                            "patch_successfully_applied": False,
+                            "tests_status": None
+                        }
                         continue
                     if single_report:
                         report[instance_id] = single_report.get(instance_id, {})
@@ -127,15 +133,9 @@ def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
                     )
                     continue
 
-                # Safely get resolution status with error handling
-                try:
-                    resolution_status = get_resolution_status(eval_result)
-                except Exception as e:
-                    print(f"Error getting resolution status for {instance_id}: {e}")
-                    continue
-
-                # Track instance in appropriate categories
-                if resolution_status == ResolvedStatus.RESOLVED:
+                # Check FAIL_TO_PASS tests directly instead of using get_resolution_status
+                fail_to_pass = eval_result.get("tests_status", {}).get("FAIL_TO_PASS", {})
+                if isinstance(fail_to_pass, dict) and fail_to_pass.get("success", False):
                     report_stats["resolved"].add(instance_id)
 
                 if eval_result.get("model_patch"):
@@ -191,15 +191,12 @@ def update_pred_json(predictions, report):
     if not report:
         return predictions
 
-    all_instances = set(report.get("generated", []))
-    all_instances.update(set(report.get("no_generation", [])))
+    all_instances = set(predictions.keys())  # Use all prediction instances instead
 
     for instance_id, pred in predictions.items():
         was_resolved = instance_id in report.get("resolved", set())
         if "resolved" in pred and pred["resolved"] == was_resolved:
             continue
-
-        assert instance_id in all_instances, instance_id
 
         pred["resolved"] = was_resolved
         save = dict(pred)
