@@ -74,13 +74,24 @@ def fix_prediction_files(reset_eval=False):
             print(f"Updated {json_file}")
 
 
+def reset_all_predictions():
+    """Reset evaluation fields for all prediction files."""
+    predictions_dir = Path("predictions/ra_aid_predictions")
+    for json_file in predictions_dir.glob("*.json"):
+        data = json.loads(json_file.read_text())
+        if reset_evaluation_fields(json_file, data):
+            json_file.write_text(json.dumps(data, indent=4))
+
 def main():
     parser = argparse.ArgumentParser(description="Fix or reset prediction file fields")
     parser.add_argument("--reset-eval", action="store_true",
                        help="Reset evaluation fields (resolved and evaluated) to False")
     
     args = parser.parse_args()
-    fix_prediction_files(reset_eval=args.reset_eval)
+    if args.reset_eval:
+        reset_all_predictions()
+    else:
+        fix_prediction_files(reset_eval=False)
 
 
 if __name__ == "__main__":
