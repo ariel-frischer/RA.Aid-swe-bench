@@ -27,7 +27,7 @@ Set them in your SHELL, .env support is not implemented yet.
 
 ### ⚠️ Important Notes
 
-- **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many raid instances run in parallel. Be cautious with high values as this can:
+- **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many `ra-aid` instances run in parallel. Be cautious with high values as this can:
   - Significantly increase API costs
   - Potentially trigger rate limits
   - Cause memory/CPU issues
