@@ -98,6 +98,16 @@ This system significantly reduces disk usage and speeds up multiple attempts by:
 - Reusing installed dependencies
 - Sharing virtual environments across attempts
 
+## Logs
+
+SWE bench generates detailed logs during evaluation in the `logs/` directory:
+- `logs/run_evaluation/<run_id>/<model>/` - Contains evaluation logs for each instance
+- Each instance gets a `run_instance.log` file with:
+  - Test execution output
+  - Patch application results
+  - Environment setup details
+  - Error messages if any
+
 ## Problems/Improvements
 * [ ] RA.Aid does get stuck often, multiple different errors.
   * Tool Error: Error executing code: invalid syntax (, line 4)
