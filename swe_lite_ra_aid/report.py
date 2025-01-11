@@ -30,7 +30,7 @@ def run_evals(_log_dir, predictions_jsonl):
     from swebench.harness.run_evaluation import main as run_evaluation
 
     # Run evaluation using the swebench package directly
-    run_evaluation(
+    report_file = run_evaluation(
         dataset_name=LITE_DATASET,
         split="test",
         instance_ids=None,
@@ -43,6 +43,25 @@ def run_evals(_log_dir, predictions_jsonl):
         run_id=EVAL_RUN_ID,
         timeout=1800,
     )
+
+    # Print evaluation summary from report file
+    if report_file and Path(report_file).exists():
+        report_data = json.loads(Path(report_file).read_text())
+        summary_fields = [
+            "total_instances",
+            "submitted_instances", 
+            "completed_instances",
+            "resolved_instances",
+            "unresolved_instances", 
+            "empty_patch_instances",
+            "error_instances",
+            "unstopped_instances"
+        ]
+        
+        print("\nEvaluation Summary:")
+        for field in summary_fields:
+            if field in report_data:
+                print(f"{field}: {report_data[field]}")
 
 
 def create_swe_instances(dataset):
