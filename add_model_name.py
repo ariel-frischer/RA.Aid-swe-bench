@@ -30,6 +30,10 @@ def add_model_name():
         if "ra_aid_editor" not in data:
             data["ra_aid_editor"] = "anthropic/claude-3-5-sonnet-20241022"
             modified = True
+            
+        if "resolved" not in data:
+            data["resolved"] = False
+            modified = True
 
         # Write back to file if modified
         if modified:
