@@ -190,10 +190,6 @@ def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
             "no_generation": set(),
         }
 
-        if not isinstance(report, dict):
-            print(f"Warning: report is not a dictionary, got {type(report)}")
-            return report_stats
-
         # Process each instance's status
         for instance_id, eval_result in report.items():
             process_instance_status(instance_id, eval_result, report_stats)
@@ -266,6 +262,7 @@ def run_evals_on_dname(dname, dataset):
 
     any_need_evals = any("resolved" not in pred for pred in predictions.values())
     any_need_evals = True
+
     if any_need_evals:
         run_evals(str(log_dir), predictions_jsonl)
 
@@ -277,6 +274,8 @@ def run_evals_on_dname(dname, dataset):
             model_name_or_path,
         )
         predictions = update_pred_json(predictions, report)
+    else:
+        print("No evals needed")
 
     return predictions_jsonl, log_dir
 
