@@ -189,8 +189,6 @@ def update_pred_json(predictions, report):
     if not report:
         return predictions
 
-    all_instances = set(predictions.keys())  # Use all prediction instances instead
-
     for instance_id, pred in predictions.items():
         was_resolved = instance_id in report.get("resolved", set())
         if "resolved" in pred and pred["resolved"] == was_resolved:
