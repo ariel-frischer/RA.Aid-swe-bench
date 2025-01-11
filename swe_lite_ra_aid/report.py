@@ -609,9 +609,9 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate RA-AID predictions")
     parser.add_argument("directories", nargs="+", help="Prediction directories to evaluate")
     parser.add_argument("--post-eval", action="store_true", default=False,
-                       help="Run detailed post-evaluation analysis")
+                       help="Run detailed post-evaluation analysis. WIP / Not yet supported legacy code")
     parser.add_argument("--run-id", default=DEFAULT_EVAL_RUN_ID,
-                       help="Run ID for evaluation (default: ra_aid_eval)")
+                       help="Run ID for evaluation, specifies the eval json filename (default: ra_aid_eval)")
     args = parser.parse_args()
 
     dataset = load_dataset(LITE_DATASET, split=DATASET_SPLIT)
