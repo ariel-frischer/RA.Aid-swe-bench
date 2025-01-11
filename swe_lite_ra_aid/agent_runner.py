@@ -238,6 +238,7 @@ def create_result_dict(
         "ra_aid_model": RA_AID_FULL_MODEL,
         "ra_aid_editor": RA_AID_FULL_MODEL,
         "is_winner": False,  # Default to False, will be updated by winner selection logic
+        "resolved": False,  # Default to False, will be updated during evaluation
     }
     if trajectory_file:
         result["trajectory_file"] = str(trajectory_file)
