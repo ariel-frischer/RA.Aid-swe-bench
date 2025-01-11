@@ -42,7 +42,7 @@ def run_evals(_log_dir, predictions_jsonl):
     )
 
 
-def get_report(dataset, log_dir, predictions_jsonl, _model_name_or_path):
+def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
     try:
         # Convert dataset items to SWEbenchInstance format
         swe_instances = []
@@ -286,7 +286,7 @@ def combine_jsonl_logs(predictions, model_name_or_path):
     return predictions_jsonl, log_dir
 
 
-def process_predictions_directories(dnames, dataset):
+def evaluate_predictions(dnames, dataset):
     """Process all prediction directories and run evaluations."""
     for dname in dnames:
         dump(dname)
@@ -522,7 +522,7 @@ def main():
     # Load dataset once
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
-    process_predictions_directories(dnames, dataset)
+    evaluate_predictions(dnames, dataset)
     _preds_dir = setup_output_directory(model_name_or_path)
 
     predictions = choose_predictions(
