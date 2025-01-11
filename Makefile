@@ -47,10 +47,10 @@ check:
 add-model-name:
 	poetry run python add_model_name.py
 
-evaluate:
+eval:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 
-evaluate-post:
+eval-post:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
 
 aider:
