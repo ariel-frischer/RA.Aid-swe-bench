@@ -15,6 +15,24 @@ Many of the files in this repo have been modified from the source: https://githu
 - RA-AID ^0.12.0 (must have `ra-aid` cli path working in the running shell)
 - uv for fast dependency installation for each attempt
 
+### Environment Variables
+
+Depending on your chosen model in `config.py`, you'll need to set appropriate API keys:
+- OpenAI models: `OPENAI_API_KEY`
+- Anthropic models: `ANTHROPIC_API_KEY`
+- OpenRouter models: `OPENROUTER_API_KEY`
+
+These can be set in your shell or in a `.env` file in the project root.
+
+### ⚠️ Important Notes
+
+- **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many model instances run in parallel. Be cautious with high values as this can:
+  - Significantly increase API costs
+  - Potentially trigger rate limits
+  - Cause memory/CPU issues
+  
+- **Cost Warning**: Different models have varying pricing. Running multiple instances in parallel with expensive models can quickly accumulate significant costs. Monitor your usage carefully!
+
 ## Installation
 
 ```bash
@@ -123,6 +141,7 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
   * Fixed with os.env setting
+* [ ] Add proper .env file handling and loading for API keys
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
 * [ ] Post process eval needs work
