@@ -16,6 +16,9 @@ LITE_DATASET_FNAME = LITE_DATASET.replace("/", "--") + ".json"
 # Dataset split to use for evaluation
 DATASET_SPLIT = "test"
 
+# Default model name for predictions
+RA_AID_MODEL = "ra-aid-model"
+
 
 def dump_dataset(dataset, fname):
     entries = list(dataset)

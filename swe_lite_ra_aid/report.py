@@ -15,7 +15,7 @@ from swebench.harness.grading import (
 from swebench.harness.test_spec import get_test_specs_from_dataset
 
 from .dump import dump
-from .utils import LITE_DATASET, DATASET_SPLIT
+from .utils import LITE_DATASET, DATASET_SPLIT, RA_AID_MODEL
 from .utils import (
     choose_predictions,
     load_predictions,
@@ -210,7 +210,7 @@ def preds_to_jsonl(dname, predictions):
     dump(predictions_jsonl)
 
     # Use consistent model name if not present in predictions
-    model_name_or_path = "ra-aid-model"
+    model_name_or_path = RA_AID_MODEL
 
     with open(predictions_jsonl, "w") as fh:
         for _, pred in predictions.items():
