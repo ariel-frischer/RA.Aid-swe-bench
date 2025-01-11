@@ -47,6 +47,12 @@ check:
 add-model-name:
 	poetry run python add_model_name.py
 
+fix-predictions:
+	poetry run python fix_prediction_files.py
+
+reset-eval:
+	poetry run python fix_prediction_files.py --reset-eval
+
 eval:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 

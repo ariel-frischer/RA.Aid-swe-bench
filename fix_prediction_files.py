@@ -1,12 +1,25 @@
 #!/usr/bin/env python
+"""
+Fix or reset prediction file fields.
+
+Usage:
+    poetry run python fix_prediction_files.py  # Add missing fields
+    poetry run python fix_prediction_files.py --reset-eval  # Reset evaluation fields
+"""
+
+import argparse
 import json
 from pathlib import Path
 from datetime import datetime
 
 
-def fix_prediction_files():
-    "Had missing fields on prediction files, you can use this method to update them"
-
+def fix_prediction_files(reset_eval=False):
+    """
+    Fix prediction files by adding missing fields or resetting evaluation status.
+    
+    Args:
+        reset_eval (bool): If True, reset evaluation fields to False
+    """
     predictions_dir = Path("predictions/ra_aid_predictions")
 
     for json_file in predictions_dir.glob("*.json"):
@@ -34,10 +47,26 @@ def fix_prediction_files():
             data["resolved"] = False
             modified = True
 
+        # Reset evaluation fields if requested
+        if reset_eval:
+            data["resolved"] = False
+            data["evaluated"] = False
+            modified = True
+            print(f"Reset evaluation fields for {json_file}")
+
         if modified:
             json_file.write_text(json.dumps(data, indent=4))
             print(f"Updated {json_file}")
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Fix or reset prediction file fields")
+    parser.add_argument("--reset-eval", action="store_true",
+                       help="Reset evaluation fields (resolved and evaluated) to False")
+    
+    args = parser.parse_args()
+    fix_prediction_files(reset_eval=args.reset_eval)
+
+
 if __name__ == "__main__":
-    fix_prediction_files()
+    main()
