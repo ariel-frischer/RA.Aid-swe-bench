@@ -21,7 +21,7 @@ This script:
 5. Generates summary statistics
 6. Marks prediction files with evaluated=True and resolved status after evaluating them
 
-The post-evaluation methods starting with: `run_detailed_analysis` is legacy code.
+The post-evaluation methods starting with: `run_detailed_analysis` is borked and not yet supported legacy code.
 """
 
 import argparse
@@ -52,6 +52,8 @@ DEFAULT_EVAL_RUN_ID = "ra_aid_eval"
 
 def print_evaluation_summary(report_file):
     """Print summary statistics from evaluation report file."""
+    print(f"report_file={report_file}")
+
     if report_file and Path(report_file).exists():
         report_data = json.loads(Path(report_file).read_text())
         summary_fields = [
@@ -321,7 +323,6 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
     }
 
     if non_evaluated_predictions:
-        print(f"non_evaluated_predictions={non_evaluated_predictions}")
         # Generate JSONL only for predictions that need evaluation
         predictions_jsonl = preds_to_jsonl(dname, non_evaluated_predictions)
         
@@ -338,8 +339,8 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
         predictions = update_pred_json(predictions, report)
     else:
         print("All predictions already evaluated")
-        # Try to print summary from last evaluation
         report_file = Path(f"{RA_AID_MODEL}.{run_id}.json")
+        print(f"Current report_file path: {report_file}")
         print_evaluation_summary(report_file)
 
     return predictions_jsonl, log_dir
