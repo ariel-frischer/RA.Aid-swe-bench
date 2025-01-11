@@ -558,13 +558,10 @@ def main():
                        help="Run detailed post-evaluation analysis")
     args = parser.parse_args()
 
-    # Load dataset once
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
-    # Run basic evaluation
     evaluate_predictions(args.directories, dataset)
 
-    # Optionally run detailed analysis
     if args.post_eval:
         run_detailed_analysis(args.directories, dataset)
 
