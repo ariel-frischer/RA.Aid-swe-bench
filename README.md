@@ -22,8 +22,6 @@ Depending on your chosen model in `config.py`, you'll need to set appropriate AP
 - Anthropic models: `ANTHROPIC_API_KEY`
 - OpenRouter models: `OPENROUTER_API_KEY`
 
-These can be set in your shell or in a `.env` file in the project root.
-
 ### ⚠️ Important Notes
 
 - **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many model instances run in parallel. Be cautious with high values as this can:
@@ -136,16 +134,16 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
 * [ ] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
 * [ ] Logging setup needed.
-* [ ] Fix `get_report` in report.py will allow us to get resolved status for
-      each prediction file. Also gets more detail report stat information.
+* [ ] Fix `get_report` in report.py. Will fix the resolved status for
+      each prediction file. Also gets more detailed report stat information for each instance.
+* [ ] Add proper .env file handling and loading for API keys, right now your SHELL env config is used, can effect aider runtime.
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
-* [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
-  * Fixed with os.env setting
-* [ ] Add proper .env file handling and loading for API keys
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
-* [ ] Post process eval needs work
+* [ ] Post process eval is broken, not on the todo list open to PRs
   * [ ] Modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
+* [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
+  * Fixed with os.env setting
 * [ ] Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
 * This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 
