@@ -45,63 +45,83 @@ def run_evals(_log_dir, predictions_jsonl):
     )
 
 
-def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
-    try:
-        swe_instances = []
-        for item in dataset:
-            swe_instances.append(SWEbenchInstance(
-                repo=item['repo'],
-                instance_id=item['instance_id'],
-                base_commit=item['base_commit'],
-                patch=item['patch'],
-                test_patch=item['test_patch'],
-                problem_statement=item['problem_statement'],
-                hints_text=item.get('hints_text', ''),
-                created_at=item['created_at'],
-                version=item.get('version', '1.0'),
-                FAIL_TO_PASS=item['FAIL_TO_PASS'],
-                PASS_TO_PASS=item['PASS_TO_PASS'],
-                environment_setup_commit=item['environment_setup_commit']
-            ))
-        
-        # Create test specs using get_test_specs_from_dataset
-        test_specs = get_test_specs_from_dataset(swe_instances)
-        test_spec = {spec.instance_id: spec for spec in test_specs}
-        print(f"Created test specs with {len(test_spec)} entries")
+def create_swe_instances(dataset):
+    """Create SWEbenchInstance objects from dataset items."""
+    swe_instances = []
+    for item in dataset:
+        swe_instances.append(SWEbenchInstance(
+            repo=item['repo'],
+            instance_id=item['instance_id'],
+            base_commit=item['base_commit'],
+            patch=item['patch'],
+            test_patch=item['test_patch'],
+            problem_statement=item['problem_statement'],
+            hints_text=item.get('hints_text', ''),
+            created_at=item['created_at'],
+            version=item.get('version', '1.0'),
+            FAIL_TO_PASS=item['FAIL_TO_PASS'],
+            PASS_TO_PASS=item['PASS_TO_PASS'],
+            environment_setup_commit=item['environment_setup_commit']
+        ))
+    return swe_instances
 
-        # Process predictions one at a time from JSONL
+
+def create_test_specs(swe_instances):
+    """Create test specifications from SWE instances."""
+    test_specs = get_test_specs_from_dataset(swe_instances)
+    test_spec_dict = {spec.instance_id: spec for spec in test_specs}
+    print(f"Created test specs with {len(test_spec_dict)} entries")
+    return test_spec_dict
+
+
+def get_instance_log_path(instance_id):
+    """Construct the log path for a specific instance."""
+    return Path("logs") / f"run_evaluation/{EVAL_RUN_ID}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
+
+
+def process_single_prediction(prediction, test_spec):
+    """Process a single prediction and return its evaluation report."""
+    instance_id = prediction['instance_id']
+    
+    if instance_id not in test_spec:
+        return None, None
+        
+    print(f"\nProcessing instance: {instance_id}")
+    instance_log_path = get_instance_log_path(instance_id)
+    
+    if not instance_log_path.exists():
+        print(f"Warning: Log file not found at {instance_log_path}")
+        return instance_id, {
+            "patch_exists": False,
+            "patch_successfully_applied": False,
+            "tests_status": None
+        }
+    
+    single_report = get_eval_report(
+        test_spec=test_spec[instance_id],
+        prediction=prediction,
+        log_path=str(instance_log_path),
+        include_tests_status=True,
+    )
+    
+    return instance_id, single_report.get(instance_id, {}) if single_report else None
+
+
+def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
+    """Generate evaluation report for predictions."""
+    try:
+        # Create SWE instances and test specs
+        swe_instances = create_swe_instances(dataset)
+        test_spec = create_test_specs(swe_instances)
+        
+        # Process predictions
         report = {}
         with open(predictions_jsonl, 'r') as f:
             for line in f:
                 prediction = json.loads(line)
-                instance_id = prediction['instance_id']
-                
-                # Only process if we have test specs for this instance
-                if instance_id in test_spec:
-                    print(f"\nProcessing instance: {instance_id}")
-                    
-                    # Construct specific log path for this instance
-                    instance_log_path = Path("logs") / f"run_evaluation/{EVAL_RUN_ID}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
-                    
-                    if instance_log_path.exists():
-                        # Use the existing test spec that was properly created with make_test_spec
-                        single_report = get_eval_report(
-                            test_spec=test_spec[instance_id],
-                            prediction=prediction,
-                            log_path=str(instance_log_path),
-                            include_tests_status=True,
-                        )
-                    else:
-                        print(f"Warning: Log file not found at {instance_log_path}")
-                        # Create empty report entry instead of skipping
-                        report[instance_id] = {
-                            "patch_exists": False,
-                            "patch_successfully_applied": False,
-                            "tests_status": None
-                        }
-                        continue
-                    if single_report:
-                        report[instance_id] = single_report.get(instance_id, {})
+                instance_id, result = process_single_prediction(prediction, test_spec)
+                if instance_id and result:
+                    report[instance_id] = result
                         
 
         report_stats = {
