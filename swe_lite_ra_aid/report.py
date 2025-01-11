@@ -19,7 +19,9 @@ This script:
 3. Runs evaluation on non-evaluated predictions
 4. Updates prediction files with evaluation results
 5. Generates summary statistics
-6. Marks predictions as evaluated=True when processed
+6. Marks prediction files with evaluated=True and resolved status after evaluating them
+
+The post-evaluation methods starting with: `run_detailed_analysis` is legacy code.
 """
 
 import argparse
