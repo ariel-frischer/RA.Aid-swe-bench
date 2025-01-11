@@ -292,12 +292,14 @@ def run_evals_on_dname(dname, dataset):
     }
 
     if non_evaluated_predictions:
+        print(f"non_evaluated_predictions={non_evaluated_predictions}")
         # Generate JSONL only for predictions that need evaluation
         predictions_jsonl = preds_to_jsonl(dname, non_evaluated_predictions)
         
         run_evals(str(log_dir), predictions_jsonl)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
+        print(f"model_name_or_path={model_name_or_path}")
         report = get_report(
             dataset,
             log_dir,
