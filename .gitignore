@@ -172,8 +172,13 @@ cython_debug/
 .aider*
 
 # Exclude all predictions prevent possible sensitive data exposure and keep tracked git repo minimal
-predictions/
+predictions/*
 
-repos/
-logs/
+logs/*
+repos/*
 aider/
+
+ # Keep the empty directories
+!logs/.gitkeep
+!predictions/.gitkeep
+!repos/.gitkeep
