@@ -2,11 +2,19 @@
 
 help:
 	@echo "Available commands:"
-	@echo "  install  - Install project dependencies using Poetry"
-	@echo "  run      - Run the main prediction script"
-	@echo "  test     - Run tests using pytest"
-	@echo "  clean    - Remove Python cache files and predictions"
-	@echo "  format   - Format code using black (requires black to be installed)"
+	@echo "  install          - Install project dependencies using Poetry"
+	@echo "  run             - Run the main prediction script to generate new predictions"
+	@echo "  test            - Run tests using pytest"
+	@echo "  clean           - Remove Python cache files and bytecode"
+	@echo "  clean-repos     - Remove all cached repositories from repos directory"
+	@echo "  clean-predictions - Remove all prediction files and old directories (asks for confirmation)"
+	@echo "  format          - Format code using black"
+	@echo "  check           - Run ruff linter with auto-fix enabled"
+	@echo "  fix-predictions - Add missing fields to prediction files"
+	@echo "  reset-eval      - Reset evaluation fields (resolved and evaluated) to False"
+	@echo "  eval            - Run evaluation on predictions in ra_aid_predictions directory"
+	@echo "  eval-post       - Run detailed post-evaluation analysis (WIP/Legacy)"
+	@echo "  aider           - Run aider with auto-lint in current directory"
 
 install:
 	poetry install
