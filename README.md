@@ -51,11 +51,14 @@ The main workflow consists of:
 ```bash
 make run
 ```
-This will process the SWE-bench Lite dataset and generate predictions in the `predictions/ra_aid_predictions` directory.
-You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
-The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
+This will process each SWE-bench Lite dataset instance with `ra-aid` and generate predictions in the `predictions/ra_aid_predictions` directory.
+Each prediction file holds a `model_patch` showing the full git diff generated after `ra-aid` attempted to solve the problem statement.
+This `model_patch` will be used later by `swe-bench` to evaluate if the prediction solved the problem statement.
 
-2. Evaluate predictions and generate a report:
+* You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
+* The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
+
+1. Evaluate predictions and generate a report:
 
 The evaluation pipeline processes predictions and generates detailed reports on model performance:
 
