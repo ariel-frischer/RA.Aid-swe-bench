@@ -211,14 +211,20 @@ def update_pred_json(predictions, report):
         return predictions
 
     for instance_id, pred in predictions.items():
+        # Update resolved status
         was_resolved = instance_id in report.get("resolved", set())
-        if "resolved" in pred and pred["resolved"] == was_resolved:
-            continue
-
-        pred["resolved"] = was_resolved
-        save = dict(pred)
-        del save["json_fname"]
-        Path(pred["json_fname"]).write_text(json.dumps(save, indent=4))
+        needs_update = (
+            "resolved" not in pred 
+            or pred["resolved"] != was_resolved 
+            or not pred.get("evaluated", False)
+        )
+        
+        if needs_update:
+            pred["resolved"] = was_resolved
+            pred["evaluated"] = True
+            save = dict(pred)
+            del save["json_fname"]
+            Path(pred["json_fname"]).write_text(json.dumps(save, indent=4))
 
     return predictions
 
@@ -260,10 +266,16 @@ def run_evals_on_dname(dname, dataset):
     log_dir.mkdir(exist_ok=True, parents=True)
     dump(log_dir)
 
-    any_need_evals = any("resolved" not in pred for pred in predictions.values())
-    any_need_evals = True
+    # Filter out already evaluated predictions
+    non_evaluated_predictions = {
+        k: v for k, v in predictions.items() 
+        if not v.get("evaluated", False)
+    }
 
-    if any_need_evals:
+    if non_evaluated_predictions:
+        # Generate JSONL only for predictions that need evaluation
+        predictions_jsonl = preds_to_jsonl(dname, non_evaluated_predictions)
+        
         run_evals(str(log_dir), predictions_jsonl)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
@@ -275,7 +287,7 @@ def run_evals_on_dname(dname, dataset):
         )
         predictions = update_pred_json(predictions, report)
     else:
-        print("No evals needed")
+        print("All predictions already evaluated")
 
     return predictions_jsonl, log_dir
 
