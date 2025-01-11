@@ -18,11 +18,9 @@ Many of the files in this repo have been modified from the source: https://githu
 ## Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/ariel-frischer/RA.Aid-swe-bench
 cd swe-lite-ra-aid
 
-# Install dependencies using Poetry
 poetry install
 ```
 
@@ -49,8 +47,10 @@ make eval
 # Run evaluation with custom run ID:
 make eval RUN_ID=custom_eval_run
 
-# Reset evaluation fields if needed:
+# Reset evaluation fields on prediction files if needed:
 make reset-eval
+# Can also pair that with cleaning all log files for fresh eval results:
+make clean-logs
 ```
 
 The evaluation process:
