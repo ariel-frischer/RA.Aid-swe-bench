@@ -47,7 +47,7 @@ poetry install
 
 The main workflow consists of:
 
-1. Generate predictions using the RA-AID model:
+### 1. Generate predictions using the RA-AID model:
 ```bash
 make run
 ```
@@ -58,9 +58,9 @@ This `model_patch` will be used later by `swe-bench` to evaluate if the predicti
 * You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
 * The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
 
-1. Evaluate predictions and generate a report:
+### 2. Evaluate predictions and generate a report:
 
-The evaluation pipeline processes predictions and generates detailed reports on model performance:
+The evaluation pipeline processes unevaluated predictions and generates a report json with evaluation results:
 
 ```bash
 # Run basic evaluation on predictions:
@@ -74,6 +74,8 @@ make reset-eval
 # Can also pair that with cleaning all log files for fresh eval results:
 make clean-logs
 ```
+
+The default evaluation file produced is in the root directory path: `ra-aid-model.ra_aid_eval.json`
 
 The evaluation process:
 1. Loads predictions from the specified directory
