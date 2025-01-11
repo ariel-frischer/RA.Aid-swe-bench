@@ -24,9 +24,9 @@ from .utils import (
 
 using_dataset = "lite"
 NUM_EVAL_PROCS = 5
-EVAL_RUN_ID = "ra_aid_eval"
+DEFAULT_EVAL_RUN_ID = "ra_aid_eval"
 
-def run_evals(_log_dir, predictions_jsonl):
+def run_evals(_log_dir, predictions_jsonl, run_id=DEFAULT_EVAL_RUN_ID):
     from swebench.harness.run_evaluation import main as run_evaluation
 
     # Run evaluation using the swebench package directly
@@ -40,7 +40,7 @@ def run_evals(_log_dir, predictions_jsonl):
         cache_level="env",
         clean=False,
         open_file_limit=4096,
-        run_id=EVAL_RUN_ID,
+        run_id=run_id,
         timeout=1800,
     )
 
@@ -93,9 +93,9 @@ def create_test_specs(swe_instances):
     return test_spec_dict
 
 
-def get_instance_log_path(instance_id):
+def get_instance_log_path(instance_id, run_id=DEFAULT_EVAL_RUN_ID):
     """Construct the log path for a specific instance."""
-    return Path("logs") / f"run_evaluation/{EVAL_RUN_ID}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
+    return Path("logs") / f"run_evaluation/{run_id}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
 
 
 def process_instance_status(instance_id, eval_result, report_stats):
@@ -275,7 +275,7 @@ def preds_to_jsonl(dname, predictions):
     return predictions_jsonl
 
 
-def run_evals_on_dname(dname, dataset):
+def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
     dname = Path(dname)
 
     predictions = load_predictions([dname])
@@ -297,7 +297,7 @@ def run_evals_on_dname(dname, dataset):
         # Generate JSONL only for predictions that need evaluation
         predictions_jsonl = preds_to_jsonl(dname, non_evaluated_predictions)
         
-        run_evals(str(log_dir), predictions_jsonl)
+        run_evals(str(log_dir), predictions_jsonl, run_id)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
         print(f"model_name_or_path={model_name_or_path}")
@@ -340,11 +340,11 @@ def combine_jsonl_logs(predictions, model_name_or_path):
     return predictions_jsonl, log_dir
 
 
-def evaluate_predictions(dnames, dataset):
+def evaluate_predictions(dnames, dataset, run_id=DEFAULT_EVAL_RUN_ID):
     """Process all prediction directories and run evaluations."""
     for dname in dnames:
         dump(dname)
-        run_evals_on_dname(dname, dataset)
+        run_evals_on_dname(dname, dataset, run_id)
 
 
 def setup_output_directory(model_name_or_path):
@@ -610,11 +610,13 @@ def main():
     parser.add_argument("directories", nargs="+", help="Prediction directories to evaluate")
     parser.add_argument("--post-eval", action="store_true", default=False,
                        help="Run detailed post-evaluation analysis")
+    parser.add_argument("--run-id", default=DEFAULT_EVAL_RUN_ID,
+                       help="Run ID for evaluation (default: ra_aid_eval)")
     args = parser.parse_args()
 
     dataset = load_dataset(LITE_DATASET, split=DATASET_SPLIT)
 
-    evaluate_predictions(args.directories, dataset)
+    evaluate_predictions(args.directories, dataset, args.run_id)
 
     if args.post_eval:
         run_detailed_analysis(args.directories, dataset)
