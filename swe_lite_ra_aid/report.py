@@ -306,10 +306,11 @@ def preds_to_jsonl(dname, predictions):
 
 
 def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
+    """Run evaluations on predictions in directory.
+    Note: get_report functionality is currently WIP/broken, using default empty report."""
     dname = Path(dname)
 
     predictions = load_predictions([dname])
-    # predictions_jsonl = preds_to_jsonl(dname, predictions)  # Generate initial JSONL for all predictions
     predictions_jsonl = None
 
     log_dir = Path("logs") / dname.name
@@ -330,12 +331,17 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
         print(f"model_name_or_path={model_name_or_path}")
-        report = get_report(
-            dataset,
-            log_dir,
-            predictions_jsonl,
-            model_name_or_path,
-        )
+        
+        # get_report is currently WIP/broken
+        # report = get_report(
+        #     dataset,
+        #     log_dir,
+        #     predictions_jsonl,
+        #     model_name_or_path,
+        # )
+        
+        # Use empty default report for now
+        report = {"resolved": set()}
         predictions = update_pred_json(predictions, report)
     else:
         print("All predictions already evaluated")
