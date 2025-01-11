@@ -44,9 +44,6 @@ format:
 check:
 	poetry run ruff check --fix .
 
-add-model-name:
-	poetry run python add_model_name.py
-
 fix-predictions:
 	poetry run python fix_prediction_files.py
 
