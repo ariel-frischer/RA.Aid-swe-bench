@@ -1,11 +1,10 @@
-# SWE Lite RA-AID
+# SWE-bench RA-AID
 
-A lightweight version of SWE Bench focused on the RA-AID agent.
+Run SWE Bench Lite dataset with the RA-AID agent and evaluate your results!
 
 ## Description
 
 Streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
-Many of the files in this repo have been modified from the source: https://github.com/Aider-AI/aider-swe-bench
 [Read more about swebench here.](https://www.swebench.com/)
 
 ## Requirements
@@ -22,9 +21,11 @@ Depending on your chosen model in `config.py`, you'll need to set appropriate AP
 - Anthropic models: `ANTHROPIC_API_KEY`
 - OpenRouter models: `OPENROUTER_API_KEY`
 
+Set them in your SHELL, .env support is not implemented yet.
+
 ### ⚠️ Important Notes
 
-- **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many model instances run in parallel. Be cautious with high values as this can:
+- **Parallel Processing**: The `MAX_THREADS` setting in `config.py` determines how many raid instances run in parallel. Be cautious with high values as this can:
   - Significantly increase API costs
   - Potentially trigger rate limits
   - Cause memory/CPU issues
@@ -136,7 +137,8 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [ ] Logging setup needed.
 * [ ] Fix `get_report` in report.py. Will fix the resolved status for
       each prediction file. Also gets more detailed report stat information for each instance.
-* [ ] Add proper .env file handling and loading for API keys, right now your SHELL env config is used, can effect aider runtime.
+* [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
+* [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
@@ -173,4 +175,5 @@ PASS_TO_PASS: (str) - A json list of strings that represent tests that should pa
 
 ## License
 
+Many of the files in this repo have been modified from the source: https://github.com/Aider-AI/aider-swe-bench
 Apache 2.0 License

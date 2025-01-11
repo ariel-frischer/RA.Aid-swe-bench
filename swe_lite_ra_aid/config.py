@@ -29,7 +29,7 @@ MAX_THREADS = 1
 # When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
 # Sets env variable TAVILY_API_KEY to emptry str to avoid web search
 # Sets MAX_ATTEMPTS to 1, that is the submission rules: pass@1
-# We already dont use hints in prompt, enabled or not.
+# Final rule is to not pass the hitns, we already dont use hints in the prompt, enabled or not.
 SUBMISSION_MODE = True
 if SUBMISSION_MODE:
     MAX_ATTEMPTS = 1
