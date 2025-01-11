@@ -308,6 +308,32 @@ def setup_output_directory(model_name_or_path):
     return preds_dir
 
 
+def process_single_eval_result(instance_id, eval_result, report_stats):
+    """Process a single evaluation result and update report statistics."""
+    if not isinstance(eval_result, dict):
+        print(f"Warning: eval_result for {instance_id} is not a dictionary")
+        return
+
+    # Track basic stats
+    if eval_result.get("patch_exists", False):
+        report_stats["generated"].add(instance_id)
+    else:
+        report_stats["no_generation"].add(instance_id)
+
+    if eval_result.get("patch_successfully_applied", False):
+        report_stats["applied"].add(instance_id)
+    else:
+        report_stats["no_apply"].add(instance_id)
+
+    if eval_result.get("tests_status"):
+        report_stats["with_logs"].add(instance_id)
+
+    # Check if any FAIL_TO_PASS tests succeeded
+    fail_to_pass = eval_result.get("tests_status", {}).get("FAIL_TO_PASS", {})
+    if isinstance(fail_to_pass, dict) and fail_to_pass.get("success"):
+        report_stats["resolved"].add(instance_id)
+
+
 def process_report_statistics(report, counts):
     """Process and display basic report statistics."""
     report_stats = {
@@ -325,29 +351,7 @@ def process_report_statistics(report, counts):
 
     for instance_id, eval_result in report.items():
         try:
-            if not isinstance(eval_result, dict):
-                print(f"Warning: eval_result for {instance_id} is not a dictionary")
-                continue
-
-            # Track basic stats
-            if eval_result.get("patch_exists", False):
-                report_stats["generated"].add(instance_id)
-            else:
-                report_stats["no_generation"].add(instance_id)
-
-            if eval_result.get("patch_successfully_applied", False):
-                report_stats["applied"].add(instance_id)
-            else:
-                report_stats["no_apply"].add(instance_id)
-
-            if eval_result.get("tests_status"):
-                report_stats["with_logs"].add(instance_id)
-
-            # Check if any FAIL_TO_PASS tests succeeded
-            fail_to_pass = eval_result.get("tests_status", {}).get("FAIL_TO_PASS", {})
-            if isinstance(fail_to_pass, dict) and fail_to_pass.get("success"):
-                report_stats["resolved"].add(instance_id)
-
+            process_single_eval_result(instance_id, eval_result, report_stats)
         except Exception as e:
             print(f"Error processing instance {instance_id}: {e}")
             continue
