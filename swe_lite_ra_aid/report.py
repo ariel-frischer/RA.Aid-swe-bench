@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 
+"""
+Evaluation script for RA-AID predictions on SWE-bench tasks.
+
+Usage:
+    # Run basic evaluation on predictions:
+    poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
+
+    # Run evaluation with custom run ID:
+    poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --run-id custom_eval_run
+
+    # Run post-evaluation analysis (WIP/Legacy):
+    poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
+
+This script:
+1. Loads predictions from the specified directory
+2. Filters out already evaluated predictions
+3. Runs evaluation on non-evaluated predictions
+4. Updates prediction files with evaluation results
+5. Generates summary statistics
+6. Marks predictions as evaluated=True when processed
+"""
+
 import argparse
 import json
 import shutil
