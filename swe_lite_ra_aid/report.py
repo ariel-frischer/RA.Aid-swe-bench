@@ -24,6 +24,7 @@ from .utils import (
 
 using_dataset = "lite"
 NUM_EVAL_PROCS = 5
+EVAL_RUN_ID = "ra_aid_eval"
 
 def run_evals(_log_dir, predictions_jsonl):
     from swebench.harness.run_evaluation import main as run_evaluation
@@ -39,7 +40,7 @@ def run_evals(_log_dir, predictions_jsonl):
         cache_level="env",
         clean=False,
         open_file_limit=4096,
-        run_id="ra_aid_eval",
+        run_id=EVAL_RUN_ID,
         timeout=1800,
     )
 
@@ -80,7 +81,7 @@ def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
                     print(f"\nProcessing instance: {instance_id}")
                     
                     # Construct specific log path for this instance
-                    instance_log_path = Path("logs") / f"run_evaluation/ra_aid_eval/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
+                    instance_log_path = Path("logs") / f"run_evaluation/{EVAL_RUN_ID}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
                     
                     if instance_log_path.exists():
                         # Use the existing test spec that was properly created with make_test_spec
