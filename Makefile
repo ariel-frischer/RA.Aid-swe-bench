@@ -10,8 +10,8 @@ help:
 	@echo "  clean-predictions - Remove all prediction files and old directories (asks for confirmation)"
 	@echo "  format          - Format code using black"
 	@echo "  check           - Run ruff linter with auto-fix enabled"
-	@echo "  fix-predictions - Add missing fields to prediction files"
-	@echo "  reset-eval      - Reset evaluation fields (resolved and evaluated) to False"
+	@echo "  fix-predictions - Helper command when prediction files are borked/old adds missing fields"
+	@echo "  reset-eval      - Reset prediction file evaluation fields (resolved and evaluated) to False"
 	@echo "  eval            - Run evaluation on predictions in ra_aid_predictions directory"
 	@echo "  eval-post       - Run detailed post-evaluation analysis (WIP/Legacy)"
 	@echo "  aider           - Run aider with auto-lint in current directory"
@@ -33,7 +33,6 @@ clean:
 	find . -type f -name ".coverage" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
-	rm -f ra_aid_predictions.jsonl
 
 clean-repos:
 	rm -rf repos/*
