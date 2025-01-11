@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import json
 import shutil
 import sys
@@ -514,20 +515,18 @@ def display_gold_stats(stats, total):
         print("No total instances found - cannot calculate percentage plausible")
 
 
-def main():
-    """Main function to process and analyze predictions."""
-    dnames = sys.argv[1:]
-    model_name_or_path = "ra_aid_selected_predictions"
-
-    # Load dataset once
-    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
-
-    evaluate_predictions(dnames, dataset)
+def run_detailed_analysis(dnames: list, dataset, model_name_or_path: str = "ra_aid_selected_predictions"):
+    """
+    Run detailed post-evaluation analysis on predictions.
+    
+    Args:
+        dnames: List of prediction directory paths
+        dataset: Loaded SWE-bench dataset
+        model_name_or_path: Name of the model/prediction set
+    """
     _preds_dir = setup_output_directory(model_name_or_path)
 
-    predictions = choose_predictions(
-        dnames, model_name_or_path, copy_md=True
-    )
+    predictions = choose_predictions(dnames, model_name_or_path, copy_md=True)
     if not predictions:
         print("No predictions")
         return
@@ -549,6 +548,25 @@ def main():
 
     stats = analyze_gold_files(predictions)
     display_gold_stats(stats, total)
+
+
+def main():
+    """Main function to process and analyze predictions."""
+    parser = argparse.ArgumentParser(description="Evaluate RA-AID predictions")
+    parser.add_argument("directories", nargs="+", help="Prediction directories to evaluate")
+    parser.add_argument("--post-eval", action="store_true", default=False,
+                       help="Run detailed post-evaluation analysis")
+    args = parser.parse_args()
+
+    # Load dataset once
+    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+
+    # Run basic evaluation
+    evaluate_predictions(args.directories, dataset)
+
+    # Optionally run detailed analysis
+    if args.post_eval:
+        run_detailed_analysis(args.directories, dataset)
 
 
 if __name__ == "__main__":
