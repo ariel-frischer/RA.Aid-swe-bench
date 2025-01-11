@@ -5,7 +5,9 @@ Run SWE Bench Lite dataset with the RA-AID agent and evaluate your results!
 ## Description
 
 Streamlined interface for running the RA-AID agent on the SWE Bench dataset. It's designed to make it easier to test and evaluate the RA-AID agent's performance on software engineering tasks.
-[Read more about swebench here.](https://www.swebench.com/)
+
+* [Read more about swebench here.](https://www.swebench.com/)
+* [RA.Aid Github Repo](https://github.com/ai-christianson/RA.Aid)
 
 ## Requirements
 
