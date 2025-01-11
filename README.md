@@ -38,29 +38,46 @@ This will process the SWE-bench Lite dataset and generate predictions in the `pr
 You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
 The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
 
-2. (WIP) Evaluate predictions and generate a report:
+2. Evaluate predictions and generate a report:
 
-IN DEVELOPMENT
+The evaluation pipeline processes predictions and generates detailed reports on model performance:
 
 ```bash
-make evaluate
+# Run basic evaluation on predictions:
+make eval
+
+# Run evaluation with custom run ID:
+make eval RUN_ID=custom_eval_run
+
+# Reset evaluation fields if needed:
+make reset-eval
 ```
-This will run the evaluation pipeline and generate a detailed report of model performance.
+
+The evaluation process:
+1. Loads predictions from the specified directory
+2. Filters out already evaluated predictions
+3. Runs evaluation on non-evaluated predictions
+4. Updates prediction files with evaluation results
+5. Generates summary statistics
+6. Marks prediction files with evaluated=True and resolved status
 
 ### Available Make Commands
 
 ```bash
 make install          # Install project dependencies using Poetry
-make run             # Run the main prediction script
+make run             # Run the main prediction script to generate new predictions
 make test            # Run tests using pytest
-make clean           # Remove Python cache files and predictions
+make clean           # Remove Python cache files and bytecode
+make clean-repos     # Remove all cached repositories from repos directory
+make clean-predictions # Remove all prediction files and old directories (asks for confirmation)
+make clean-logs      # Remove all files in logs directory while preserving the directory
 make format          # Format code using black
-make clean-repos     # Clean up cloned repositories
-make clean-predictions # Remove all prediction + traj files (with confirmation)
-make add-model-name  # Add model metadata to predictions
-make evaluate        # Run evaluation and generate report
-make check          # Run ruff linter with auto-fix
-make aider          # Run aider in the current directory with auto lint
+make check           # Run ruff linter with auto-fix enabled
+make fix-predictions # Add missing fields to prediction files
+make reset-eval      # Reset evaluation fields (resolved and evaluated) to False
+make eval            # Run evaluation on predictions in ra_aid_predictions directory
+make eval-post       # Run detailed post-evaluation analysis (WIP/Legacy)
+make aider          # Run aider with auto-lint in current directory
 ```
 
 ## Repository Management
