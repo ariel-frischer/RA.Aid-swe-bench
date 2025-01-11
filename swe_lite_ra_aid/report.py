@@ -14,7 +14,7 @@ from swebench.harness.grading import (
 )
 from swebench.harness.test_spec import get_test_specs_from_dataset
 
-from .dump import dump  # noqa: F401
+from .dump import dump
 from .utils import LITE_DATASET, DATASET_SPLIT
 from .utils import (
     choose_predictions,
