@@ -79,6 +79,63 @@ def get_instance_log_path(instance_id):
     return Path("logs") / f"run_evaluation/{EVAL_RUN_ID}/{RA_AID_MODEL}" / f"{instance_id.replace('/', '__')}/run_instance.log"
 
 
+def process_instance_status(instance_id, eval_result, report_stats):
+    """Process evaluation result for a single instance and update report statistics."""
+    try:
+        # Handle case where eval_result might be a string or other non-dict
+        if isinstance(eval_result, str):
+            print(f"Warning: eval_result for {instance_id} is a string: {eval_result}")
+            return
+
+        if not isinstance(eval_result, dict):
+            print(f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}")
+            return
+
+        # Check FAIL_TO_PASS tests directly instead of using get_resolution_status
+        fail_to_pass = eval_result.get("tests_status", {}).get("FAIL_TO_PASS", {})
+        if isinstance(fail_to_pass, dict) and fail_to_pass.get("success", False):
+            report_stats["resolved"].add(instance_id)
+
+        if eval_result.get("model_patch"):
+            report_stats["generated"].add(instance_id)
+        else:
+            report_stats["no_generation"].add(instance_id)
+
+        if eval_result.get("applied", False):
+            report_stats["applied"].add(instance_id)
+
+        if eval_result.get("logs"):
+            report_stats["with_logs"].add(instance_id)
+
+        if not eval_result.get("applied", False):
+            report_stats["no_apply"].add(instance_id)
+
+    except Exception as e:
+        print(f"Error processing instance {instance_id}: {e}")
+
+
+def output_report_stats(report_stats):
+    """Output detailed statistics about the evaluation results."""
+    print("\nReport Statistics:")
+    for key, value in report_stats.items():
+        print(f"{key}: {len(value)}")
+
+    dump(sorted(report_stats["resolved"]))
+
+    generated_minus_applied = report_stats["generated"] - report_stats["applied"]
+    dump(len(generated_minus_applied))
+    generated_minus_applied = " ".join(iid + "*" for iid in sorted(generated_minus_applied))
+    dump(generated_minus_applied)
+
+    with_logs_minus_applied = report_stats["with_logs"] - report_stats["applied"]
+    dump(len(with_logs_minus_applied))
+    dump(with_logs_minus_applied)
+
+    dump(len(report_stats["no_apply"]))
+    no_apply = " ".join(iid + "*" for iid in sorted(report_stats["no_apply"]))
+    dump(no_apply)
+
+
 def process_single_prediction(prediction, test_spec):
     """Process a single prediction and return its evaluation report."""
     instance_id = prediction['instance_id']
@@ -139,64 +196,10 @@ def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
 
         # Process each instance's status
         for instance_id, eval_result in report.items():
-            try:
-                # Handle case where eval_result might be a string or other non-dict
-                if isinstance(eval_result, str):
-                    print(
-                        f"Warning: eval_result for {instance_id} is a string: {eval_result}"
-                    )
-                    continue
+            process_instance_status(instance_id, eval_result, report_stats)
 
-                if not isinstance(eval_result, dict):
-                    print(
-                        f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}"
-                    )
-                    continue
-
-                # Check FAIL_TO_PASS tests directly instead of using get_resolution_status
-                fail_to_pass = eval_result.get("tests_status", {}).get("FAIL_TO_PASS", {})
-                if isinstance(fail_to_pass, dict) and fail_to_pass.get("success", False):
-                    report_stats["resolved"].add(instance_id)
-
-                if eval_result.get("model_patch"):
-                    report_stats["generated"].add(instance_id)
-                else:
-                    report_stats["no_generation"].add(instance_id)
-
-                if eval_result.get("applied", False):
-                    report_stats["applied"].add(instance_id)
-
-                if eval_result.get("logs"):
-                    report_stats["with_logs"].add(instance_id)
-
-                if not eval_result.get("applied", False):
-                    report_stats["no_apply"].add(instance_id)
-
-            except Exception as e:
-                print(f"Error processing instance {instance_id}: {e}")
-                continue
-
-        # Debug output
-        print("\nReport Statistics:")
-        for key, value in report_stats.items():
-            print(f"{key}: {len(value)}")
-
-        dump(sorted(report_stats["resolved"]))
-
-        generated_minus_applied = report_stats["generated"] - report_stats["applied"]
-        dump(len(generated_minus_applied))
-        generated_minus_applied = " ".join(
-            iid + "*" for iid in sorted(generated_minus_applied)
-        )
-        dump(generated_minus_applied)
-
-        with_logs_minus_applied = report_stats["with_logs"] - report_stats["applied"]
-        dump(len(with_logs_minus_applied))
-        dump(with_logs_minus_applied)
-
-        dump(len(report_stats["no_apply"]))
-        no_apply = " ".join(iid + "*" for iid in sorted(report_stats["no_apply"]))
-        dump(no_apply)
+        # Output debug statistics
+        output_report_stats(report_stats)
 
         return report_stats
 
