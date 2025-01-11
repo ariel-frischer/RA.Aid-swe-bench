@@ -50,6 +50,27 @@ using_dataset = "lite"
 NUM_EVAL_PROCS = 5
 DEFAULT_EVAL_RUN_ID = "ra_aid_eval"
 
+def print_evaluation_summary(report_file):
+    """Print summary statistics from evaluation report file."""
+    if report_file and Path(report_file).exists():
+        report_data = json.loads(Path(report_file).read_text())
+        summary_fields = [
+            "total_instances",
+            "submitted_instances", 
+            "completed_instances",
+            "resolved_instances",
+            "unresolved_instances", 
+            "empty_patch_instances",
+            "error_instances",
+            "unstopped_instances"
+        ]
+        
+        print("\nEvaluation Summary:")
+        for field in summary_fields:
+            if field in report_data:
+                print(f"{field}: {report_data[field]}")
+
+
 def run_evals(_log_dir, predictions_jsonl, run_id=DEFAULT_EVAL_RUN_ID):
     from swebench.harness.run_evaluation import main as run_evaluation
 
@@ -68,24 +89,7 @@ def run_evals(_log_dir, predictions_jsonl, run_id=DEFAULT_EVAL_RUN_ID):
         timeout=1800,
     )
 
-    # Print evaluation summary from report file
-    if report_file and Path(report_file).exists():
-        report_data = json.loads(Path(report_file).read_text())
-        summary_fields = [
-            "total_instances",
-            "submitted_instances", 
-            "completed_instances",
-            "resolved_instances",
-            "unresolved_instances", 
-            "empty_patch_instances",
-            "error_instances",
-            "unstopped_instances"
-        ]
-        
-        print("\nEvaluation Summary:")
-        for field in summary_fields:
-            if field in report_data:
-                print(f"{field}: {report_data[field]}")
+    print_evaluation_summary(report_file)
 
 
 def create_swe_instances(dataset):
@@ -334,6 +338,9 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
         predictions = update_pred_json(predictions, report)
     else:
         print("All predictions already evaluated")
+        # Try to print summary from last evaluation
+        report_file = Path("logs") / f"run_evaluation/{run_id}/report.json"
+        print_evaluation_summary(report_file)
 
     return predictions_jsonl, log_dir
 
