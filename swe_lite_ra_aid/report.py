@@ -339,7 +339,7 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
     else:
         print("All predictions already evaluated")
         # Try to print summary from last evaluation
-        report_file = Path("logs") / f"run_evaluation/{run_id}/report.json"
+        report_file = Path(f"{RA_AID_MODEL}.{run_id}.json")
         print_evaluation_summary(report_file)
 
     return predictions_jsonl, log_dir
