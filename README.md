@@ -149,6 +149,8 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
+* [ ] Prediction filenames are verbose perhaps use run_id for each prediction run
+      and create folder containing all those prediction files instead. Open to discussing comprehensive new prediction/management structure and run/eval processing of it.
 * [ ] Post process eval is broken, not on the todo list open to PRs
   * [ ] Modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
 * [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
