@@ -13,6 +13,9 @@ FULL_DATASET_FNAME = FULL_DATASET.replace("/", "--") + ".json"
 LITE_DATASET = "princeton-nlp/SWE-bench_Lite"
 LITE_DATASET_FNAME = LITE_DATASET.replace("/", "--") + ".json"
 
+# Dataset split to use for evaluation
+DATASET_SPLIT = "test"
+
 
 def dump_dataset(dataset, fname):
     entries = list(dataset)

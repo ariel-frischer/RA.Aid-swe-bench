@@ -15,6 +15,7 @@ from swebench.harness.grading import (
 from swebench.harness.test_spec import get_test_specs_from_dataset
 
 from .dump import dump  # noqa: F401
+from .utils import LITE_DATASET, DATASET_SPLIT
 from .utils import (
     choose_predictions,
     load_predictions,
@@ -558,7 +559,7 @@ def main():
                        help="Run detailed post-evaluation analysis")
     args = parser.parse_args()
 
-    dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
+    dataset = load_dataset(LITE_DATASET, split=DATASET_SPLIT)
 
     evaluate_predictions(args.directories, dataset)
 
