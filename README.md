@@ -142,10 +142,12 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
 * [ ] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
 * [ ] Logging setup needed.
-* [ ] Fix `get_report` in report.py. Will fix the resolved status for
-      each prediction file. Also gets more detailed report stat information for each instance.
+* [ ] Running with `MAX_THREADS = 1` seems to work more consistently as I'm seeing more `edited_files` in prediction files. 
+  * Perhaps there is some related threading bug hard to see with the parallel log streaming.
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
 * [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
+* [ ] Fix `get_report` in report.py. Will fix the resolved status for
+      each prediction file. Also gets more detailed report stat information for each instance.
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
