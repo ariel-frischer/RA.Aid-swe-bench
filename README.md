@@ -140,12 +140,14 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
   * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
 
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
-* [ ] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
+* [X] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
+  * Fixed by setting ENV variables `AIDER_PRETTY` and `AIDER_STREAM` to false.
 * [ ] Logging setup needed.
 * [ ] Running with `MAX_THREADS = 1` seems to work more consistently as I'm seeing more `edited_files` in prediction files. 
   * Perhaps there is some related threading bug hard to see with the parallel log streaming.
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
 * [ ] Add error message to prediction files as new field for improved tracking.
+* [ ] Test results after explaining in the prompt to figure out the test cmd and run python tests.
 * [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
 * [ ] Fix `get_report` in report.py. Will fix the resolved status for
       each prediction file. Also gets more detailed report stat information for each instance.

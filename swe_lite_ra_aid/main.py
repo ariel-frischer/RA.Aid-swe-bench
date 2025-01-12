@@ -55,6 +55,10 @@ def process_single_attempt(task, _attempt, repo_manager):
             if SUBMISSION_MODE:
                 os.environ["TAVILY_API_KEY"] = ""
 
+            # Fixes Trajectory file stream readability issues while capturing STDOUT
+            os.environ["AIDER_PRETTY"] = "false"
+            os.environ["AIDER_STREAM"] = "false"
+
             trajectory_output, _returncode = run_raid(
                 worktree_path, planning_prompt
             )

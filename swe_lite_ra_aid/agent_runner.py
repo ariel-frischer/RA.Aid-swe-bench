@@ -19,7 +19,7 @@ def initialize_model():
     return initialize_llm(provider=RA_AID_PROVIDER, model_name=RA_AID_MODEL)
 
 
-# DEPRECATED using uv_run_raaid method instead
+# DEPRECATED using run_raaid method instead
 def get_agent_config():
     """Get configuration for research agent"""
     return {
@@ -37,7 +37,7 @@ def run_agents(research_prompt, planning_prompt, model):
     """Run both research and planning agents with the given prompts.
 
     DEPRECATED: cowboy_mode config is not working properly for planner agent.
-    Use uv_run_raaid() instead.
+    Use run_raaid() instead.
     """
     config = get_agent_config()
 
