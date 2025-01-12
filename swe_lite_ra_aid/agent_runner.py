@@ -222,7 +222,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
 
 
 def create_result_dict(
-    task, model_patch, edited_files, research_result, attempt, trajectory_file=None, repo_manager=None
+    task, model_patch, edited_files, attempt, trajectory_file=None, repo_manager=None
 ):
     """Create standardized result dictionary"""
     from .config import RA_AID_FULL_MODEL, DEFAULT_RA_AID_VERSION
@@ -232,7 +232,6 @@ def create_result_dict(
         "model_name_or_path": "ra-aid-model",
         "model_patch": model_patch + "\n" if model_patch else "",
         "edited_files": edited_files,
-        "research": research_result,
         "attempt": attempt,
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": RA_AID_FULL_MODEL,
@@ -241,6 +240,7 @@ def create_result_dict(
         "is_winner": False,  # Default to False, will be updated by winner selection logic
         "resolved": False,  # Default to False, will be updated during evaluation
         "evaluated": False,  # Default to False, will be updated during evaluation
+        "errors": []  # Array to store any errors that occur
     }
     if trajectory_file:
         result["trajectory_file"] = str(trajectory_file)
