@@ -14,30 +14,36 @@ def write_result_file(out_fname: Path, content: dict) -> bool:
 
 
 def handle_result_file(
-    out_fname: Path, content: dict
-) -> tuple[bool, Optional[str], int]:
+    out_dname: Path, task: dict, attempt: int, content: dict
+) -> tuple[bool, Optional[str], int, Path]:
     """
     Write result file and track winner status based on edited files and patch length.
-    Returns: (success, winner_file, num_edited_files)
+    Returns: (success, winner_file, num_edited_files, attempt_fname)
     """
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    attempt_fname = (
+        out_dname
+        / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
+    )
+    
     json_content = json.dumps(content, indent=4)
-    print(f"Writing to {out_fname} with content length: {len(json_content)}")
+    print(f"Writing to {attempt_fname} with content length: {len(json_content)}")
 
     try:
-        out_fname.write_text(json_content)
-        if not out_fname.exists():
-            print(f"ERROR: File {out_fname} does not exist after write attempt!")
-            return False, None, 0
+        attempt_fname.write_text(json_content)
+        if not attempt_fname.exists():
+            print(f"ERROR: File {attempt_fname} does not exist after write attempt!")
+            return False, None, 0, attempt_fname
 
-        print(f"Successfully wrote to {out_fname}")
-        print(f"File size: {out_fname.stat().st_size} bytes")
+        print(f"Successfully wrote to {attempt_fname}")
+        print(f"File size: {attempt_fname.stat().st_size} bytes")
 
         edited_files = content.get("edited_files", [])
-        return True, str(out_fname), len(edited_files)
+        return True, str(attempt_fname), len(edited_files), attempt_fname
 
     except Exception as e:
         print(f"Error writing to {out_fname}: {str(e)}")
-        return False, None, 0
+        return False, None, 0, None
 
 
 def update_winner_file(

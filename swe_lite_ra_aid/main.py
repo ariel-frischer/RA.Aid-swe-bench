@@ -121,14 +121,8 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 )
                 results.append(result)
 
-                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-                attempt_fname = (
-                    out_dname
-                    / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
-                )
-
-                success, result_file, num_edited = handle_result_file(
-                    attempt_fname, result
+                success, result_file, num_edited, attempt_fname = handle_result_file(
+                    out_dname, task, attempt, result
                 )
 
                 if success:
