@@ -39,7 +39,12 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
 
 def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     """Run uv pip install with given arguments."""
-    cmd = ["uv", "pip", "--directory", str(repo_dir), "install"] + args
+    venv_path = repo_dir / ".venv"
+    cmd = ["uv", "pip", 
+           "--directory", str(repo_dir),
+           "--venv", str(venv_path),
+           "--verbose",
+           "install"] + args
     subprocess.run(cmd, check=True)
 
 
