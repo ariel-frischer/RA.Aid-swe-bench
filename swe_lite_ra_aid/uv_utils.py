@@ -13,13 +13,19 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
         logging.info(f"Virtual environment already exists at {venv_path}")
         return
 
-    cmd = ["uv", "venv", ".venv"]
-    subprocess.run(cmd, cwd=repo_dir, check=True)
+    # Temporarily unset VIRTUAL_ENV to avoid interference
+    old_venv = os.environ.pop("VIRTUAL_ENV", None)
+    try:
+        cmd = ["uv", "venv", "--directory", str(repo_dir), ".venv"]
+        subprocess.run(cmd, check=True)
+    finally:
+        if old_venv:
+            os.environ["VIRTUAL_ENV"] = old_venv
 
 def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     """Run uv pip install with given arguments."""
-    cmd = ["uv", "pip", "install"] + args
-    subprocess.run(cmd, cwd=repo_dir, check=True)
+    cmd = ["uv", "pip", "--directory", str(repo_dir), "install"] + args
+    subprocess.run(cmd, check=True)
 
 def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> None:
     """
