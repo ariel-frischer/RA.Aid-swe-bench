@@ -58,9 +58,7 @@ def process_single_attempt(task, _attempt, repo_manager):
             os.environ["AIDER_PRETTY"] = "false"
             os.environ["AIDER_STREAM"] = "false"
 
-            trajectory_output, _returncode = run_ra_aid(
-                worktree_path, planning_prompt
-            )
+            trajectory_output, _returncode = run_ra_aid(worktree_path, planning_prompt)
 
             if not trajectory_output:
                 print("No output from RA.Aid")
@@ -103,12 +101,11 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 model_patch, edited_files, research_result, trajectory_output = (
                     process_single_attempt(task, attempt, repo_manager)
                 )
+                print("Successfully completed process_single_attempt")
 
                 traj_fname = save_trajectory(
                     out_dname, task, attempt, trajectory_output
                 )
-
-                print("Successfully completed process_single_attempt")
 
                 result = create_result_dict(
                     task,
@@ -116,7 +113,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     edited_files,
                     attempt,
                     trajectory_file=traj_fname,
-                    repo_manager=repo_manager
+                    repo_manager=repo_manager,
                 )
                 results.append(result)
 
@@ -220,27 +217,14 @@ def generate_predictions(dataset, out_dname, repo_manager):
 
     try:
         for task in remaining_instances:
-            try:
-                if MAX_THREADS > 1:
-                    scatter(task)  # For parallel processing
-                else:
-                    process_task(
-                        task, out_dname, repo_manager
-                    )  # Direct call for single thread
-            except KeyboardInterrupt:
-                print("\nInterrupted by user. Cleaning up...")
-                raise
-            except Exception as e:
-                print(f"Error processing task: {e}")
-                continue
+            if MAX_THREADS > 1:
+                scatter(task)
+            else:
+                process_task(task, out_dname, repo_manager)
 
         if MAX_THREADS > 1:
-            try:
-                print(f"Running {MAX_THREADS} threads.")
-                gather()
-            except KeyboardInterrupt:
-                print("\nInterrupted by user during gather. Cleaning up...")
-                raise
+            print(f"Running {MAX_THREADS} threads.")
+            gather()
     except KeyboardInterrupt:
         print("\nGracefully shutting down...")
         return
@@ -248,13 +232,11 @@ def generate_predictions(dataset, out_dname, repo_manager):
 
 def main():
     try:
-        # Store project root directory
         project_root = Path(__file__).resolve().parent.parent
 
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
         out_dname = project_root / PREDS_DNAME / "ra_aid_predictions"
 
-        # Initialize repo manager with project root
         repo_manager = RepoManager(project_root / REPOS_DNAME)
 
         generate_predictions(dataset, out_dname, repo_manager)
