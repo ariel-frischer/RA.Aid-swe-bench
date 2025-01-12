@@ -115,7 +115,6 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     task,
                     model_patch,
                     edited_files,
-                    None,  # research_result parameter will be removed in next update
                     attempt,
                     trajectory_file=traj_fname,
                     repo_manager=repo_manager

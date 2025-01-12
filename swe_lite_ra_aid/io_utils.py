@@ -52,6 +52,7 @@ def update_winner_file(
     """
     Update winner file based on number of edited files and patch length.
     Updates is_winner field in both current and previous winner files.
+    (WIP) Useful for prediction tracking if MAX_ATTEMPTS > 1, field is not used in evaluation yet
     Returns: (winner_file, max_edited_files)
     """
     output_files.append(attempt_fname)
