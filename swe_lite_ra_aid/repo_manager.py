@@ -21,6 +21,24 @@ class RepoManager:
         self.cache_root = Path(cache_root).resolve()
         print(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
+        
+        # Detect ra-aid version
+        self.ra_aid_version = self._detect_ra_aid_version()
+
+    def _detect_ra_aid_version(self) -> str:
+        """Detect installed ra-aid version."""
+        from .config import DEFAULT_RA_AID_VERSION
+        try:
+            result = subprocess.run(
+                ["ra-aid", "--version"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        except Exception as e:
+            logging.warning(f"Failed to detect ra-aid version: {e}")
+            return DEFAULT_RA_AID_VERSION
 
     def get_cached_repo_path(self, repo_name: str) -> Path:
         """Get path where cached repo should be stored."""

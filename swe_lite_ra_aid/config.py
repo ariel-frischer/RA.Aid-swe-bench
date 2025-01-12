@@ -24,6 +24,9 @@ PREDS_DNAME = Path("predictions")
 MAX_ATTEMPTS = 3
 MAX_THREADS = 1
 
+# Default RA-AID version if detection fails
+DEFAULT_RA_AID_VERSION = "ra-aid 0.12.1"
+
 # Submission checklist:
 # https://github.com/swe-bench/experiments/blob/main/checklist.md
 # When True, excludes FAIL_TO_PASS and PASS_TO_PASS test details from prompts
