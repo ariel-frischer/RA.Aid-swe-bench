@@ -20,7 +20,7 @@ from .config import (
 )
 from .agent_runner import (
     create_result_dict,
-    run_raid,
+    run_ra_aid,
 )
 from .prompts import prepare_planning_prompt
 from .io_utils import (
@@ -59,7 +59,7 @@ def process_single_attempt(task, _attempt, repo_manager):
             os.environ["AIDER_PRETTY"] = "false"
             os.environ["AIDER_STREAM"] = "false"
 
-            trajectory_output, _returncode = run_raid(
+            trajectory_output, _returncode = run_ra_aid(
                 worktree_path, planning_prompt
             )
 
@@ -130,6 +130,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 success, result_file, num_edited = handle_result_file(
                     attempt_fname, result
                 )
+
                 if success:
                     winner_file, max_edited_files = update_winner_file(
                         output_files,
