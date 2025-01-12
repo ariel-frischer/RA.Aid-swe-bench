@@ -36,6 +36,21 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
             os.environ["VIRTUAL_ENV"] = old_venv
 
 
+def uv_sync(repo_dir: Path, python_path: Path) -> None:
+    """Sync dependencies using uv."""
+    cmd = [
+        "uv",
+        "pip",
+        "sync",
+        "--directory",
+        str(repo_dir),
+        "--project",
+        str(repo_dir),
+        "--python",
+        str(python_path)
+    ]
+    subprocess.run(cmd, cwd=str(repo_dir), check=True)
+
 def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     """Run uv pip install with given arguments."""
     venv_path = repo_dir / ".venv"
