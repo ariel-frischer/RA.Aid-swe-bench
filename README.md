@@ -144,6 +144,8 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
   * Fixed by setting ENV variables `AIDER_PRETTY` and `AIDER_STREAM` to false.
 * [X] Add ra-aid version to predictions file
+* [X] Fix `uv pip install` in wrong root project `.venv` location.
+* [X] Improve `setup_venv_and_deps` with `--seed` flag.
 * [ ] Logging setup needed.
 * [ ] Running with `MAX_THREADS = 1` seems to work more consistently as I'm seeing more `edited_files` in prediction files. 
   * Perhaps there is some related threading bug hard to see with the parallel log streaming.
