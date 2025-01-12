@@ -118,6 +118,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     research_result,
                     attempt,
                     trajectory_file=traj_fname,
+                    repo_manager=repo_manager
                 )
                 results.append(result)
 
