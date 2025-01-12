@@ -7,6 +7,7 @@ import subprocess
 from typing import List
 from .io_utils import change_directory
 
+
 def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
     venv_path = repo_dir / ".venv"
@@ -16,17 +17,31 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
 
     # Temporarily unset VIRTUAL_ENV to avoid interference
     old_venv = os.environ.pop("VIRTUAL_ENV", None)
+    print(f"repo_dir={repo_dir}")
     try:
-        cmd = ["uv", "venv", "--seed", "--directory", str(repo_dir), ".venv"]
+        cmd = [
+            "uv",
+            "venv",
+            "--seed",
+            "--no-project",
+            "--verbose",
+            "--directory",
+            str(repo_dir),
+            "--project",
+            str(repo_dir),
+            ".venv",
+        ]
         subprocess.run(cmd, check=True)
     finally:
         if old_venv:
             os.environ["VIRTUAL_ENV"] = old_venv
 
+
 def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     """Run uv pip install with given arguments."""
     cmd = ["uv", "pip", "--directory", str(repo_dir), "install"] + args
     subprocess.run(cmd, check=True)
+
 
 def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> None:
     """
