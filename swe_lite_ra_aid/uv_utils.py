@@ -6,7 +6,7 @@ import subprocess
 from typing import List
 from .io_utils import change_directory
 
-def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
+def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
     venv_path = repo_dir / ".venv"
     if venv_path.exists() and not force_venv:

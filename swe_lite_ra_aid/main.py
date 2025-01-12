@@ -20,7 +20,7 @@ from .config import (
 )
 from .agent_runner import (
     create_result_dict,
-    uv_run_raaid,
+    run_raid,
 )
 from .prompts import prepare_planning_prompt
 from .io_utils import (
@@ -55,7 +55,7 @@ def process_single_attempt(task, _attempt, repo_manager):
             if SUBMISSION_MODE:
                 os.environ["TAVILY_API_KEY"] = ""
 
-            trajectory_output, _returncode = uv_run_raaid(
+            trajectory_output, _returncode = run_raid(
                 worktree_path, planning_prompt
             )
 

@@ -101,7 +101,7 @@ def activate_venv(repo_dir: Path):
             os.environ.pop("VIRTUAL_ENV", None)
 
 
-def uv_run_raaid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
+def run_raid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     """
     Call ra-aid with the given prompt in the activated virtual environment.
     If STREAM_OUTPUT is True, streams output to console while capturing.
