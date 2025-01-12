@@ -29,7 +29,7 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
             str(repo_dir),
             "--project",
             str(repo_dir),
-            ".venv",
+            str(repo_dir / ".venv"),
         ]
         subprocess.run(cmd, check=True)
     finally:
