@@ -17,7 +17,7 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
     # Temporarily unset VIRTUAL_ENV to avoid interference
     old_venv = os.environ.pop("VIRTUAL_ENV", None)
     try:
-        cmd = ["uv", "venv", "--directory", str(repo_dir), ".venv"]
+        cmd = ["uv", "venv", "--seed", "--directory", str(repo_dir), ".venv"]
         subprocess.run(cmd, check=True)
     finally:
         if old_venv:
