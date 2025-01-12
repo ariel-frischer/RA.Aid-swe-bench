@@ -36,19 +36,17 @@ clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 
 clean-repos:
-	rm -rf repos/*
+	find repos/ -mindepth 1 -not -name '.gitkeep' -delete
 
 clean-predictions:
 	@echo "This will remove all prediction files and old directories. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	rm -rf predictions/ra_aid_predictions/*.json
-	rm -rf predictions/ra_aid_predictions/*.jsonl
-	rm -rf predictions/ra_aid_predictions/*.txt
-	rm -rf predictions/ra_aid_selected_predictions/*.jsonl
+	find predictions/ra_aid_predictions/ -type f -not -name '.gitkeep' -delete
+	find predictions/ra_aid_selected_predictions/ -type f -not -name '.gitkeep' -delete
 	rm -rf predictions/old
 
 clean-logs:
 	@echo "This will remove all files in logs directory. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	rm -rf logs/*
+	find logs/ -mindepth 1 -not -name '.gitkeep' -delete
 
 format:
 	poetry run black .
