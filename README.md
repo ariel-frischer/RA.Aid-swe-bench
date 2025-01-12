@@ -76,6 +76,7 @@ make clean-logs
 ```
 
 The default evaluation file produced is in the root directory path: `ra-aid-model.ra_aid_eval.json`
+Will overwrite this file every run, so move it or rename it to keep eval results.
 
 The evaluation process:
 1. Loads predictions from the specified directory
@@ -142,6 +143,7 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
 * [X] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
   * Fixed by setting ENV variables `AIDER_PRETTY` and `AIDER_STREAM` to false.
+* [X] Add ra-aid version to predictions file
 * [ ] Logging setup needed.
 * [ ] Running with `MAX_THREADS = 1` seems to work more consistently as I'm seeing more `edited_files` in prediction files. 
   * Perhaps there is some related threading bug hard to see with the parallel log streaming.
@@ -149,19 +151,18 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [ ] Add error message to prediction files as new field for improved tracking.
 * [ ] Test results after explaining in the prompt to figure out the test cmd and run python tests.
 * [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
-* [ ] Fix `get_report` in report.py. Will fix the resolved status for
+* [ ] Fix `get_report` in report.py. Should allow updates to resolved status for
       each prediction file. Also gets more detailed report stat information for each instance.
 * [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
-* [ ] Prediction filenames are verbose perhaps use run_id for each prediction run
+* [ ] Prediction filenames are verbose, perhaps use run_id for each prediction run
       and create folder containing all those prediction files instead. Open to discussing comprehensive new prediction/management structure and run/eval processing of it.
 * [ ] Post process eval is broken, not on the todo list open to PRs
   * [ ] Modify `pick_winner` method for RA.Aid, the original `choose_predictions` method doesnt work well with RA-Aid.
 * [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
   * Fixed with os.env setting
 * [ ] Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
-* This can get pricey $$$ quickly be careful which model you choose. I'm using deepseek/deepseek-chat for now.
 
 ## SWE Bench Submission Guidelines
 

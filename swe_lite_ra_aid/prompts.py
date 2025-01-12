@@ -3,29 +3,33 @@
 import json
 from swe_lite_ra_aid.config import SUBMISSION_MODE
 
-def build_prompt(problem_statement: str, fail_tests: list = None, pass_tests: list = None) -> str:
+
+def build_prompt(
+    problem_statement: str, fail_tests: list = None, pass_tests: list = None
+) -> str:
     """Construct the prompt text from problem_statement, and optionally FAIL_TO_PASS, PASS_TO_PASS."""
     prompt = f"{problem_statement}\n\n"
-    
+
     if not SUBMISSION_MODE:
         if fail_tests:
             prompt += "Tests that need to be fixed:\n```\n"
             for t in fail_tests:
                 prompt += f"- {t}\n"
             prompt += "```\n\n"
-            
+
         if pass_tests:
             prompt += "Tests that must remain passing:\n```\n"
             for t in pass_tests:
                 prompt += f"- {t}\n"
             prompt += "```\n\n"
-            
+
         prompt += "\n\nYou must run all tests both **before and after** making changes, and ensure they pass as you do your work. Do not write any new test cases."
     return prompt
 
+
 def prepare_base_prompt(task):
     """Prepare the common base prompt used by both agents"""
-    
+
     if not SUBMISSION_MODE:
         fail_tests = json.loads(task["FAIL_TO_PASS"])
         pass_tests = json.loads(task["PASS_TO_PASS"])
@@ -48,7 +52,9 @@ def prepare_base_prompt(task):
     <Problem Statement>:
     {problem_details}
     </Problem Statement>
+
     """
+
 
 def prepare_research_prompt(task):
     """Prepare the prompt specifically for the research agent"""
@@ -62,6 +68,7 @@ def prepare_research_prompt(task):
     """
     )
 
+
 def prepare_planning_prompt(task):
     """Prepare the prompt specifically for the planning agent"""
     base_prompt = prepare_base_prompt(task)
@@ -70,6 +77,6 @@ def prepare_planning_prompt(task):
         + """
 
     You are a world class software engineer. Given the problem statement you will first do some research to gather relevant context
-    then you must make code changes to fix the problem.
+    then you must make code changes to fix the problem. Do not modify test files. Execute pytest to determine if you have solved the problem statement.
     """
     )

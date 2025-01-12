@@ -8,11 +8,6 @@ from typing import Optional
 from datetime import datetime
 
 
-def write_result_file(out_fname: Path, content: dict) -> bool:
-    """Write JSON content to file with error handling and verification."""
-    return handle_result_file(out_fname, content)[0]
-
-
 def handle_result_file(
     out_dname: Path, task: dict, attempt: int, content: dict
 ) -> tuple[bool, Optional[str], int, Path]:
@@ -22,10 +17,9 @@ def handle_result_file(
     """
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     attempt_fname = (
-        out_dname
-        / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
+        out_dname / f"{task['instance_id']}-attempt{attempt}-{timestamp}.json"
     )
-    
+
     json_content = json.dumps(content, indent=4)
     print(f"Writing to {attempt_fname} with content length: {len(json_content)}")
 
@@ -58,7 +52,7 @@ def update_winner_file(
     """
     Update winner file based on number of edited files and patch length.
     Updates is_winner field in both current and previous winner files.
-    (WIP) Useful for prediction tracking if MAX_ATTEMPTS > 1, field is not used in evaluation yet
+    (WIP) Useful for prediction tracking if MAX_ATTEMPTS > 1, field is not used in report.py yet
     Returns: (winner_file, max_edited_files)
     """
     output_files.append(attempt_fname)

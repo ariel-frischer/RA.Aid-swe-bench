@@ -67,7 +67,7 @@ def process_single_attempt(task, _attempt, repo_manager):
             model_patch = stage_and_get_patch(worktree_path)
 
             if not model_patch:
-                print("No changes made by RA.Aid")
+                print("❌ No changes made by RA.Aid")
                 return None, [], None, trajectory_output
 
             edited_files = files_in_patch(model_patch)
@@ -139,7 +139,6 @@ def ra_aid_prediction(task, out_dname, repo_manager):
             error_msg = f"Error processing {task['instance_id']}: {str(e)}"
             print(error_msg)
             
-            # Create result dict with error
             result = create_result_dict(
                 task,
                 None,  # model_patch
@@ -155,17 +154,6 @@ def ra_aid_prediction(task, out_dname, repo_manager):
             success, result_file, num_edited, attempt_fname = handle_result_file(
                 out_dname, task, attempt, result
             )
-
-            if success:
-                winner_file, max_edited_files = update_winner_file(
-                    output_files,
-                    attempt_fname,
-                    result_file,
-                    num_edited,
-                    result,
-                    winner_file,
-                    max_edited_files,
-                )
 
     if winner_file:
         print(

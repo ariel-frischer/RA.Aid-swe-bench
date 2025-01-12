@@ -23,8 +23,8 @@ class RepoManager:
         print(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
         
-        # Detect ra-aid version
         self.ra_aid_version = self._detect_ra_aid_version()
+        print(f"ra_aid_version={self.ra_aid_version}")
 
     def _detect_ra_aid_version(self) -> str:
         """Detect installed ra-aid version."""
