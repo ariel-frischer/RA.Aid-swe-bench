@@ -42,7 +42,7 @@ def handle_result_file(
         return True, str(attempt_fname), len(edited_files), attempt_fname
 
     except Exception as e:
-        print(f"Error writing to {out_fname}: {str(e)}")
+        print(f"Error writing to {attempt_fname}: {str(e)}")
         return False, None, 0, None
 
 
