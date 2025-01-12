@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
-from .config import RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
+from .config import RA_AID_AIDER_MODEL, RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
 
 
 def initialize_model():
@@ -236,7 +236,7 @@ def create_result_dict(
         "attempt": attempt,
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": RA_AID_FULL_MODEL,
-        "ra_aid_editor": RA_AID_FULL_MODEL,
+        "ra_aid_editor": RA_AID_AIDER_MODEL,
         "is_winner": False,  # Default to False, will be updated by winner selection logic
         "resolved": False,  # Default to False, will be updated during evaluation
         "evaluated": False,  # Default to False, will be updated during evaluation
