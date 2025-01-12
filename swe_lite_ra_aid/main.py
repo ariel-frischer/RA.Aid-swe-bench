@@ -136,8 +136,36 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                     break
 
         except Exception as e:
-            print(f"Error processing {task['instance_id']}: {str(e)}")
-            continue
+            error_msg = f"Error processing {task['instance_id']}: {str(e)}"
+            print(error_msg)
+            
+            # Create result dict with error
+            result = create_result_dict(
+                task,
+                None,  # model_patch
+                [],    # edited_files 
+                attempt,
+                trajectory_file=None,
+                repo_manager=repo_manager,
+            )
+            result["errors"].append(error_msg)
+            results.append(result)
+
+            # Still try to write the result file
+            success, result_file, num_edited, attempt_fname = handle_result_file(
+                out_dname, task, attempt, result
+            )
+
+            if success:
+                winner_file, max_edited_files = update_winner_file(
+                    output_files,
+                    attempt_fname,
+                    result_file,
+                    num_edited,
+                    result,
+                    winner_file,
+                    max_edited_files,
+                )
 
     if winner_file:
         print(
