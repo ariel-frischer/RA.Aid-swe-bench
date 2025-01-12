@@ -89,6 +89,7 @@ def run_evals(_log_dir, predictions_jsonl, run_id=DEFAULT_EVAL_RUN_ID):
         open_file_limit=4096,
         run_id=run_id,
         timeout=1800,
+        modal=False,
     )
 
     print_evaluation_summary(report_file)
