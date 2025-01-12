@@ -8,7 +8,7 @@ packages = [{include = "swe_lite_ra_aid"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master" }
+ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "master" }
 datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main" }
 gitpython = "<=3.1.44"
 lox = "^0.12.0"
