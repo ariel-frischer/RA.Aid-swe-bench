@@ -36,7 +36,7 @@ clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 
 clean-repos:
-	find repos/ -mindepth 1 -not -name '.gitkeep' -delete
+	find repos/ -mindepth 1 -not -name '.gitkeep' -exec rm -rf {} +
 
 clean-predictions:
 	@echo "This will remove all prediction files and old directories. Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
