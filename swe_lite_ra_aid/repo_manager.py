@@ -116,11 +116,11 @@ class RepoManager:
         )
         worktree_path = Path(base_repo.working_dir).parent / worktree_name
 
-        # Add worktree
         base_repo.git.worktree("add", str(worktree_path), base_commit)
 
         # Create symlink to .venv
         venv_path = Path(base_repo.working_dir) / ".venv"
+        print(f"venv_path={venv_path}")
         worktree_venv = worktree_path / ".venv"
 
         try:
