@@ -77,6 +77,10 @@ def prepare_planning_prompt(task):
         + """
 
     You are a world class software engineer. Given the problem statement you will first do some research to gather relevant context
-    then you must make code changes to fix the problem. Do not modify test files. Execute pytest to determine if you have solved the problem statement.
+    then you must make code changes to fix the problem. Do not modify test files. Research agent should find context for the problem 
+    statement and determine what the test command is for the given repository. The virtual environment has already been pre-installed automatically
+    with the `uv` package manager, and the virtual environment is activated. You should never install additional dependencies unless it is 
+    part of the problem statement.
+    Execute tests to determine if you have solved the problem statement.
     """
     )
