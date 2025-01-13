@@ -80,11 +80,13 @@ def prepare_planning_prompt(task):
 
     Your tasks:
     1. Research and gather relevant context for the problem statement
-    2. Make code changes to fix the problem
-    3. Execute tests to verify your solution
+    2. Create a plan to solve the problem statement
+    3. Make code changes to fix the problem
+    4. Execute tests to verify your solution
+    5. Refactor based on test results until all tests pass
 
     Important notes:
-    - Do not modify test files
+    - DO NOT modify test files
     - Research agent should find context and determine the test command
     - Virtual environment is pre-installed with `uv` package manager
     - Virtual environment is already activated
