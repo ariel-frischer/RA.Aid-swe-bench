@@ -20,10 +20,8 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
     
     print(f"\nCloning {repo_url} to analyze {len(setup_commits)} setup commits...")
     try:
-        # Clone the repository
         repo = Repo.clone_from(f"https://github.com/{repo_url}", str(repo_path))
         
-        # Check each setup commit
         for setup_commit in sorted(setup_commits):
             print(f"\nChecking setup commit: {setup_commit}")
             try:
@@ -39,7 +37,6 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
     except Exception as e:
         print(f"Error cloning/analyzing repo {repo_url}: {e}")
     finally:
-        # Cleanup
         if repo_path.exists():
             shutil.rmtree(repo_path)
             
@@ -48,10 +45,8 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
 
 def analyze_setup_commits():
     """Analyze unique setup commits + python versions for each repository in the dataset."""
-    # Load the dataset
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
-    # Dictionaries to store repo data
     repo_setup_commits: Dict[str, Set[str]] = defaultdict(set)
     repo_python_versions: Dict[str, Set[str]] = defaultdict(set)
     repo_commit_versions: Dict[str, Dict[str, str]] = defaultdict(dict)
@@ -62,21 +57,17 @@ def analyze_setup_commits():
         setup_commit = instance["environment_setup_commit"]
         repo_setup_commits[repo].add(setup_commit)
 
-    # Create temp directory for repo analysis
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
 
-        # Second pass: clone each repo once and analyze all its commits
         for repo, setup_commits in repo_setup_commits.items():
             versions, commit_versions = clone_and_analyze_repo(repo, setup_commits, temp_path)
             repo_python_versions[repo].update(versions)
             repo_commit_versions[repo].update(commit_versions)
 
-    # Print analysis
     print("\nRepository Setup Commit Analysis:")
     print("=" * 80)
 
-    # Sort repos by number of unique setup commits (descending)
     sorted_repos = sorted(
         repo_setup_commits.items(), key=lambda x: len(x[1]), reverse=True
     )
@@ -99,7 +90,6 @@ def analyze_setup_commits():
         for version in python_versions:
             print(f"  - Python {version}")
 
-    # Print summary
     print("\nSummary:")
     print("=" * 80)
     print(f"Total repositories: {len(repo_setup_commits)}")
@@ -113,7 +103,6 @@ def analyze_setup_commits():
     )
     print(f"Repositories with Python version detected: {len(repo_python_versions)}")
 
-    # Print unique Python versions across all repos
     all_versions = set()
     for versions in repo_python_versions.values():
         all_versions.update(versions)
