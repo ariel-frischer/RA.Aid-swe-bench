@@ -1,54 +1,76 @@
 """Analyze SWE-bench Lite dataset for unique setup commits and Python versions per repository."""
 
+import shutil
 import tempfile
 from collections import defaultdict
 from datasets import load_dataset
+from git import Repo
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Set, Tuple
 from .uv_utils import detect_python_version
 
 
+def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Path) -> Tuple[Set[str], Dict[str, str]]:
+    """Clone a repository and analyze Python versions for each setup commit."""
+    python_versions = set()
+    commit_versions = {}  # Map commits to their detected Python versions
+    
+    repo_name = repo_url.split("/")[-1]
+    repo_path = temp_dir / repo_name
+    
+    print(f"\nCloning {repo_url} to analyze {len(setup_commits)} setup commits...")
+    try:
+        # Clone the repository
+        repo = Repo.clone_from(f"https://github.com/{repo_url}", str(repo_path))
+        
+        # Check each setup commit
+        for setup_commit in sorted(setup_commits):
+            print(f"\nChecking setup commit: {setup_commit}")
+            try:
+                repo.git.checkout(setup_commit)
+                python_version = detect_python_version(repo_path)
+                if python_version:
+                    python_versions.add(python_version)
+                    commit_versions[setup_commit] = python_version
+                    print(f"Found Python {python_version} for commit {setup_commit}")
+            except Exception as e:
+                print(f"Error checking commit {setup_commit}: {e}")
+                
+    except Exception as e:
+        print(f"Error cloning/analyzing repo {repo_url}: {e}")
+    finally:
+        # Cleanup
+        if repo_path.exists():
+            shutil.rmtree(repo_path)
+            
+    return python_versions, commit_versions
+
+
 def analyze_setup_commits():
-    """Analyze unique setup commits + pythono versions for each repository in the dataset."""
+    """Analyze unique setup commits + python versions for each repository in the dataset."""
     # Load the dataset
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
 
     # Dictionaries to store repo data
     repo_setup_commits: Dict[str, Set[str]] = defaultdict(set)
     repo_python_versions: Dict[str, Set[str]] = defaultdict(set)
+    repo_commit_versions: Dict[str, Dict[str, str]] = defaultdict(dict)
+
+    # First pass: collect all setup commits per repo
+    for instance in dataset:
+        repo = instance["repo"]
+        setup_commit = instance["environment_setup_commit"]
+        repo_setup_commits[repo].add(setup_commit)
 
     # Create temp directory for repo analysis
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
 
-        # Collect setup commits and detect Python versions per repo
-        for instance in dataset:
-            repo = instance["repo"]
-            setup_commit = instance["environment_setup_commit"]
-            repo_setup_commits[repo].add(setup_commit)
-
-            # Create temporary repo structure for version detection
-            repo_path = temp_path / repo.replace("/", "__")
-            repo_path.mkdir(parents=True, exist_ok=True)
-
-            # Copy relevant files from dataset if available
-            if "pyproject.toml" in instance:
-                with open(repo_path / "pyproject.toml", "w") as f:
-                    f.write(instance["pyproject.toml"])
-            if "setup.py" in instance:
-                with open(repo_path / "setup.py", "w") as f:
-                    f.write(instance["setup.py"])
-            if "requirements.txt" in instance:
-                with open(repo_path / "requirements.txt", "w") as f:
-                    f.write(instance["requirements.txt"])
-            if "tox.ini" in instance:
-                with open(repo_path / "tox.ini", "w") as f:
-                    f.write(instance["tox.ini"])
-
-            # Detect Python version
-            python_version = detect_python_version(repo_path)
-            if python_version:
-                repo_python_versions[repo].add(python_version)
+        # Second pass: clone each repo once and analyze all its commits
+        for repo, setup_commits in repo_setup_commits.items():
+            versions, commit_versions = clone_and_analyze_repo(repo, setup_commits, temp_path)
+            repo_python_versions[repo].update(versions)
+            repo_commit_versions[repo].update(commit_versions)
 
     # Print analysis
     print("\nRepository Setup Commit Analysis:")
