@@ -22,19 +22,17 @@ class RepoManager:
         self.cache_root = Path(cache_root).resolve()
         print(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
-        
+
         self.ra_aid_version = self._detect_ra_aid_version()
         print(f"ra_aid_version={self.ra_aid_version}")
 
     def _detect_ra_aid_version(self) -> str:
         """Detect installed ra-aid version."""
         from .config import DEFAULT_RA_AID_VERSION
+
         try:
             result = subprocess.run(
-                ["ra-aid", "--version"],
-                capture_output=True,
-                text=True,
-                check=True
+                ["ra-aid", "--version"], capture_output=True, text=True, check=True
             )
             return result.stdout.strip()
         except Exception as e:

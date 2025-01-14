@@ -134,11 +134,6 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
   - Error messages if any
 
 ## Problems/Improvements
-* [ ] RA.Aid does get stuck often, multiple different errors.
-  * Tool Error: Error executing code: invalid syntax (, line 4)
-  * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
-  * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
-  * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
 
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
 * [X] Streaming/traj file generation is fine until ra-aid inner aider starts streaming. This becomes unreadable submission guidelines require readable traj files.
@@ -146,16 +141,12 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Add ra-aid version to predictions file
 * [X] Fix `uv pip install` in wrong root project `.venv` location.
 * [X] Improve `setup_venv_and_deps` with `--seed` flag.
+* [ ] Invalid environment setup: https://github.com/ariel-frischer/RA.Aid-swe-bench/issues/4
 * [ ] Logging setup needed.
-* [ ] Running with `MAX_THREADS = 1` seems to work more consistently as I'm seeing more `edited_files` in prediction files. 
-  * Perhaps there is some related threading bug hard to see with the parallel log streaming.
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
-* [ ] Add error message to prediction files as new field for improved tracking.
+* [X] Add error message to prediction files as new field for improved tracking.
 * [ ] Test results after explaining in the prompt to figure out the test cmd and run python tests.
 * [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
-* [ ] Fix `get_report` in report.py. Should allow updates to resolved status for
-      each prediction file. Also gets more detailed report stat information for each instance.
-* [ ] Aider repomap will regenerate a repomap for each attempt, not optimal.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.
 * [ ] Not ideal to use poetry for this projects dependencies, then use uv for problem repo dependencies. Prefer `uv` as it seems much faster.
 * [ ] Prediction filenames are verbose, perhaps use run_id for each prediction run
@@ -165,6 +156,13 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Shell env variables like AIDER_MODEL="openrouter/deepseek/deepseek-chat" will effect the coder model used by aider while running!
   * Fixed with os.env setting
 * [ ] Running locally with cowboy mode seems dangerous if RA.Aid can run ANY command?!
+
+* [ ] RA.Aid does get stuck often, multiple different errors.
+  * Tool Error: Error executing code: invalid syntax (, line 4)
+  * Tool Error: Error executing code: unterminated string literal (detected at line 1) (, line 1) 
+  * Tool Error: Error executing code: /tmp/tmplwzqokro/sympy/sympy
+  * Tool Error: Error executing code: unmatched ')' (, line 1)                                                │
+  * Perhaps Deepseek V3 causes this more than Sonnet 3.5
 
 ## SWE Bench Submission Guidelines
 
