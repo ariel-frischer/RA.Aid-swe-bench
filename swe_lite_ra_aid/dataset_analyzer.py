@@ -3,7 +3,6 @@
 from collections import defaultdict
 from datasets import load_dataset
 from typing import Dict, Set
-from pprint import pprint
 
 
 def analyze_setup_commits():
