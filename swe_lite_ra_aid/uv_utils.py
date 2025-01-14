@@ -1,14 +1,90 @@
 """Module for handling UV virtual environment setup and package installation."""
 
 import os
+import re
 from pathlib import Path
 import logging
 import subprocess
-from typing import List
+from typing import List, Optional
+from configparser import ConfigParser
 from .io_utils import change_directory
 
 
-def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
+def detect_python_version(repo_dir: Path) -> Optional[str]:
+    """
+    Detect required Python version from various configuration files.
+    Returns the Python version as a string (e.g. "3.11") or None if not specified.
+    """
+    def parse_version_constraint(text: str) -> Optional[str]:
+        """Extract version from constraints like '>=3.8,<3.12' or '>=3.8'"""
+        match = re.search(r'>=\s*([\d.]+)', text)
+        return match.group(1) if match else None
+
+    def parse_toml(path: Path) -> Optional[str]:
+        """Simple TOML parser for Python version requirements"""
+        try:
+            with open(path) as f:
+                content = f.read()
+                # Look for requires-python in project section
+                match = re.search(r'requires-python\s*=\s*[\'"]([^"\']+)[\'"]', content)
+                if match:
+                    return parse_version_constraint(match.group(1))
+        except Exception as e:
+            logging.warning(f"Error parsing {path}: {e}")
+        return None
+
+    # Check pyproject.toml first (PEP 518)
+    pyproject_path = repo_dir / "pyproject.toml"
+    if pyproject_path.exists():
+        version = parse_toml(pyproject_path)
+        if version:
+            return version
+
+    # Check setup.py
+    setup_path = repo_dir / "setup.py"
+    if setup_path.exists():
+        try:
+            with open(setup_path) as f:
+                content = f.read()
+                match = re.search(r'python_requires\s*=\s*[\'"]([^"\']+)[\'"]', content)
+                if match:
+                    return parse_version_constraint(match.group(1))
+        except Exception as e:
+            logging.warning(f"Error parsing setup.py: {e}")
+
+    # Check requirements.txt
+    req_path = repo_dir / "requirements.txt"
+    if req_path.exists():
+        try:
+            with open(req_path) as f:
+                for line in f:
+                    if "python_version" in line:
+                        return parse_version_constraint(line)
+        except Exception as e:
+            logging.warning(f"Error parsing requirements.txt: {e}")
+
+    # Check tox.ini
+    tox_path = repo_dir / "tox.ini"
+    if tox_path.exists():
+        try:
+            config = ConfigParser()
+            config.read(tox_path)
+            if "tox" in config:
+                version = config["tox"].get("min_version")
+                if version:
+                    return version
+        except Exception as e:
+            logging.warning(f"Error parsing tox.ini: {e}")
+
+    # Default fallback versions for known repos
+    repo_defaults = {
+        "matplotlib": "3.11",  # matplotlib currently has issues with 3.12
+    }
+    
+    repo_name = repo_dir.name.replace("__", "/")
+    return repo_defaults.get(repo_name.split("/")[-1])
+
+def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
     venv_path = repo_dir / ".venv"
     if venv_path.exists() and not force_venv:
@@ -28,8 +104,16 @@ def uv_venv(repo_dir: Path, _repo_name: str, force_venv: bool = False) -> None:
             str(repo_dir),
             "--project",
             str(repo_dir),
-            str(repo_dir / ".venv"),
         ]
+        
+        # Detect and use specific Python version if available
+        python_version = detect_python_version(repo_dir)
+        if python_version:
+            python_cmd = f"python{python_version}"
+            logging.info(f"Using Python version {python_version} for {repo_name}")
+            cmd.extend(["--python", python_cmd])
+            
+        cmd.append(str(repo_dir / ".venv"))
         subprocess.run(cmd, check=True)
     finally:
         if old_venv:
