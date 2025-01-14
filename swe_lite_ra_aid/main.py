@@ -205,11 +205,25 @@ def get_completed_instances(out_dname):
     return done_instances
 
 
-def get_remaining_tasks(dataset, done_instances):
-    """Get shuffled list of remaining tasks to process"""
+def get_remaining_tasks(dataset, done_instances, filter_repos=None):
+    """Get shuffled list of remaining tasks to process
+    
+    Args:
+        dataset: The SWE-bench dataset
+        done_instances: Set of already processed instance IDs
+        filter_repos: Optional list of repo names to filter for (e.g. ["matplotlib/matplotlib"])
+    """
     remaining_instances = [
         task for task in dataset if task["instance_id"] not in done_instances
     ]
+    
+    if filter_repos:
+        remaining_instances = [
+            task for task in remaining_instances 
+            if any(repo in task["repo"] for repo in filter_repos)
+        ]
+        print(f"Filtered to {len(remaining_instances)} instances from repos: {filter_repos}")
+        
     random.shuffle(remaining_instances)
     print(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
@@ -219,7 +233,8 @@ def generate_predictions(dataset, out_dname, repo_manager):
     """Generate predictions with parallel processing and result tracking"""
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
-    remaining_instances = get_remaining_tasks(dataset, done_instances)
+    filter_repos = ["matplotlib/matplotlib"]  # Add repos to filter for here
+    remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos)
 
     def scatter(task):
         return process_task(task, out_dname, repo_manager)
