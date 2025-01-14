@@ -86,14 +86,16 @@ def analyze_setup_commits():
         python_versions = (
             sorted(repo_python_versions[repo]) if repo in repo_python_versions else []
         )
+        commit_versions = repo_commit_versions[repo]
 
         print(f"\nRepository: {repo}")
         print(f"Number of unique setup commits: {num_commits}")
-        print("Setup commits:")
+        print("Setup commits and their Python versions:")
         for commit in sorted(setup_commits):
-            print(f"  - {commit}")
+            version = commit_versions.get(commit, "unknown")
+            print(f"  - {commit}: Python {version}")
 
-        print(f"Python versions detected: {len(python_versions)}")
+        print(f"Unique Python versions detected: {len(python_versions)}")
         for version in python_versions:
             print(f"  - Python {version}")
 
