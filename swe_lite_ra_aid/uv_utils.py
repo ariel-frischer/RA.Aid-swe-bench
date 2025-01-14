@@ -19,7 +19,9 @@ def detect_python_version(repo_dir: Path) -> Optional[str]:
     def parse_version_constraint(text: str) -> Optional[str]:
         """Extract version from constraints like '>=3.8,<3.12' or '>=3.8'"""
         match = re.search(r">=\s*([\d.]+)", text)
-        return match.group(1) if match else None
+        version = match.group(1) if match else None
+        print(f"  Found version constraint: {version} from {text}")
+        return version
 
     def parse_toml(path: Path) -> Optional[str]:
         """Simple TOML parser for Python version requirements"""
@@ -34,45 +36,59 @@ def detect_python_version(repo_dir: Path) -> Optional[str]:
             logging.warning(f"Error parsing {path}: {e}")
         return None
 
+    print(f"\nDetecting Python version for repo at: {repo_dir}")
+    
     # Check pyproject.toml first (PEP 518)
     pyproject_path = repo_dir / "pyproject.toml"
     if pyproject_path.exists():
+        print(f"Checking pyproject.toml at: {pyproject_path}")
         version = parse_toml(pyproject_path)
         if version:
+            print(f"Found version {version} in pyproject.toml")
             return version
 
     # Check setup.py
     setup_path = repo_dir / "setup.py"
     if setup_path.exists():
+        print(f"Checking setup.py at: {setup_path}")
         try:
             with open(setup_path) as f:
                 content = f.read()
                 match = re.search(r'python_requires\s*=\s*[\'"]([^"\']+)[\'"]', content)
                 if match:
-                    return parse_version_constraint(match.group(1))
+                    version = parse_version_constraint(match.group(1))
+                    if version:
+                        print(f"Found version {version} in setup.py")
+                        return version
         except Exception as e:
             logging.warning(f"Error parsing setup.py: {e}")
 
     # Check requirements.txt
     req_path = repo_dir / "requirements.txt"
     if req_path.exists():
+        print(f"Checking requirements.txt at: {req_path}")
         try:
             with open(req_path) as f:
                 for line in f:
                     if "python_version" in line:
-                        return parse_version_constraint(line)
+                        version = parse_version_constraint(line)
+                        if version:
+                            print(f"Found version {version} in requirements.txt")
+                            return version
         except Exception as e:
             logging.warning(f"Error parsing requirements.txt: {e}")
 
     # Check tox.ini
     tox_path = repo_dir / "tox.ini"
     if tox_path.exists():
+        print(f"Checking tox.ini at: {tox_path}")
         try:
             config = ConfigParser()
             config.read(tox_path)
             if "tox" in config:
                 version = config["tox"].get("min_version")
                 if version:
+                    print(f"Found version {version} in tox.ini")
                     return version
         except Exception as e:
             logging.warning(f"Error parsing tox.ini: {e}")
@@ -83,7 +99,12 @@ def detect_python_version(repo_dir: Path) -> Optional[str]:
     }
 
     repo_name = repo_dir.name.replace("__", "/")
-    return repo_defaults.get(repo_name.split("/")[-1])
+    default_version = repo_defaults.get(repo_name.split("/")[-1])
+    if default_version:
+        print(f"Using default fallback version {default_version} for {repo_name}")
+    else:
+        print(f"No Python version found for {repo_name}")
+    return default_version
 
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
