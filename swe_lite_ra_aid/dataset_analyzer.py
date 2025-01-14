@@ -1,8 +1,11 @@
-"""Analyze SWE-bench Lite dataset for unique setup commits per repository."""
+"""Analyze SWE-bench Lite dataset for unique setup commits and Python versions per repository."""
 
+import tempfile
 from collections import defaultdict
 from datasets import load_dataset
+from pathlib import Path
 from typing import Dict, Set
+from .uv_utils import detect_python_version
 
 
 def analyze_setup_commits():
@@ -10,14 +13,42 @@ def analyze_setup_commits():
     # Load the dataset
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
     
-    # Dictionary to store repo -> set of setup commits
+    # Dictionaries to store repo data
     repo_setup_commits: Dict[str, Set[str]] = defaultdict(set)
+    repo_python_versions: Dict[str, Set[str]] = defaultdict(set)
     
-    # Collect setup commits per repo
-    for instance in dataset:
-        repo = instance["repo"]
-        setup_commit = instance["environment_setup_commit"]
-        repo_setup_commits[repo].add(setup_commit)
+    # Create temp directory for repo analysis
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        
+        # Collect setup commits and detect Python versions per repo
+        for instance in dataset:
+            repo = instance["repo"]
+            setup_commit = instance["environment_setup_commit"]
+            repo_setup_commits[repo].add(setup_commit)
+            
+            # Create temporary repo structure for version detection
+            repo_path = temp_path / repo.replace("/", "__")
+            repo_path.mkdir(parents=True, exist_ok=True)
+            
+            # Copy relevant files from dataset if available
+            if "pyproject.toml" in instance:
+                with open(repo_path / "pyproject.toml", "w") as f:
+                    f.write(instance["pyproject.toml"])
+            if "setup.py" in instance:
+                with open(repo_path / "setup.py", "w") as f:
+                    f.write(instance["setup.py"])
+            if "requirements.txt" in instance:
+                with open(repo_path / "requirements.txt", "w") as f:
+                    f.write(instance["requirements.txt"])
+            if "tox.ini" in instance:
+                with open(repo_path / "tox.ini", "w") as f:
+                    f.write(instance["tox.ini"])
+            
+            # Detect Python version
+            python_version = detect_python_version(repo_path)
+            if python_version:
+                repo_python_versions[repo].add(python_version)
     
     # Print analysis
     print("\nRepository Setup Commit Analysis:")
@@ -32,11 +63,17 @@ def analyze_setup_commits():
     
     for repo, setup_commits in sorted_repos:
         num_commits = len(setup_commits)
+        python_versions = sorted(repo_python_versions[repo]) if repo in repo_python_versions else []
+        
         print(f"\nRepository: {repo}")
         print(f"Number of unique setup commits: {num_commits}")
         print("Setup commits:")
         for commit in sorted(setup_commits):
             print(f"  - {commit}")
+            
+        print(f"Python versions detected: {len(python_versions)}")
+        for version in python_versions:
+            print(f"  - Python {version}")
     
     # Print summary
     print("\nSummary:")
@@ -46,6 +83,16 @@ def analyze_setup_commits():
           f"{sum(1 for commits in repo_setup_commits.values() if len(commits) > 1)}")
     print(f"Repositories with single setup commit: "
           f"{sum(1 for commits in repo_setup_commits.values() if len(commits) == 1)}")
+    print(f"Repositories with Python version detected: {len(repo_python_versions)}")
+    
+    # Print unique Python versions across all repos
+    all_versions = set()
+    for versions in repo_python_versions.values():
+        all_versions.update(versions)
+    print(f"Total unique Python versions detected: {len(all_versions)}")
+    print("All Python versions:")
+    for version in sorted(all_versions):
+        print(f"  - Python {version}")
 
 
 if __name__ == "__main__":
