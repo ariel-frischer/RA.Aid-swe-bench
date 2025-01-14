@@ -15,9 +15,10 @@ def detect_python_version(repo_dir: Path) -> Optional[str]:
     Detect required Python version from various configuration files.
     Returns the Python version as a string (e.g. "3.11") or None if not specified.
     """
+
     def parse_version_constraint(text: str) -> Optional[str]:
         """Extract version from constraints like '>=3.8,<3.12' or '>=3.8'"""
-        match = re.search(r'>=\s*([\d.]+)', text)
+        match = re.search(r">=\s*([\d.]+)", text)
         return match.group(1) if match else None
 
     def parse_toml(path: Path) -> Optional[str]:
@@ -80,9 +81,10 @@ def detect_python_version(repo_dir: Path) -> Optional[str]:
     repo_defaults = {
         "matplotlib": "3.11",  # matplotlib currently has issues with 3.12
     }
-    
+
     repo_name = repo_dir.name.replace("__", "/")
     return repo_defaults.get(repo_name.split("/")[-1])
+
 
 def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
@@ -105,14 +107,15 @@ def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
             "--project",
             str(repo_dir),
         ]
-        
+
         # Detect and use specific Python version if available
         python_version = detect_python_version(repo_dir)
+        print(f"detected python_version={python_version}")
         if python_version:
             python_cmd = f"python{python_version}"
             logging.info(f"Using Python version {python_version} for {repo_name}")
             cmd.extend(["--python", python_cmd])
-            
+
         cmd.append(str(repo_dir / ".venv"))
         subprocess.run(cmd, check=True)
     finally:
