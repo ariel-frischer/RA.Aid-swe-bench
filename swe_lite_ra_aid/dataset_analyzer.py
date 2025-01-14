@@ -9,28 +9,28 @@ from .uv_utils import detect_python_version
 
 
 def analyze_setup_commits():
-    """Analyze unique setup commits for each repository in the dataset."""
+    """Analyze unique setup commits + pythono versions for each repository in the dataset."""
     # Load the dataset
     dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
-    
+
     # Dictionaries to store repo data
     repo_setup_commits: Dict[str, Set[str]] = defaultdict(set)
     repo_python_versions: Dict[str, Set[str]] = defaultdict(set)
-    
+
     # Create temp directory for repo analysis
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
-        
+
         # Collect setup commits and detect Python versions per repo
         for instance in dataset:
             repo = instance["repo"]
             setup_commit = instance["environment_setup_commit"]
             repo_setup_commits[repo].add(setup_commit)
-            
+
             # Create temporary repo structure for version detection
             repo_path = temp_path / repo.replace("/", "__")
             repo_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Copy relevant files from dataset if available
             if "pyproject.toml" in instance:
                 with open(repo_path / "pyproject.toml", "w") as f:
@@ -44,47 +44,51 @@ def analyze_setup_commits():
             if "tox.ini" in instance:
                 with open(repo_path / "tox.ini", "w") as f:
                     f.write(instance["tox.ini"])
-            
+
             # Detect Python version
             python_version = detect_python_version(repo_path)
             if python_version:
                 repo_python_versions[repo].add(python_version)
-    
+
     # Print analysis
     print("\nRepository Setup Commit Analysis:")
     print("=" * 80)
-    
+
     # Sort repos by number of unique setup commits (descending)
     sorted_repos = sorted(
-        repo_setup_commits.items(),
-        key=lambda x: len(x[1]),
-        reverse=True
+        repo_setup_commits.items(), key=lambda x: len(x[1]), reverse=True
     )
-    
+
     for repo, setup_commits in sorted_repos:
         num_commits = len(setup_commits)
-        python_versions = sorted(repo_python_versions[repo]) if repo in repo_python_versions else []
-        
+        python_versions = (
+            sorted(repo_python_versions[repo]) if repo in repo_python_versions else []
+        )
+
         print(f"\nRepository: {repo}")
         print(f"Number of unique setup commits: {num_commits}")
         print("Setup commits:")
         for commit in sorted(setup_commits):
             print(f"  - {commit}")
-            
+
         print(f"Python versions detected: {len(python_versions)}")
         for version in python_versions:
             print(f"  - Python {version}")
-    
+
     # Print summary
     print("\nSummary:")
     print("=" * 80)
     print(f"Total repositories: {len(repo_setup_commits)}")
-    print(f"Repositories with multiple setup commits: "
-          f"{sum(1 for commits in repo_setup_commits.values() if len(commits) > 1)}")
-    print(f"Repositories with single setup commit: "
-          f"{sum(1 for commits in repo_setup_commits.values() if len(commits) == 1)}")
+    print(
+        f"Repositories with multiple setup commits: "
+        f"{sum(1 for commits in repo_setup_commits.values() if len(commits) > 1)}"
+    )
+    print(
+        f"Repositories with single setup commit: "
+        f"{sum(1 for commits in repo_setup_commits.values() if len(commits) == 1)}"
+    )
     print(f"Repositories with Python version detected: {len(repo_python_versions)}")
-    
+
     # Print unique Python versions across all repos
     all_versions = set()
     for versions in repo_python_versions.values():
