@@ -154,8 +154,12 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     venv_path = repo_dir / ".venv"
 
     try:
-        python_cmd = f"python{python_version}"  # ensure_python_version(python_version)
-        subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True)
+        # Instead of using python3.6 directly, use pyenv to run the correct version
+        pyenv_python = f"3.6.15"  # Hardcode the patch version since we know it exists
+        subprocess.run(["pyenv", "shell", pyenv_python], check=True)
+        
+        # Now use python directly since pyenv shell set it to 3.6.15
+        subprocess.run(["python", "-m", "venv", str(venv_path)], check=True)
 
         pip_path = venv_path / "bin" / "pip"
         subprocess.run(
@@ -191,6 +195,9 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
         )
         logging.error(error_msg)
         raise RuntimeError(error_msg) from e
+    finally:
+        # Reset pyenv shell to whatever it was before
+        subprocess.run(["pyenv", "shell", "--unset"], check=True)
 
 
 def setup_venv_and_deps(
