@@ -126,14 +126,24 @@ class RepoManager:
         cache_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            # Clone/update repo if needed
-            if not cache_path.exists():
+            if cache_path.exists():
+                print(f"Using cached repo at {cache_path}")
+                try:
+                    # Validate the cached repo
+                    repo = Repo(cache_path)
+                    # Test git operations to ensure repo is valid
+                    repo.git.rev_parse("--git-dir")
+                    print("Cached repository is valid")
+                except Exception as e:
+                    print(f"Cached repository is invalid: {e}")
+                    print("Removing corrupted cache and trying fresh clone")
+                    shutil.rmtree(cache_path)
+                    cache_path.mkdir(parents=True, exist_ok=True)
+                    repo = Repo.clone_from(repo_url, str(cache_path))
+            else:
                 cache_path.mkdir(parents=True, exist_ok=True)
                 print(f"Cloning {repo_url} to cache at {cache_path}")
                 repo = Repo.clone_from(repo_url, str(cache_path))
-            else:
-                print(f"Using cached repo at {cache_path}")
-                repo = Repo(cache_path)
 
             # Checkout correct commit
             repo.git.checkout(setup_commit)
