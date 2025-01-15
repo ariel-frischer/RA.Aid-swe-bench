@@ -154,24 +154,33 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     venv_path = repo_dir / ".venv"
 
     try:
-        # Get pyenv root and construct path to Python 3.6.15
+        # Get pyenv root and initialize it properly
         pyenv_root = subprocess.run(
             ["pyenv", "root"],
             check=True,
             capture_output=True,
             text=True
         ).stdout.strip()
-        
-        python_path = Path(pyenv_root) / "versions" / "3.6.15" / "bin" / "python"
-        
-        if not python_path.exists():
-            raise RuntimeError(f"Python 3.6.15 not found at {python_path}")
 
-        # Use the full Python path directly
-        subprocess.run(
-            [str(python_path), "-m", "venv", str(venv_path)],
-            check=True
-        )
+        # Create shell script with proper pyenv initialization
+        shell_script = f"""
+            export PYENV_ROOT="{pyenv_root}"
+            export PATH="$PYENV_ROOT/bin:$PATH"
+            eval "$(pyenv init -)"
+            eval "$(pyenv init --path)"
+            
+            # Use Python 3.6.15 to create venv
+            python_path="{pyenv_root}/versions/3.6.15/bin/python"
+            if [ ! -f "$python_path" ]; then
+                echo "Python 3.6.15 not found at $python_path"
+                exit 1
+            fi
+            
+            "$python_path" -m venv "{venv_path}"
+        """
+        
+        # Execute the shell script
+        subprocess.run(["bash", "-c", shell_script], check=True)
 
         pip_path = venv_path / "bin" / "pip"
         subprocess.run(
@@ -208,8 +217,7 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
         logging.error(error_msg)
         raise RuntimeError(error_msg) from e
     finally:
-        # Reset pyenv shell to whatever it was before
-        subprocess.run(["pyenv", "shell", "--unset"], check=True)
+        pass  # No need to reset pyenv shell since we're not using it
 
 
 def setup_venv_and_deps(
