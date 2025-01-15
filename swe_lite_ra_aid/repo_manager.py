@@ -4,7 +4,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from git import Repo
+from git import Repo, exc as git_exc
 import tempfile
 from typing import Tuple
 import logging
@@ -148,7 +148,7 @@ class RepoManager:
                 f"Failed to ensure base repo exists at {cache_path}: {str(e)}"
             )
             error_msg = ""
-            if isinstance(e, git.exc.GitCommandError):
+            if isinstance(e, git_exc.GitCommandError):
                 error_msg = f"Git command failed: {e.command}\nStatus: {e.status}\nStdout: {e.stdout}\nStderr: {e.stderr}"
             elif "Repo" in str(type(e)):
                 error_msg = f"Git repository operation failed: {str(e)}"
