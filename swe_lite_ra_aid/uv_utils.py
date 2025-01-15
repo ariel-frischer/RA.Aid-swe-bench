@@ -155,7 +155,7 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
 
     try:
         # Instead of using python3.6 directly, use pyenv to run the correct version
-        pyenv_python = f"3.6.15"  # Hardcode the patch version since we know it exists
+        pyenv_python = "3.6.15"  # Hardcode the patch version since we know it exists
         subprocess.run(["pyenv", "shell", pyenv_python], check=True)
         
         # Now use python directly since pyenv shell set it to 3.6.15
