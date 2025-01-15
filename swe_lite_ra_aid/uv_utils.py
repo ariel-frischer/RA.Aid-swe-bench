@@ -121,40 +121,98 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
 
+def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
+    """Setup virtual environment using venv + pip for Python <3.7"""
+    venv_path = repo_dir / ".venv"
+    python_cmd = f"python{python_version}"
+    
+    try:
+        # Create venv
+        subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True)
+        
+        # Upgrade pip
+        pip_path = venv_path / "bin" / "pip"
+        subprocess.run([str(pip_path), "install", "--upgrade", "pip", "setuptools", "wheel"], check=True)
+        
+        # Install dependencies similar to uv logic
+        if (repo_dir / "pyproject.toml").is_file():
+            subprocess.run([str(pip_path), "install", "."], check=True)
+            
+        if (repo_dir / "requirements.txt").is_file():
+            subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
+            
+        if (repo_dir / "requirements-dev.txt").is_file():
+            subprocess.run([str(pip_path), "install", "-r", "requirements-dev.txt"], check=True)
+            
+        # Install in editable mode if it's a Python package
+        if (repo_dir / "setup.py").is_file() or (repo_dir / "pyproject.toml").is_file():
+            logging.info("Installing cloned project in editable mode.")
+            subprocess.run([str(pip_path), "install", "-e", "."], check=True)
+            
+    except subprocess.CalledProcessError as e:
+        error_msg = (
+            f"Legacy venv setup failed with exit code {e.returncode}\n"
+            f"Command: {e.args}\n"
+            f"Stdout: {e.stdout if hasattr(e, 'stdout') else ''}\n"
+            f"Stderr: {e.stderr if hasattr(e, 'stderr') else ''}"
+        )
+        logging.error(error_msg)
+        raise RuntimeError(error_msg) from e
+
+def setup_uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool) -> None:
+    """Setup virtual environment using uv for Python >=3.7"""
+    venv_path = repo_dir / ".venv"
+    if venv_path.exists() and not force_venv:
+        logging.info(f"Virtual environment already exists at {venv_path}")
+        return
+
+    old_venv = os.environ.pop("VIRTUAL_ENV", None)
+    try:
+        cmd = [
+            "uv",
+            "venv",
+            "--seed",
+            "--no-project",
+            "--directory",
+            str(repo_dir),
+            "--project",
+            str(repo_dir),
+        ]
+
+        python_version = get_python_version(repo_name, repo_version)
+        cmd.extend(["--python", python_version])
+        
+        try:
+            result = subprocess.run(cmd + [str(venv_path)], check=True, capture_output=True, text=True)
+            print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            error_msg = (
+                f"UV venv creation failed with exit code {e.returncode}\n"
+                f"Command: {' '.join(cmd)}\n"
+                f"Stdout: {e.stdout}\n"
+                f"Stderr: {e.stderr}"
+            )
+            logging.error(error_msg)
+            raise RuntimeError(error_msg) from e
+
+    finally:
+        if old_venv:
+            os.environ["VIRTUAL_ENV"] = old_venv
+
 def setup_venv_and_deps(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool) -> None:
     """
-    Setup virtual environment and install dependencies:
-    - uv venv .venv --seed
-    - If pyproject.toml -> uv pip install .
-    - If requirements.txt -> uv pip install -r requirements.txt
-    - If requirements-dev.txt -> uv pip install -r requirements-dev.txt
-    - If there's a setup.py or pyproject => uv pip install -e .
+    Setup virtual environment and install dependencies using either:
+    - uv for Python >=3.7
+    - venv + pip for Python <3.7
     """
-
     with change_directory(repo_dir):
-        uv_venv(repo_dir, repo_name, repo_version, force_venv)
-
-        # Deprecated below, should be handled by --seed above
-        # uv_pip_install(repo_dir, ["--upgrade", "pip"])
-        # uv_pip_install(repo_dir, ["--upgrade", "setuptools", "wheel"])
-
-        # 1) optional pyproject
-        pyproject_path = repo_dir / "pyproject.toml"
-        if pyproject_path.is_file():
-            uv_pip_install(repo_dir, ["."])
-
-        # 2) optional requirements.txt
-        req_file = repo_dir / "requirements.txt"
-        if req_file.is_file():
-            uv_pip_install(repo_dir, ["-r", "requirements.txt"])
-
-        # 3) optional requirements-dev.txt
-        req_dev_file = repo_dir / "requirements-dev.txt"
-        if req_dev_file.is_file():
-            uv_pip_install(repo_dir, ["-r", "requirements-dev.txt"])
-
-        # 4) install the cloned project in editable mode if it's a Python package
-        setup_path = repo_dir / "setup.py"
-        if pyproject_path.is_file() or setup_path.is_file():
-            logging.info("Installing cloned project in editable mode.")
-            uv_pip_install(repo_dir, ["-e", "."])
+        python_version = get_python_version(repo_name, repo_version)
+        print(f"python_version from constants={python_version}")
+        
+        # Parse version to compare
+        major, minor = map(int, python_version.split('.')[:2])
+        
+        if major == 3 and minor < 7:
+            setup_legacy_venv(repo_dir, python_version)
+        else:
+            setup_uv_venv(repo_dir, repo_name, repo_version, force_venv)
