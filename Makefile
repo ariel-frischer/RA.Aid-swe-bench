@@ -16,6 +16,17 @@ help:
 	@echo "  eval            - Run evaluation on predictions in ra_aid_predictions directory"
 	@echo "  eval-post       - Run detailed post-evaluation analysis (WIP/Legacy)"
 	@echo "  aider           - Run aider with auto-lint in current directory"
+	@echo "  install-pythons - Install all required Python versions using pyenv"
+
+install-pythons:
+	pyenv install --skip-existing 3.5.10
+	pyenv install --skip-existing 3.6.15
+	pyenv install --skip-existing 3.7.17
+	pyenv install --skip-existing 3.8.18
+	pyenv install --skip-existing 3.9.18
+	pyenv install --skip-existing 3.10.13
+	pyenv install --skip-existing 3.11.7
+	pyenv rehash
 
 install:
 	poetry install
