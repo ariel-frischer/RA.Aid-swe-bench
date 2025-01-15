@@ -22,9 +22,20 @@ class RepoManager:
         self.cache_root = Path(cache_root).resolve()
         print(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
+        
+        # Create venvs directory for storing virtual environments
+        self.venvs_root = self.cache_root / "venvs"
+        self.venvs_root.mkdir(parents=True, exist_ok=True)
+        print(f"Virtual environments will be stored in: {self.venvs_root}")
 
         self.ra_aid_version = self._detect_ra_aid_version()
         print(f"ra_aid_version={self.ra_aid_version}")
+
+    def get_venv_path(self, repo_name: str, setup_commit: str) -> Path:
+        """Get path to cached virtual environment directory."""
+        safe_name = repo_name.replace("/", "_")
+        venv_dir = self.venvs_root / f"{safe_name}_{setup_commit}"
+        return venv_dir
 
     def _detect_ra_aid_version(self) -> str:
         """Detect installed ra-aid version."""
@@ -79,29 +90,43 @@ class RepoManager:
         print(f"Extracted repo name: {repo_name}")
 
         cache_path = self.get_cached_repo_path(repo_name)
-        # print(f"Cache path resolved to: {cache_path}")
+        venv_path = self.get_venv_path(repo_name, setup_commit)
+        print(f"Virtual env path: {venv_path}")
 
         # Ensure parent directories exist
         cache_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
+            # Clone/update repo if needed
             if not cache_path.exists():
                 cache_path.mkdir(parents=True, exist_ok=True)
-
-                # Clone fresh repo
                 print(f"Cloning {repo_url} to cache at {cache_path}")
-                repo = Repo.clone_from(
-                    repo_url, str(cache_path)
-                )  # Convert Path to str for git
-                repo.git.checkout(setup_commit)
-
-                # Setup virtual environment in cached repo
-                from .uv_utils import setup_venv_and_deps
-
-                setup_venv_and_deps(cache_path, repo_name, version, force_venv=True)
+                repo = Repo.clone_from(repo_url, str(cache_path))
             else:
                 print(f"Using cached repo at {cache_path}")
                 repo = Repo(cache_path)
+
+            # Checkout correct commit
+            repo.git.checkout(setup_commit)
+
+            # Setup virtual environment if not already cached
+            if not (venv_path / ".venv").exists():
+                print(f"Setting up new virtual environment at {venv_path}")
+                venv_path.mkdir(parents=True, exist_ok=True)
+                
+                from .uv_utils import setup_venv_and_deps
+                setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
+
+                # Copy repo contents to venv directory for installation
+                import shutil
+                for item in cache_path.iterdir():
+                    if item.name != ".git":
+                        if item.is_dir():
+                            shutil.copytree(item, venv_path / item.name, dirs_exist_ok=True)
+                        else:
+                            shutil.copy2(item, venv_path / item.name)
+            else:
+                print(f"Using cached virtual environment at {venv_path}")
 
             return repo, cache_path
 
@@ -136,16 +161,17 @@ class RepoManager:
 
         base_repo.git.worktree("add", str(worktree_path), base_commit)
 
-        # Create symlink to .venv
-        venv_path = Path(base_repo.working_dir) / ".venv"
-        print(f"venv_path={venv_path}")
+        # Create symlink to cached .venv
+        repo_name = Path(base_repo.working_dir).name.replace("__", "/")
+        venv_path = self.get_venv_path(repo_name, base_commit) / ".venv"
+        print(f"Linking to cached venv at: {venv_path}")
         worktree_venv = worktree_path / ".venv"
 
         try:
             os.symlink(venv_path, worktree_venv)
         except OSError as e:
-            logging.warning(f"Failed to create symlink, copying .venv instead: {e}")
-            shutil.copytree(venv_path, worktree_venv)
+            logging.warning(f"Failed to create symlink to cached venv: {e}")
+            raise
 
         return worktree_path, venv_path
 
