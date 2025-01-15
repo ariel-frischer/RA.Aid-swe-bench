@@ -121,13 +121,38 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
 
+def ensure_python_version(version: str) -> str:
+    """
+    Ensure specific Python version is installed using pyenv.
+    Returns the python command to use.
+    """
+    python_cmd = f"python{version}"
+    
+    try:
+        # First try if version exists
+        subprocess.run([python_cmd, "--version"], check=True, capture_output=True)
+        return python_cmd
+    except (subprocess.SubprocessError, FileNotFoundError):
+        logging.info(f"Python {version} not found, attempting to install via pyenv...")
+        try:
+            # Install Python version using pyenv
+            subprocess.run(["pyenv", "install", version], check=True)
+            subprocess.run(["pyenv", "global", version], check=True)
+            # Verify installation
+            subprocess.run([python_cmd, "--version"], check=True)
+            return python_cmd
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to install Python {version} using pyenv: {e}")
+
 def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     """Setup virtual environment using venv + pip for Python <3.7"""
     venv_path = repo_dir / ".venv"
-    python_cmd = f"python{python_version}"
     
     try:
-        # Create venv
+        # Ensure required Python version is installed
+        python_cmd = ensure_python_version(python_version)
+        
+        # Create venv with installed Python
         subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True)
         
         # Upgrade pip
