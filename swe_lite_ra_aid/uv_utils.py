@@ -59,18 +59,16 @@ def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool 
         
         # Try specified Python version first
         if python_version:
-            python_cmd = f"python{python_version}"
             try:
-                subprocess.run([python_cmd, "--version"], check=True, capture_output=True)
-                cmd.extend(["--python", python_cmd])
+                subprocess.run([f"python{python_version}", "--version"], check=True, capture_output=True)
+                cmd.extend(["--python", python_version])
                 logging.info(f"Using Python version {python_version} for {repo_name} version {repo_version}")
             except (subprocess.SubprocessError, FileNotFoundError):
                 # Fall back to version + .1
                 fallback_version = f"{python_version}.1"
-                fallback_cmd = f"python{fallback_version}"
                 try:
-                    subprocess.run([fallback_cmd, "--version"], check=True, capture_output=True)
-                    cmd.extend(["--python", fallback_cmd])
+                    subprocess.run([f"python{fallback_version}", "--version"], check=True, capture_output=True)
+                    cmd.extend(["--python", fallback_version])
                     logging.info(f"Falling back to Python version {fallback_version}")
                 except (subprocess.SubprocessError, FileNotFoundError):
                     logging.error(f"Failed to find Python {python_version} or {fallback_version}")
