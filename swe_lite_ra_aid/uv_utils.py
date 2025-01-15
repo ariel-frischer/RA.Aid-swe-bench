@@ -126,21 +126,36 @@ def ensure_python_version(version: str) -> str:
     Ensure specific Python version is installed using pyenv.
     Returns the python command to use.
     """
-    python_cmd = f"python{version}"
-    
     try:
         # First try if version exists
-        subprocess.run([python_cmd, "--version"], check=True, capture_output=True)
-        return python_cmd
+        subprocess.run([f"python{version}", "--version"], check=True, capture_output=True)
+        return f"python{version}"
     except (subprocess.SubprocessError, FileNotFoundError):
         logging.info(f"Python {version} not found, attempting to install via pyenv...")
         try:
+            # Get pyenv root
+            pyenv_root = subprocess.run(
+                ["pyenv", "root"],
+                check=True, capture_output=True, text=True
+            ).stdout.strip()
+            
             # Install Python version using pyenv
-            subprocess.run(["pyenv", "install", version], check=True)
-            subprocess.run(["pyenv", "global", version], check=True)
-            # Verify installation
-            subprocess.run([python_cmd, "--version"], check=True)
-            return python_cmd
+            subprocess.run(["pyenv", "install", "--skip-existing", version], check=True)
+            
+            # Rehash to update pyenv's knowledge of available versions
+            subprocess.run(["pyenv", "rehash"], check=True)
+            
+            # Initialize pyenv in current shell
+            subprocess.run(["eval", "$(pyenv init -)"], shell=True, check=True)
+            
+            # Get the full path to the Python executable
+            python_path = f"{pyenv_root}/versions/{version}/bin/python"
+            
+            # Verify installation using full path
+            subprocess.run([python_path, "--version"], check=True)
+            
+            return python_path
+            
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to install Python {version} using pyenv: {e}")
 
