@@ -60,13 +60,14 @@ class RepoManager:
 
         return cache_path
 
-    def ensure_base_repo(self, repo_url: str, setup_commit: str) -> Tuple[Repo, Path]:
+    def ensure_base_repo(self, repo_url: str, setup_commit: str, version: str) -> Tuple[Repo, Path]:
         """
         Ensure base repository exists in cache with dependencies installed.
 
         Args:
             repo_url: GitHub repository URL
             setup_commit: Commit hash for environment setup
+            version: Repository version for Python version detection
 
         Returns:
             Tuple of (Repo object, Path to cached repo)
@@ -97,8 +98,6 @@ class RepoManager:
                 # Setup virtual environment in cached repo
                 from .uv_utils import setup_venv_and_deps
 
-                # Get version from task instance
-                version = task["version"]
                 setup_venv_and_deps(cache_path, repo_name, version, force_venv=True)
             else:
                 print(f"Using cached repo at {cache_path}")

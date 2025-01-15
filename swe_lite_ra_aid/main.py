@@ -37,7 +37,7 @@ def process_single_attempt(task, _attempt, repo_manager):
     repo_url = github_url + task["repo"]
 
     base_repo, _cache_path = repo_manager.ensure_base_repo(
-        repo_url, task["environment_setup_commit"]
+        repo_url, task["environment_setup_commit"], task["version"]
     )
 
     worktree_path, _venv_path = repo_manager.create_worktree(
