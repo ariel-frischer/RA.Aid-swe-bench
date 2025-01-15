@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 import logging
 import subprocess
-from typing import List, Optional
+from typing import Optional
+
 from .io_utils import change_directory
 
 
@@ -103,70 +104,49 @@ def uv_sync(repo_dir: Path, python_path: Path) -> None:
     subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
 
-def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
-    """Run uv pip install with given arguments."""
+def setup_uv_venv(
+    repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
+) -> None:
+    """Setup virtual environment using uv for Python >=3.7"""
     venv_path = repo_dir / ".venv"
-    python_path = venv_path / "bin" / "python"
+    if venv_path.exists() and not force_venv:
+        logging.info(f"Virtual environment already exists at {venv_path}")
+        return
 
-    cmd = (
-        [
+    old_venv = os.environ.pop("VIRTUAL_ENV", None)
+    try:
+        cmd = [
             "uv",
-            "pip",
-            # "--no-config",
+            "venv",
+            "--seed",
+            "--no-project",
             "--directory",
             str(repo_dir),
             "--project",
             str(repo_dir),
-            "install",
         ]
-        + args
-        + ["--python", str(python_path)]
-    )
-    subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
+        python_version = get_python_version(repo_name, repo_version)
+        cmd.extend(["--python", python_version])
 
-
-    # Save current environment variables
-    saved_env = {}
-    env_vars = [
-        "PYTHON_CONFIGURE_OPTS",
-        "CC",
-        "CXX",
-        "CFLAGS",
-        "CPPFLAGS",
-        "LDFLAGS",
-        "PKG_CONFIG_PATH",
-    ]
-    for var in env_vars:
-        if var in os.environ:
-            saved_env[var] = os.environ[var]
-
-    try:
-        # Set environment variables for legacy Python builds
-        os.environ.update(
-            {
-                "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
-                "CC": "gcc-10",
-                "CXX": "g++-10",
-                "CFLAGS": "-O2 -pipe -fPIC",
-                "CPPFLAGS": "-O2 -pipe -fPIC",
-                "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
-                "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig",
-            }
-        )
-
-        # Let the rest of the function run with modified environment
-        yield
+        try:
+            result = subprocess.run(
+                cmd + [str(venv_path)], check=True, capture_output=True, text=True
+            )
+            print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            error_msg = (
+                f"UV venv creation failed with exit code {e.returncode}\n"
+                f"Command: {' '.join(cmd)}\n"
+                f"Stdout: {e.stdout}\n"
+                f"Stderr: {e.stderr}"
+            )
+            logging.error(error_msg)
+            raise RuntimeError(error_msg) from e
 
     finally:
-        # Restore previous environment variables
-        for var in env_vars:
-            if var in saved_env:
-                os.environ[var] = saved_env[var]
-            else:
-                os.environ.pop(var, None)
-
-
+        if old_venv:
+            os.environ["VIRTUAL_ENV"] = old_venv
 
 
 def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
@@ -213,51 +193,6 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
         raise RuntimeError(error_msg) from e
 
 
-def setup_uv_venv(
-    repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
-) -> None:
-    """Setup virtual environment using uv for Python >=3.7"""
-    venv_path = repo_dir / ".venv"
-    if venv_path.exists() and not force_venv:
-        logging.info(f"Virtual environment already exists at {venv_path}")
-        return
-
-    old_venv = os.environ.pop("VIRTUAL_ENV", None)
-    try:
-        cmd = [
-            "uv",
-            "venv",
-            "--seed",
-            "--no-project",
-            "--directory",
-            str(repo_dir),
-            "--project",
-            str(repo_dir),
-        ]
-
-        python_version = get_python_version(repo_name, repo_version)
-        cmd.extend(["--python", python_version])
-
-        try:
-            result = subprocess.run(
-                cmd + [str(venv_path)], check=True, capture_output=True, text=True
-            )
-            print(result.stdout)
-        except subprocess.CalledProcessError as e:
-            error_msg = (
-                f"UV venv creation failed with exit code {e.returncode}\n"
-                f"Command: {' '.join(cmd)}\n"
-                f"Stdout: {e.stdout}\n"
-                f"Stderr: {e.stderr}"
-            )
-            logging.error(error_msg)
-            raise RuntimeError(error_msg) from e
-
-    finally:
-        if old_venv:
-            os.environ["VIRTUAL_ENV"] = old_venv
-
-
 def setup_venv_and_deps(
     repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
 ) -> None:
@@ -277,3 +212,4 @@ def setup_venv_and_deps(
             setup_legacy_venv(repo_dir, python_version)
         else:
             setup_uv_venv(repo_dir, repo_name, repo_version, force_venv)
+
