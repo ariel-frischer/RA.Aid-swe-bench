@@ -8,13 +8,13 @@ from typing import List, Optional
 from .io_utils import change_directory
 
 
-def get_python_version(repo: str, version: str) -> Optional[str]:
+def get_python_version(repo: str, instance_version: str) -> Optional[str]:
     """
     Get Python version from MAP_VERSION_TO_INSTALL constants.
     
     Args:
         repo: Repository name (e.g. "matplotlib/matplotlib")
-        version: Repository version (e.g. "3.5")
+        instance_version: Repository version (e.g. "1.2") - NOT the python version
         
     Returns:
         Python version as string (e.g. "3.9") or None if not found
@@ -25,10 +25,10 @@ def get_python_version(repo: str, version: str) -> Optional[str]:
         return None
         
     version_map = MAP_VERSION_TO_INSTALL[repo]
-    if version not in version_map:
+    if instance_version not in version_map:
         return None
         
-    return version_map[version].get("python")
+    return version_map[instance_version].get("python")
 
 
 def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool = False) -> None:
