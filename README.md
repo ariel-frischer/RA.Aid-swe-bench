@@ -42,13 +42,15 @@ cd swe-lite-ra-aid
 
 poetry install
 
-# Install required legacy Python versions (<3.7)
+# Before running predictions some instances may need legacy python versions
+# Install required legacy Python versions (<3.7) using pyenv
 make install-pythons
 ```
 
 ### Python Version Management
 
-The project uses two different approaches for Python version management:
+As instances are running, different repositories need different python versions, even for the same repo `environment_setup_commit` may be different and so we need to accurate install all needed python versions.
+Using `uv` is preferred during runtime it automatically installs the necessary python versions but only supports >=3.7. 
 
 1. **Legacy Python Versions (<3.7)**: These versions are installed using `pyenv` via the `make install-pythons` command. This is required for processing older repository versions.
 
