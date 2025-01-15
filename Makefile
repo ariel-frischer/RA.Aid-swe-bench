@@ -17,6 +17,7 @@ help:
 	@echo "  eval-post       - Run detailed post-evaluation analysis (WIP/Legacy)"
 	@echo "  aider           - Run aider with auto-lint in current directory"
 	@echo "  install-pythons - Install all required Python versions using pyenv"
+	@echo "  repo-sizes     - Show sizes of cached repositories and virtual environments"
 
 install-pythons:
 	pyenv install --skip-existing 3.5.10
@@ -74,3 +75,13 @@ eval-post:
 
 aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
+
+repo-sizes:
+	@echo "\nRepository sizes (excluding .venv directories):"
+	@du -sh repos/*/ 2>/dev/null | grep -v ".venv" || echo "No repositories found"
+	@echo "\nVirtual environment sizes:"
+	@du -sh repos/venvs/*/ 2>/dev/null || echo "No virtual environments found"
+	@echo "\nTotal size of repos/ directory:"
+	@du -sh repos/
+	@echo "\nTotal size excluding virtual environments:"
+	@du -sh `find repos -type d -not -path "*/venvs/*" -not -path "*/\.*"`
