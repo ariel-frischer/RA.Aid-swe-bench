@@ -121,6 +121,52 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
 
+def ensure_build_dependencies():
+    """Ensure all required build dependencies are installed on the system."""
+    import platform
+    import subprocess
+    
+    def is_package_installed(package: str) -> bool:
+        try:
+            subprocess.run(['pacman', '-Qi', package], 
+                         stdout=subprocess.DEVNULL, 
+                         stderr=subprocess.DEVNULL, 
+                         check=True)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    if platform.system() == 'Linux':
+        if os.path.exists('/etc/arch-release'):  # Arch-based systems
+            required_packages = [
+                'base-devel',
+                'openssl',
+                'zlib',
+                'xz',
+                'tk',
+                'libffi',
+                'bzip2',
+                'sqlite',
+                'ncurses',
+                'readline',
+                'gdbm',
+                'db',
+                'expat',
+                'mpdecimal',
+                'libxcrypt'
+            ]
+            
+            missing_packages = [pkg for pkg in required_packages 
+                              if not is_package_installed(pkg)]
+            
+            if missing_packages:
+                print(f"Installing missing build dependencies: {', '.join(missing_packages)}")
+                try:
+                    subprocess.run(['sudo', 'pacman', '-Sy', '--noconfirm'] + missing_packages,
+                                 check=True)
+                except subprocess.CalledProcessError as e:
+                    raise RuntimeError(f"Failed to install build dependencies: {e}")
+
 def ensure_python_version(version: str) -> str:
     """
     Ensure specific Python version is installed using pyenv.
@@ -133,6 +179,9 @@ def ensure_python_version(version: str) -> str:
     except (subprocess.SubprocessError, FileNotFoundError):
         logging.info(f"Python {version} not found, attempting to install via pyenv...")
         try:
+            # Ensure build dependencies are installed first
+            ensure_build_dependencies()
+            
             # Get pyenv root
             pyenv_root = subprocess.run(
                 ["pyenv", "root"],
@@ -157,8 +206,18 @@ def ensure_python_version(version: str) -> str:
                 
             full_version = sorted(available_versions)[-1]  # Get latest patch version
             
-            # Install Python version using pyenv
-            subprocess.run(["pyenv", "install", "--skip-existing", full_version], check=True)
+            logging.info(f"Installing Python {full_version} using pyenv...")
+            
+            # Install Python version using pyenv with verbose output
+            install_result = subprocess.run(
+                ["pyenv", "install", "--skip-existing", "-v", full_version],
+                capture_output=True,
+                text=True
+            )
+            
+            if install_result.returncode != 0:
+                logging.error(f"Python installation failed:\n{install_result.stderr}")
+                raise RuntimeError(f"Failed to install Python {full_version}")
             
             # Rehash to update pyenv's knowledge of available versions
             subprocess.run(["pyenv", "rehash"], check=True)
