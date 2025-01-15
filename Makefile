@@ -77,11 +77,11 @@ aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
 
 repo-sizes:
-	@echo "\nRepository sizes (excluding .venv directories):"
+	@echo "Repository sizes (excluding .venv directories):"
 	@du -sh repos/*/ 2>/dev/null | grep -v ".venv" || echo "No repositories found"
-	@echo "\nVirtual environment sizes:"
+	@echo "Virtual environment sizes:"
 	@du -sh repos/venvs/*/ 2>/dev/null || echo "No virtual environments found"
-	@echo "\nTotal size of repos/ directory:"
+	@echo "Total size of repos/ directory:"
 	@du -sh repos/
-	@echo "\nTotal size excluding virtual environments:"
+	@echo "Total size excluding virtual environments:"
 	@du -sh `find repos -type d -not -path "*/venvs/*" -not -path "*/\.*"`
