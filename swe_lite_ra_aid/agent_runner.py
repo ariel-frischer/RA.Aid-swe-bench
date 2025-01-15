@@ -79,26 +79,43 @@ def activate_venv(repo_dir: Path):
     venv_path = (repo_dir / ".venv").resolve()
     venv_bin = venv_path / "bin"
 
-    # print(f"Resolved venv path: {venv_path}")
-    # print(f"Venv bin path: {venv_bin}")
+    print(f"Venv path: {venv_path}")
+    print(f"Venv bin path: {venv_bin}")
+    
+    print("\nBefore activation:")
+    print(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
+    print(f"Current PATH: {os.environ.get('PATH')}")
+    print(f"Current Python: {subprocess.getoutput('which python')}")
+    print(f"Current Python version: {subprocess.getoutput('python --version')}")
 
     # Store original env vars
     old_path = os.environ.get("PATH", "")
     old_venv = os.environ.get("VIRTUAL_ENV")
-    # print(f"Original VIRTUAL_ENV: {old_venv}")
 
     try:
         # Modify PATH to prioritize venv
         os.environ["PATH"] = f"{venv_bin}:{old_path}"
         os.environ["VIRTUAL_ENV"] = str(venv_path)
+
+        print("\nAfter activation:")
+        print(f"New VIRTUAL_ENV: {os.environ['VIRTUAL_ENV']}")
+        print(f"New PATH: {os.environ['PATH']}")
+        print(f"New Python: {subprocess.getoutput('which python')}")
+        print(f"New Python version: {subprocess.getoutput('python --version')}")
+        
         yield
     finally:
+        print("\nRestoring environment:")
         # Restore original env vars
         os.environ["PATH"] = old_path
         if old_venv:
             os.environ["VIRTUAL_ENV"] = old_venv
         else:
             os.environ.pop("VIRTUAL_ENV", None)
+        
+        print(f"Restored VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
+        print(f"Restored PATH: {os.environ['PATH']}")
+        print(f"Restored Python: {subprocess.getoutput('which python')}")
 
 
 def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
