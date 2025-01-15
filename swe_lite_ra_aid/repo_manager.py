@@ -71,9 +71,40 @@ class RepoManager:
 
         return cache_path
 
+    def ensure_venv(self, repo_name: str, setup_commit: str, version: str, cache_path: Path) -> None:
+        """
+        Ensure virtual environment exists and is set up with dependencies.
+        
+        Args:
+            repo_name: Repository name (e.g. "matplotlib/matplotlib")
+            setup_commit: Commit hash for environment setup
+            version: Repository version for Python version detection
+            cache_path: Path to cached repository
+        """
+        venv_path = self.get_venv_path(repo_name, setup_commit)
+        print(f"Virtual env path: {venv_path}")
+
+        if not (venv_path / ".venv").exists():
+            print(f"Setting up new virtual environment at {venv_path}")
+            venv_path.mkdir(parents=True, exist_ok=True)
+            
+            from .uv_utils import setup_venv_and_deps
+            setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
+
+            # Copy repo contents to venv directory for installation
+            import shutil
+            for item in cache_path.iterdir():
+                if item.name != ".git":
+                    if item.is_dir():
+                        shutil.copytree(item, venv_path / item.name, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(item, venv_path / item.name)
+        else:
+            print(f"Using cached virtual environment at {venv_path}")
+
     def ensure_base_repo(self, repo_url: str, setup_commit: str, version: str) -> Tuple[Repo, Path]:
         """
-        Ensure base repository exists in cache with dependencies installed.
+        Ensure base repository exists in cache.
 
         Args:
             repo_url: GitHub repository URL
@@ -90,8 +121,6 @@ class RepoManager:
         print(f"Extracted repo name: {repo_name}")
 
         cache_path = self.get_cached_repo_path(repo_name)
-        venv_path = self.get_venv_path(repo_name, setup_commit)
-        print(f"Virtual env path: {venv_path}")
 
         # Ensure parent directories exist
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,24 +138,8 @@ class RepoManager:
             # Checkout correct commit
             repo.git.checkout(setup_commit)
 
-            # Setup virtual environment if not already cached
-            if not (venv_path / ".venv").exists():
-                print(f"Setting up new virtual environment at {venv_path}")
-                venv_path.mkdir(parents=True, exist_ok=True)
-                
-                from .uv_utils import setup_venv_and_deps
-                setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
-
-                # Copy repo contents to venv directory for installation
-                import shutil
-                for item in cache_path.iterdir():
-                    if item.name != ".git":
-                        if item.is_dir():
-                            shutil.copytree(item, venv_path / item.name, dirs_exist_ok=True)
-                        else:
-                            shutil.copy2(item, venv_path / item.name)
-            else:
-                print(f"Using cached virtual environment at {venv_path}")
+            # Ensure virtual environment is set up
+            self.ensure_venv(repo_name, setup_commit, version, cache_path)
 
             return repo, cache_path
 
