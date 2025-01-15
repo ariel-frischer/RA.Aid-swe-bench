@@ -210,13 +210,14 @@ class RepoManager:
 
         return venv_path
 
-    def create_worktree(self, base_repo: Repo, base_commit: str) -> Tuple[Path, Path]:
+    def create_worktree(self, base_repo: Repo, base_commit: str, setup_commit: str) -> Tuple[Path, Path]:
         """
         Create new worktree for given commit with symlinked .venv
 
         Args:
             base_repo: Base repository object
             base_commit: Commit hash to checkout
+            setup_commit: Commit hash for environment setup
 
         Returns:
             Tuple of (worktree path, symlink target path)
@@ -229,8 +230,8 @@ class RepoManager:
 
         base_repo.git.worktree("add", str(worktree_path), base_commit)
 
-        # Create symlink to cached virtual environment
-        venv_path = self.create_venv_symlink(base_repo, worktree_path, base_commit)
+        # Create symlink to cached virtual environment using setup_commit
+        venv_path = self.create_venv_symlink(base_repo, worktree_path, setup_commit)
 
         return worktree_path, venv_path
 

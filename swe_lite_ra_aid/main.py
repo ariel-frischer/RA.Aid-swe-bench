@@ -41,7 +41,7 @@ def process_single_attempt(task, _attempt, repo_manager):
     )
 
     worktree_path, _venv_path = repo_manager.create_worktree(
-        base_repo, task["base_commit"]
+        base_repo, task["base_commit"], task["environment_setup_commit"]
     )
 
     print(f"Using worktree at: {worktree_path}")
