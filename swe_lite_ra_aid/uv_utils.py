@@ -1,6 +1,7 @@
 """Module for handling UV virtual environment setup and package installation."""
 
 import os
+import platform
 from pathlib import Path
 import logging
 import subprocess
@@ -11,27 +12,29 @@ from .io_utils import change_directory
 def get_python_version(repo: str, instance_version: str) -> Optional[str]:
     """
     Get Python version from MAP_VERSION_TO_INSTALL constants.
-    
+
     Args:
         repo: Repository name (e.g. "matplotlib/matplotlib")
         instance_version: Repository version (e.g. "1.2") - NOT the python version
-        
+
     Returns:
         Python version as string (e.g. "3.9") or None if not found
     """
     from .dataset_constants import MAP_VERSION_TO_INSTALL
-    
+
     if repo not in MAP_VERSION_TO_INSTALL:
         return "3.9"
-        
+
     version_map = MAP_VERSION_TO_INSTALL[repo]
     if instance_version not in version_map:
         return "3.9"
-        
+
     return version_map[instance_version].get("python", "3.9")
 
 
-def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool = False) -> None:
+def uv_venv(
+    repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool = False
+) -> None:
     """Create a virtual environment using uv."""
     venv_path = repo_dir / ".venv"
     if venv_path.exists() and not force_venv:
@@ -56,15 +59,17 @@ def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool 
         # Get Python version from constants
         python_version = get_python_version(repo_name, repo_version)
         print(f"python_version from constants={python_version}")
-        
+
         # Try specified Python version first
         if python_version:
             # Just pass the version to uv and let it handle finding Python
             cmd.extend(["--python", python_version])
-            logging.info(f"Using Python version {python_version} for {repo_name} version {repo_version}")
+            logging.info(
+                f"Using Python version {python_version} for {repo_name} version {repo_version}"
+            )
 
         cmd.append(str(repo_dir / ".venv"))
-        
+
         try:
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
             print(result.stdout)
@@ -123,16 +128,16 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
 
 def ensure_build_dependencies():
     """Ensure all required build dependencies are installed on the system."""
-    import platform
-    import subprocess
-    import os
-    
+
+    print("ensure_build_dependencies()")
     def is_package_installed(package: str) -> bool:
         try:
-            subprocess.run(['pacman', '-Qi', package], 
-                         stdout=subprocess.DEVNULL, 
-                         stderr=subprocess.DEVNULL, 
-                         check=True)
+            subprocess.run(
+                ["pacman", "-Qi", package],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+            )
             return True
         except subprocess.CalledProcessError:
             return False
@@ -141,51 +146,59 @@ def ensure_build_dependencies():
         """Install a package from AUR using yay."""
         try:
             # First check if yay is installed
-            subprocess.run(['which', 'yay'], check=True, capture_output=True)
+            subprocess.run(["which", "yay"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             print("Installing yay (AUR helper)...")
-            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'yay'], check=True)
-        
-        print(f"Installing {package} from AUR...")
-        subprocess.run(['yay', '-S', '--noconfirm', package], check=True)
+            subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "yay"], check=True)
 
-    if platform.system() == 'Linux':
-        if os.path.exists('/etc/arch-release'):  # Arch-based systems
+        print(f"Installing {package} from AUR...")
+        subprocess.run(["yay", "-S", "--noconfirm", package], check=True)
+
+    if platform.system() == "Linux":
+        print(f"system={platform.system}")
+        if os.path.exists("/etc/arch-release"):  # Arch-based systems
+            print("os.path exists")
             required_packages = [
-                'base-devel',
-                'openssl',
-                'openssl-1.1',
-                'zlib',
-                'xz',
-                'tk',
-                'libffi',
-                'bzip2',
-                'sqlite',
-                'ncurses',
-                'readline',
-                'gdbm',
-                'db',
-                'expat',
-                'mpdecimal',
-                'libxcrypt',
-                'libxcrypt-compat'
+                "base-devel",
+                "openssl",
+                "openssl-1.1",
+                "zlib",
+                "xz",
+                "tk",
+                "libffi",
+                "bzip2",
+                "sqlite",
+                "ncurses",
+                "readline",
+                "gdbm",
+                "db",
+                "expat",
+                "mpdecimal",
+                "libxcrypt",
+                "libxcrypt-compat",
             ]
-            
-            missing_packages = [pkg for pkg in required_packages 
-                              if not is_package_installed(pkg)]
-            
+
+            missing_packages = [
+                pkg for pkg in required_packages if not is_package_installed(pkg)
+            ]
+
             if missing_packages:
-                print(f"Installing missing build dependencies: {', '.join(missing_packages)}")
+                print(
+                    f"Installing missing build dependencies: {', '.join(missing_packages)}"
+                )
                 try:
-                    subprocess.run(['sudo', 'pacman', '-Sy', '--noconfirm'] + missing_packages,
-                                 check=True)
+                    subprocess.run(
+                        ["sudo", "pacman", "-Sy", "--noconfirm"] + missing_packages,
+                        check=True,
+                    )
                 except subprocess.CalledProcessError as e:
                     raise RuntimeError(f"Failed to install build dependencies: {e}")
 
             # Install gcc10 from AUR if not already installed
-            if not is_package_installed('gcc10'):
+            if not is_package_installed("gcc10"):
+                print('gcc10 not installed')
                 try:
-                    install_from_aur('gcc10')
+                    install_from_aur("gcc10")
                 except subprocess.CalledProcessError as e:
                     raise RuntimeError(f"Failed to install gcc10 from AUR: {e}")
 
@@ -194,11 +207,11 @@ def ensure_build_dependencies():
             env_vars = [
                 "PYTHON_CONFIGURE_OPTS",
                 "CC",
-                "CXX", 
+                "CXX",
                 "CFLAGS",
                 "CPPFLAGS",
                 "LDFLAGS",
-                "PKG_CONFIG_PATH"
+                "PKG_CONFIG_PATH",
             ]
             for var in env_vars:
                 if var in os.environ:
@@ -206,15 +219,17 @@ def ensure_build_dependencies():
 
             try:
                 # Set environment variables for legacy Python builds
-                os.environ.update({
-                    "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
-                    "CC": "gcc-10",
-                    "CXX": "g++-10",
-                    "CFLAGS": "-O2 -pipe -fPIC",
-                    "CPPFLAGS": "-O2 -pipe -fPIC", 
-                    "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
-                    "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig"
-                })
+                os.environ.update(
+                    {
+                        "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
+                        "CC": "gcc-10",
+                        "CXX": "g++-10",
+                        "CFLAGS": "-O2 -pipe -fPIC",
+                        "CPPFLAGS": "-O2 -pipe -fPIC",
+                        "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
+                        "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig",
+                    }
+                )
 
                 # Let the rest of the function run with modified environment
                 yield
@@ -227,102 +242,100 @@ def ensure_build_dependencies():
                     else:
                         os.environ.pop(var, None)
 
+
 def ensure_python_version(version: str) -> str:
     """
     Ensure specific Python version is installed using pyenv.
     Returns the python command to use.
     """
     try:
-        # First try if version exists
-        subprocess.run([f"python{version}", "--version"], check=True, capture_output=True)
+        subprocess.run(
+            [f"python{version}", "--version"], check=True, capture_output=True
+        )
         return f"python{version}"
     except (subprocess.SubprocessError, FileNotFoundError):
-        logging.info(f"Python {version} not found, attempting to install via pyenv...")
+        print(f"Python {version} not found, attempting to install via pyenv...")
         try:
-            # Ensure build dependencies are installed first
             ensure_build_dependencies()
-            
-            # Get pyenv root
+
             pyenv_root = subprocess.run(
-                ["pyenv", "root"],
-                check=True, capture_output=True, text=True
+                ["pyenv", "root"], check=True, capture_output=True, text=True
             ).stdout.strip()
-            
-            # Find latest patch version for this minor version
+
             list_output = subprocess.run(
-                ["pyenv", "install", "--list"], 
-                capture_output=True, 
+                ["pyenv", "install", "--list"],
+                capture_output=True,
                 text=True,
-                check=True
+                check=True,
             ).stdout
-            
+
             # Find latest compatible version (e.g. 3.6.15 for version 3.6)
             available_versions = [
-                v.strip() for v in list_output.split('\n')
+                v.strip()
+                for v in list_output.split("\n")
                 if v.strip().startswith(f"{version}.")
             ]
             if not available_versions:
                 raise RuntimeError(f"No available Python {version}.x versions found")
-                
+
             full_version = sorted(available_versions)[-1]  # Get latest patch version
-            
+
             logging.info(f"Installing Python {full_version} using pyenv...")
-            
+
             # Install Python version using pyenv with verbose output
             install_result = subprocess.run(
                 ["pyenv", "install", "--skip-existing", "-v", full_version],
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
+
             if install_result.returncode != 0:
                 logging.error(f"Python installation failed:\n{install_result.stderr}")
                 raise RuntimeError(f"Failed to install Python {full_version}")
-            
-            # Rehash to update pyenv's knowledge of available versions
+
             subprocess.run(["pyenv", "rehash"], check=True)
-            
-            # Get the full path to the Python executable
             python_path = f"{pyenv_root}/versions/{full_version}/bin/python"
-            
-            # Verify installation using full path
             subprocess.run([python_path, "--version"], check=True)
-            
+
             return python_path
-            
+
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to install Python {version} using pyenv: {e}")
+
 
 def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     """Setup virtual environment using venv + pip for Python <3.7"""
     venv_path = repo_dir / ".venv"
-    
+
     try:
-        # Ensure required Python version is installed
         python_cmd = ensure_python_version(python_version)
-        
-        # Create venv with installed Python
         subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True)
-        
-        # Upgrade pip
+
         pip_path = venv_path / "bin" / "pip"
-        subprocess.run([str(pip_path), "install", "--upgrade", "pip", "setuptools", "wheel"], check=True)
-        
+        subprocess.run(
+            [str(pip_path), "install", "--upgrade", "pip", "setuptools", "wheel"],
+            check=True,
+        )
+
         # Install dependencies similar to uv logic
         if (repo_dir / "pyproject.toml").is_file():
             subprocess.run([str(pip_path), "install", "."], check=True)
-            
+
         if (repo_dir / "requirements.txt").is_file():
-            subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
-            
+            subprocess.run(
+                [str(pip_path), "install", "-r", "requirements.txt"], check=True
+            )
+
         if (repo_dir / "requirements-dev.txt").is_file():
-            subprocess.run([str(pip_path), "install", "-r", "requirements-dev.txt"], check=True)
-            
+            subprocess.run(
+                [str(pip_path), "install", "-r", "requirements-dev.txt"], check=True
+            )
+
         # Install in editable mode if it's a Python package
         if (repo_dir / "setup.py").is_file() or (repo_dir / "pyproject.toml").is_file():
             logging.info("Installing cloned project in editable mode.")
             subprocess.run([str(pip_path), "install", "-e", "."], check=True)
-            
+
     except subprocess.CalledProcessError as e:
         error_msg = (
             f"Legacy venv setup failed with exit code {e.returncode}\n"
@@ -333,7 +346,10 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
         logging.error(error_msg)
         raise RuntimeError(error_msg) from e
 
-def setup_uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool) -> None:
+
+def setup_uv_venv(
+    repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
+) -> None:
     """Setup virtual environment using uv for Python >=3.7"""
     venv_path = repo_dir / ".venv"
     if venv_path.exists() and not force_venv:
@@ -355,9 +371,11 @@ def setup_uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv:
 
         python_version = get_python_version(repo_name, repo_version)
         cmd.extend(["--python", python_version])
-        
+
         try:
-            result = subprocess.run(cmd + [str(venv_path)], check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                cmd + [str(venv_path)], check=True, capture_output=True, text=True
+            )
             print(result.stdout)
         except subprocess.CalledProcessError as e:
             error_msg = (
@@ -373,7 +391,10 @@ def setup_uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv:
         if old_venv:
             os.environ["VIRTUAL_ENV"] = old_venv
 
-def setup_venv_and_deps(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool) -> None:
+
+def setup_venv_and_deps(
+    repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
+) -> None:
     """
     Setup virtual environment and install dependencies using either:
     - uv for Python >=3.7
@@ -382,10 +403,10 @@ def setup_venv_and_deps(repo_dir: Path, repo_name: str, repo_version: str, force
     with change_directory(repo_dir):
         python_version = get_python_version(repo_name, repo_version)
         print(f"python_version from constants={python_version}")
-        
+
         # Parse version to compare
-        major, minor = map(int, python_version.split('.')[:2])
-        
+        major, minor = map(int, python_version.split(".")[:2])
+
         if major == 3 and minor < 7:
             setup_legacy_venv(repo_dir, python_version)
         else:

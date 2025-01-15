@@ -79,13 +79,13 @@ def activate_venv(repo_dir: Path):
     venv_path = (repo_dir / ".venv").resolve()
     venv_bin = venv_path / "bin"
 
-    print(f"Resolved venv path: {venv_path}")
-    print(f"Venv bin path: {venv_bin}")
+    # print(f"Resolved venv path: {venv_path}")
+    # print(f"Venv bin path: {venv_bin}")
 
     # Store original env vars
     old_path = os.environ.get("PATH", "")
     old_venv = os.environ.get("VIRTUAL_ENV")
-    print(f"Original VIRTUAL_ENV: {old_venv}")
+    # print(f"Original VIRTUAL_ENV: {old_venv}")
 
     try:
         # Modify PATH to prioritize venv

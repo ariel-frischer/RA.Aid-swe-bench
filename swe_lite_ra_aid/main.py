@@ -234,7 +234,9 @@ def generate_predictions(dataset, out_dname, repo_manager):
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
     # filter_repos = ["matplotlib/matplotlib"]  # Add repos to filter for here
-    filter_repos = [""]
+    filter_repos = ["scikit-learn/scikit-learn"]  # Add repos to filter for here
+        
+    # filter_repos = [""]
     remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos)
 
     def scatter(task):
