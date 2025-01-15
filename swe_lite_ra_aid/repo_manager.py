@@ -82,7 +82,7 @@ class RepoManager:
             cache_path: Path to cached repository
         """
         venv_path = self.get_venv_path(repo_name, setup_commit)
-        print(f"\nENSURE_VENV:")
+        print("\nENSURE_VENV:")
         print(f"repo_name: {repo_name}")
         print(f"setup_commit: {setup_commit}")
         print(f"version: {version}")
@@ -90,7 +90,7 @@ class RepoManager:
         print(f"venv_path: {venv_path}")
 
         if not (venv_path / ".venv").exists():
-            print(f"\nSetting up new virtual environment:")
+            print("\nSetting up new virtual environment:")
             print(f"venv_path: {venv_path}")
             venv_path.mkdir(parents=True, exist_ok=True)
             
