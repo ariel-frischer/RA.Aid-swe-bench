@@ -82,25 +82,34 @@ class RepoManager:
             cache_path: Path to cached repository
         """
         venv_path = self.get_venv_path(repo_name, setup_commit)
-        print(f"Virtual env path: {venv_path}")
+        print(f"\nENSURE_VENV:")
+        print(f"repo_name: {repo_name}")
+        print(f"setup_commit: {setup_commit}")
+        print(f"version: {version}")
+        print(f"cache_path: {cache_path}")
+        print(f"venv_path: {venv_path}")
 
         if not (venv_path / ".venv").exists():
-            print(f"Setting up new virtual environment at {venv_path}")
+            print(f"\nSetting up new virtual environment:")
+            print(f"venv_path: {venv_path}")
             venv_path.mkdir(parents=True, exist_ok=True)
             
-            from .uv_utils import setup_venv_and_deps
-            setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
-
-            # Copy repo contents to venv directory for installation
+            print("\nCopying repo contents to venv directory...")
             import shutil
             for item in cache_path.iterdir():
                 if item.name != ".git":
+                    dest = venv_path / item.name
+                    print(f"Copying {item} -> {dest}")
                     if item.is_dir():
-                        shutil.copytree(item, venv_path / item.name, dirs_exist_ok=True)
+                        shutil.copytree(item, dest, dirs_exist_ok=True)
                     else:
-                        shutil.copy2(item, venv_path / item.name)
+                        shutil.copy2(item, dest)
+            
+            from .uv_utils import setup_venv_and_deps
+            print("\nCalling setup_venv_and_deps...")
+            setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
         else:
-            print(f"Using cached virtual environment at {venv_path}")
+            print(f"\nUsing cached virtual environment at {venv_path}")
 
     def ensure_base_repo(self, repo_url: str, setup_commit: str, version: str) -> Tuple[Repo, Path]:
         """
