@@ -41,7 +41,20 @@ git clone https://github.com/ariel-frischer/RA.Aid-swe-bench
 cd swe-lite-ra-aid
 
 poetry install
+
+# Install required legacy Python versions (<3.7)
+make install-pythons
 ```
+
+### Python Version Management
+
+The project uses two different approaches for Python version management:
+
+1. **Legacy Python Versions (<3.7)**: These versions are installed using `pyenv` via the `make install-pythons` command. This is required for processing older repository versions.
+
+2. **Modern Python Versions (>=3.7)**: These are handled automatically by `uv` during runtime. No manual installation needed.
+
+Virtual environments are created and cached per repository instance as they are processed, making subsequent runs faster.
 
 ## Usage
 

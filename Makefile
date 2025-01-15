@@ -21,11 +21,6 @@ help:
 install-pythons:
 	pyenv install --skip-existing 3.5.10
 	pyenv install --skip-existing 3.6.15
-	pyenv install --skip-existing 3.7.17
-	pyenv install --skip-existing 3.8.18
-	pyenv install --skip-existing 3.9.18
-	pyenv install --skip-existing 3.10.13
-	pyenv install --skip-existing 3.11.7
 	pyenv rehash
 
 install:
