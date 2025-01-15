@@ -10,104 +10,30 @@ from configparser import ConfigParser
 from .io_utils import change_directory
 
 
-def detect_python_version(repo_dir: Path) -> Optional[str]:
+def get_python_version(repo: str, version: str) -> Optional[str]:
     """
-    Detect required Python version from various configuration files.
-    Returns the Python version as a string (e.g. "3.11") or None if not specified.
-    """
-
-    def parse_version_constraint(text: str) -> Optional[str]:
-        """Extract version from constraints like '>=3.8,<3.12' or '>=3.8'"""
-        match = re.search(r">=\s*([\d.]+)", text)
-        version = match.group(1) if match else None
-        print(f"  Found version constraint: {version} from {text}")
-        return version
-
-    def parse_toml(path: Path) -> Optional[str]:
-        """Simple TOML parser for Python version requirements"""
-        try:
-            with open(path) as f:
-                content = f.read()
-                # Look for requires-python in project section
-                match = re.search(r'requires-python\s*=\s*[\'"]([^"\']+)[\'"]', content)
-                if match:
-                    return parse_version_constraint(match.group(1))
-        except Exception as e:
-            logging.warning(f"Error parsing {path}: {e}")
-        return None
-
-    print(f"\nDetecting Python version for repo at: {repo_dir}")
+    Get Python version from MAP_VERSION_TO_INSTALL constants.
     
-    # Check pyproject.toml first (PEP 518)
-    pyproject_path = repo_dir / "pyproject.toml"
-    if pyproject_path.exists():
-        print(f"Checking pyproject.toml at: {pyproject_path}")
-        version = parse_toml(pyproject_path)
-        if version:
-            print(f"Found version {version} in pyproject.toml")
-            return version
-
-    # Check setup.py
-    setup_path = repo_dir / "setup.py"
-    if setup_path.exists():
-        print(f"Checking setup.py at: {setup_path}")
-        try:
-            with open(setup_path) as f:
-                content = f.read()
-                match = re.search(r'python_requires\s*=\s*[\'"]([^"\']+)[\'"]', content)
-                if match:
-                    version = parse_version_constraint(match.group(1))
-                    if version:
-                        print(f"Found version {version} in setup.py")
-                        return version
-        except Exception as e:
-            logging.warning(f"Error parsing setup.py: {e}")
-
-    # Check requirements.txt
-    req_path = repo_dir / "requirements.txt"
-    if req_path.exists():
-        print(f"Checking requirements.txt at: {req_path}")
-        try:
-            with open(req_path) as f:
-                for line in f:
-                    if "python_version" in line:
-                        version = parse_version_constraint(line)
-                        if version:
-                            print(f"Found version {version} in requirements.txt")
-                            return version
-        except Exception as e:
-            logging.warning(f"Error parsing requirements.txt: {e}")
-
-    # Check tox.ini
-    tox_path = repo_dir / "tox.ini"
-    if tox_path.exists():
-        print(f"Checking tox.ini at: {tox_path}")
-        try:
-            config = ConfigParser()
-            config.read(tox_path)
-            if "tox" in config:
-                version = config["tox"].get("min_version")
-                if version:
-                    print(f"Found version {version} in tox.ini")
-                    return version
-        except Exception as e:
-            logging.warning(f"Error parsing tox.ini: {e}")
-
-    # Default fallback versions for known repos
-    repo_defaults = {
-        "matplotlib": "3.11",  # matplotlib currently has issues with 3.12
-    }
-
-    repo_name = repo_dir.name.replace("__", "/")
-    default_version = repo_defaults.get(repo_name.split("/")[-1])
-    if default_version:
-        print(f"Using default fallback version {default_version} for {repo_name}")
-    else:
-        print(f"No Python version found for {repo_name}")
-    return default_version
+    Args:
+        repo: Repository name (e.g. "matplotlib/matplotlib")
+        version: Repository version (e.g. "3.5")
+        
+    Returns:
+        Python version as string (e.g. "3.9") or None if not found
+    """
+    from .dataset_constants import MAP_VERSION_TO_INSTALL
+    
+    if repo not in MAP_VERSION_TO_INSTALL:
+        return None
+        
+    version_map = MAP_VERSION_TO_INSTALL[repo]
+    if version not in version_map:
+        return None
+        
+    return version_map[version].get("python")
 
 
-def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
+def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool = False) -> None:
     """Create a virtual environment using uv."""
     venv_path = repo_dir / ".venv"
     if venv_path.exists() and not force_venv:
@@ -129,12 +55,12 @@ def uv_venv(repo_dir: Path, repo_name: str, force_venv: bool = False) -> None:
             str(repo_dir),
         ]
 
-        # Detect and use specific Python version if available
-        python_version = detect_python_version(repo_dir)
-        print(f"detected python_version={python_version}")
+        # Get Python version from constants
+        python_version = get_python_version(repo_name, repo_version)
+        print(f"python_version from constants={python_version}")
         if python_version:
             python_cmd = f"python{python_version}"
-            logging.info(f"Using Python version {python_version} for {repo_name}")
+            logging.info(f"Using Python version {python_version} for {repo_name} version {repo_version}")
             cmd.extend(["--python", python_cmd])
 
         cmd.append(str(repo_dir / ".venv"))
@@ -183,7 +109,7 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
     subprocess.run(cmd, cwd=str(repo_dir), check=True)
 
 
-def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> None:
+def setup_venv_and_deps(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool) -> None:
     """
     Setup virtual environment and install dependencies:
     - uv venv .venv --seed
@@ -194,7 +120,7 @@ def setup_venv_and_deps(repo_dir: Path, repo_name: str, force_venv: bool) -> Non
     """
 
     with change_directory(repo_dir):
-        uv_venv(repo_dir, repo_name, force_venv)
+        uv_venv(repo_dir, repo_name, repo_version, force_venv)
 
         # Deprecated below, should be handled by --seed above
         # uv_pip_install(repo_dir, ["--upgrade", "pip"])

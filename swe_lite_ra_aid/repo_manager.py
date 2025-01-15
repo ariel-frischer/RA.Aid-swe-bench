@@ -97,7 +97,9 @@ class RepoManager:
                 # Setup virtual environment in cached repo
                 from .uv_utils import setup_venv_and_deps
 
-                setup_venv_and_deps(cache_path, repo_name, force_venv=True)
+                # Get version from task instance
+                version = task["version"]
+                setup_venv_and_deps(cache_path, repo_name, version, force_venv=True)
             else:
                 print(f"Using cached repo at {cache_path}")
                 repo = Repo(cache_path)
