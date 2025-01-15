@@ -148,6 +148,26 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
   - Environment setup details
   - Error messages if any
 
+## Debugging and Development
+
+### Filtering Tasks
+
+When running predictions, you can filter which tasks to process by modifying these variables in `swe_lite_ra_aid/main.py`:
+
+```python
+# Process only specific task instances by ID
+only_tasks = ["scikit-learn__scikit-learn-10297"]  # or None to process all
+
+# Filter by repository name (only used if only_tasks is None)
+filter_repos = ["scikit-learn/scikit-learn"]  # or None for all repos
+```
+
+This is useful for:
+- Debugging specific task instances
+- Testing changes with a single repository
+- Reducing processing time during development
+- Investigating failures for particular tasks
+
 ## Problems/Improvements
 
 * [X] Follow submission checklist with `SUBMISSION_MODE`.
