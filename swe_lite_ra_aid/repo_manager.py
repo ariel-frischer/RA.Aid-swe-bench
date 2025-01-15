@@ -147,13 +147,24 @@ class RepoManager:
             logging.error(
                 f"Failed to ensure base repo exists at {cache_path}: {str(e)}"
             )
+            error_msg = ""
+            if isinstance(e, git.exc.GitCommandError):
+                error_msg = f"Git command failed: {e.command}\nStatus: {e.status}\nStdout: {e.stdout}\nStderr: {e.stderr}"
+            elif "Repo" in str(type(e)):
+                error_msg = f"Git repository operation failed: {str(e)}"
+            else:
+                error_msg = f"Error type: {type(e).__name__}\nDetails: {str(e)}"
+
+            logging.error(f"Failed to setup repository at {cache_path}:\n{error_msg}")
+            
             # Clean up any partial clone
             if cache_path.exists():
-                shutil.rmtree(cache_path)
-            # Re-raise with more context
-            raise RuntimeError(
-                f"Failed to setup repository at {cache_path}: {str(e)}"
-            ) from e
+                try:
+                    shutil.rmtree(cache_path)
+                except Exception as cleanup_err:
+                    logging.error(f"Failed to cleanup {cache_path}: {cleanup_err}")
+
+            raise RuntimeError(f"Repository setup failed: {error_msg}") from e
 
     def create_venv_symlink(self, base_repo: Repo, worktree_path: Path, base_commit: str) -> Path:
         """

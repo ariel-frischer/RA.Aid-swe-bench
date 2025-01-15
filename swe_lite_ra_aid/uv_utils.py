@@ -56,13 +56,35 @@ def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool 
         # Get Python version from constants
         python_version = get_python_version(repo_name, repo_version)
         print(f"python_version from constants={python_version}")
-        if python_version:
-            python_cmd = f"python{python_version}"
-            logging.info(f"Using Python version {python_version} for {repo_name} version {repo_version}")
-            cmd.extend(["--python", python_cmd])
+        
+        # Try system Python first
+        try:
+            import sys
+            system_python = f"python{sys.version_info[0]}.{sys.version_info[1]}"
+            subprocess.run([system_python, "--version"], check=True, capture_output=True)
+            cmd.extend(["--python", system_python])
+            logging.info(f"Using system Python {system_python}")
+        except (subprocess.SubprocessError, FileNotFoundError):
+            # Fall back to specified version
+            if python_version:
+                python_cmd = f"python{python_version}"
+                logging.info(f"Using Python version {python_version} for {repo_name} version {repo_version}")
+                cmd.extend(["--python", python_cmd])
 
         cmd.append(str(repo_dir / ".venv"))
-        subprocess.run(cmd, check=True)
+        
+        try:
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            error_msg = (
+                f"UV venv creation failed with exit code {e.returncode}\n"
+                f"Command: {' '.join(cmd)}\n"
+                f"Stdout: {e.stdout}\n"
+                f"Stderr: {e.stderr}"
+            )
+            logging.error(error_msg)
+            raise RuntimeError(error_msg) from e
     finally:
         if old_venv:
             os.environ["VIRTUAL_ENV"] = old_venv
