@@ -84,4 +84,7 @@ repo-sizes:
 	@echo "Total size of repos/ directory:"
 	@du -sh repos/
 	@echo "Total size excluding virtual environments:"
-	@du -sh $(shell find repos -type d -not -path "*/venvs/*" -not -path "*/.venv*" -not -path "*/\.*" -maxdepth 1)
+	@total_size=$$(du -s repos/ | cut -f1); \
+	venv_size=$$(du -s repos/venvs/ 2>/dev/null | cut -f1 || echo "0"); \
+	remaining_size=$$((total_size - venv_size)); \
+	echo "$$(numfmt --to=iec-i --suffix=B $$remaining_size)"
