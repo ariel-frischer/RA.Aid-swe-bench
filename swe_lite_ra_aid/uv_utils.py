@@ -1,12 +1,10 @@
 """Module for handling UV virtual environment setup and package installation."""
 
 import os
-import re
 from pathlib import Path
 import logging
 import subprocess
 from typing import List, Optional
-from configparser import ConfigParser
 from .io_utils import change_directory
 
 
