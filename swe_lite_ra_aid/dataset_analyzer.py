@@ -51,11 +51,16 @@ def analyze_setup_commits():
     repo_python_versions: Dict[str, Set[str]] = defaultdict(set)
     repo_commit_versions: Dict[str, Dict[str, str]] = defaultdict(dict)
 
-    # First pass: collect all setup commits per repo
+    # First pass: collect all setup commits and their counts per repo
+    commit_counts = defaultdict(lambda: defaultdict(int))
+    total_commit_instances = 0
+    
     for instance in dataset:
         repo = instance["repo"]
         setup_commit = instance["environment_setup_commit"]
         repo_setup_commits[repo].add(setup_commit)
+        commit_counts[repo][setup_commit] += 1
+        total_commit_instances += 1
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
@@ -81,10 +86,14 @@ def analyze_setup_commits():
 
         print(f"\nRepository: {repo}")
         print(f"Number of unique setup commits: {num_commits}")
-        print("Setup commits and their Python versions:")
+        print("Setup commits, their Python versions and instance counts:")
+        repo_total = 0
         for commit in sorted(setup_commits):
             version = commit_versions.get(commit, "unknown")
-            print(f"  - {commit}: Python {version}")
+            count = commit_counts[repo][commit]
+            repo_total += count
+            print(f"  - {commit}: Python {version} ({count} instances)")
+        print(f"Total instances for this repo: {repo_total}")
 
         print(f"Unique Python versions detected: {len(python_versions)}")
         for version in python_versions:
@@ -102,6 +111,11 @@ def analyze_setup_commits():
         f"{sum(1 for commits in repo_setup_commits.values() if len(commits) == 1)}"
     )
     print(f"Repositories with Python version detected: {len(repo_python_versions)}")
+    
+    total_unique_commits = sum(len(commits) for commits in repo_setup_commits.values())
+    print(f"\nTotal instances across all repos: {total_commit_instances}")
+    print(f"Total unique setup commits: {total_unique_commits}")
+    print(f"Average instances per unique commit: {total_commit_instances/total_unique_commits:.2f}")
 
     all_versions = set()
     for versions in repo_python_versions.values():
