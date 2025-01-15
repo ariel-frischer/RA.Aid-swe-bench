@@ -125,6 +125,7 @@ def ensure_build_dependencies():
     """Ensure all required build dependencies are installed on the system."""
     import platform
     import subprocess
+    import os
     
     def is_package_installed(package: str) -> bool:
         try:
@@ -136,11 +137,24 @@ def ensure_build_dependencies():
         except subprocess.CalledProcessError:
             return False
 
+    def install_from_aur(package: str):
+        """Install a package from AUR using yay."""
+        try:
+            # First check if yay is installed
+            subprocess.run(['which', 'yay'], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            print("Installing yay (AUR helper)...")
+            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'yay'], check=True)
+        
+        print(f"Installing {package} from AUR...")
+        subprocess.run(['yay', '-S', '--noconfirm', package], check=True)
+
     if platform.system() == 'Linux':
         if os.path.exists('/etc/arch-release'):  # Arch-based systems
             required_packages = [
                 'base-devel',
                 'openssl',
+                'openssl-1.1',
                 'zlib',
                 'xz',
                 'tk',
@@ -153,7 +167,8 @@ def ensure_build_dependencies():
                 'db',
                 'expat',
                 'mpdecimal',
-                'libxcrypt'
+                'libxcrypt',
+                'libxcrypt-compat'
             ]
             
             missing_packages = [pkg for pkg in required_packages 
@@ -166,6 +181,24 @@ def ensure_build_dependencies():
                                  check=True)
                 except subprocess.CalledProcessError as e:
                     raise RuntimeError(f"Failed to install build dependencies: {e}")
+
+            # Install gcc10 from AUR if not already installed
+            if not is_package_installed('gcc10'):
+                try:
+                    install_from_aur('gcc10')
+                except subprocess.CalledProcessError as e:
+                    raise RuntimeError(f"Failed to install gcc10 from AUR: {e}")
+
+            # Set environment variables for legacy Python builds
+            os.environ.update({
+                "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
+                "CC": "gcc-10",
+                "CXX": "g++-10",
+                "CFLAGS": "-O2 -pipe -fPIC",
+                "CPPFLAGS": "-O2 -pipe -fPIC", 
+                "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
+                "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig"
+            })
 
 def ensure_python_version(version: str) -> str:
     """
