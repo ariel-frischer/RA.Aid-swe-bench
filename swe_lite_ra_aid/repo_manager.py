@@ -155,6 +155,31 @@ class RepoManager:
                 f"Failed to setup repository at {cache_path}: {str(e)}"
             ) from e
 
+    def create_venv_symlink(self, base_repo: Repo, worktree_path: Path, base_commit: str) -> Path:
+        """
+        Create symlink to cached virtual environment in worktree.
+
+        Args:
+            base_repo: Base repository object
+            worktree_path: Path to worktree directory
+            base_commit: Commit hash being used
+
+        Returns:
+            Path to the virtual environment that was linked
+        """
+        repo_name = Path(base_repo.working_dir).name.replace("__", "/")
+        venv_path = self.get_venv_path(repo_name, base_commit) / ".venv"
+        print(f"Linking to cached venv at: {venv_path}")
+        worktree_venv = worktree_path / ".venv"
+
+        try:
+            os.symlink(venv_path, worktree_venv)
+        except OSError as e:
+            logging.warning(f"Failed to create symlink to cached venv: {e}")
+            raise
+
+        return venv_path
+
     def create_worktree(self, base_repo: Repo, base_commit: str) -> Tuple[Path, Path]:
         """
         Create new worktree for given commit with symlinked .venv
@@ -174,17 +199,8 @@ class RepoManager:
 
         base_repo.git.worktree("add", str(worktree_path), base_commit)
 
-        # Create symlink to cached .venv
-        repo_name = Path(base_repo.working_dir).name.replace("__", "/")
-        venv_path = self.get_venv_path(repo_name, base_commit) / ".venv"
-        print(f"Linking to cached venv at: {venv_path}")
-        worktree_venv = worktree_path / ".venv"
-
-        try:
-            os.symlink(venv_path, worktree_venv)
-        except OSError as e:
-            logging.warning(f"Failed to create symlink to cached venv: {e}")
-            raise
+        # Create symlink to cached virtual environment
+        venv_path = self.create_venv_symlink(base_repo, worktree_path, base_commit)
 
         return worktree_path, venv_path
 
