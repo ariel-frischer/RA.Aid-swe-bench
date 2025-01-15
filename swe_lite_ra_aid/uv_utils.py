@@ -22,13 +22,13 @@ def get_python_version(repo: str, instance_version: str) -> Optional[str]:
     from .dataset_constants import MAP_VERSION_TO_INSTALL
     
     if repo not in MAP_VERSION_TO_INSTALL:
-        return None
+        return "3.9"
         
     version_map = MAP_VERSION_TO_INSTALL[repo]
     if instance_version not in version_map:
-        return None
+        return "3.9"
         
-    return version_map[instance_version].get("python")
+    return version_map[instance_version].get("python", "3.9")
 
 
 def uv_venv(repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool = False) -> None:
