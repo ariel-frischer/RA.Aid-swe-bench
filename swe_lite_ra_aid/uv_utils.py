@@ -139,17 +139,32 @@ def ensure_python_version(version: str) -> str:
                 check=True, capture_output=True, text=True
             ).stdout.strip()
             
+            # Find latest patch version for this minor version
+            list_output = subprocess.run(
+                ["pyenv", "install", "--list"], 
+                capture_output=True, 
+                text=True,
+                check=True
+            ).stdout
+            
+            # Find latest compatible version (e.g. 3.6.15 for version 3.6)
+            available_versions = [
+                v.strip() for v in list_output.split('\n')
+                if v.strip().startswith(f"{version}.")
+            ]
+            if not available_versions:
+                raise RuntimeError(f"No available Python {version}.x versions found")
+                
+            full_version = sorted(available_versions)[-1]  # Get latest patch version
+            
             # Install Python version using pyenv
-            subprocess.run(["pyenv", "install", "--skip-existing", version], check=True)
+            subprocess.run(["pyenv", "install", "--skip-existing", full_version], check=True)
             
             # Rehash to update pyenv's knowledge of available versions
             subprocess.run(["pyenv", "rehash"], check=True)
             
-            # Initialize pyenv in current shell
-            subprocess.run(["eval", "$(pyenv init -)"], shell=True, check=True)
-            
             # Get the full path to the Python executable
-            python_path = f"{pyenv_root}/versions/{version}/bin/python"
+            python_path = f"{pyenv_root}/versions/{full_version}/bin/python"
             
             # Verify installation using full path
             subprocess.run([python_path, "--version"], check=True)
