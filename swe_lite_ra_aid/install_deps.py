@@ -1,4 +1,16 @@
-"""Module for handling system dependency installation."""
+"""Module for handling system dependency installation.
+
+DEPRECATED: This dynamic Python version installation is no longer used.
+Instead, install required Python versions manually using pyenv before running:
+
+Example:
+    pyenv install 3.6.15
+    pyenv install 3.7.17
+    pyenv install 3.8.18
+    pyenv install 3.9.18
+    
+The ensure_python_version() function is kept for reference but should not be used.
+"""
 
 import os
 import platform
