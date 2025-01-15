@@ -70,19 +70,17 @@ def run_agents(research_prompt, planning_prompt, model):
 def activate_venv(repo_dir: Path):
     """
     Context manager to activate and deactivate virtual environment.
-    Modifies PATH and VIRTUAL_ENV environment variables.
+    Uses source activate/deactivate commands.
     """
     print(f"\nActivating venv from directory: {os.getcwd()}")
     print(f"Repo directory: {repo_dir}")
 
     # Use absolute path to ensure we get the correct .venv
     venv_path = (repo_dir / ".venv").resolve()
-    venv_bin = venv_path / "bin"
-    venv_python = venv_bin / "python"
+    activate_script = venv_path / "bin" / "activate"
 
     print(f"Venv path: {venv_path}")
-    print(f"Venv bin path: {venv_bin}")
-    print(f"Venv python: {venv_python}")
+    print(f"Activate script: {activate_script}")
     
     print("\nBefore activation:")
     print(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
@@ -90,37 +88,21 @@ def activate_venv(repo_dir: Path):
     print(f"Current Python: {subprocess.getoutput('which python')}")
     print(f"Current Python version: {subprocess.getoutput('python --version')}")
 
-    # Store original env vars
-    old_path = os.environ.get("PATH", "")
-    old_venv = os.environ.get("VIRTUAL_ENV")
-    old_pythonpath = os.environ.get("PYTHONPATH")
-
     try:
-        # Modify PATH to prioritize venv and ensure venv Python is first
-        os.environ["PATH"] = f"{venv_bin}:{old_path}"
-        os.environ["VIRTUAL_ENV"] = str(venv_path)
-        # Force use of venv Python
-        os.environ["PYTHONPATH"] = str(venv_path)
+        # Source the activate script
+        subprocess.run(f"source {activate_script}", shell=True, check=True, executable="/bin/bash")
 
         print("\nAfter activation:")
-        print(f"New VIRTUAL_ENV: {os.environ['VIRTUAL_ENV']}")
-        print(f"New PATH: {os.environ['PATH']}")
-        print(f"New Python: {subprocess.getoutput(f'{venv_python} -c "import sys; print(sys.executable)"')}")
-        print(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
+        print(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
+        print(f"New PATH: {os.environ.get('PATH')}")
+        print(f"New Python: {subprocess.getoutput('which python')}")
+        print(f"New Python version: {subprocess.getoutput('python --version')}")
         
         yield
     finally:
-        print("\nRestoring environment:")
-        # Restore original env vars
-        os.environ["PATH"] = old_path
-        if old_venv:
-            os.environ["VIRTUAL_ENV"] = old_venv
-        else:
-            os.environ.pop("VIRTUAL_ENV", None)
-        if old_pythonpath:
-            os.environ["PYTHONPATH"] = old_pythonpath
-        else:
-            os.environ.pop("PYTHONPATH", None)
+        print("\nDeactivating virtual environment:")
+        # Run deactivate command
+        subprocess.run("deactivate", shell=True, check=True, executable="/bin/bash")
         
         print(f"Restored VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
         print(f"Restored PATH: {os.environ['PATH']}")
