@@ -167,64 +167,6 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
                 os.environ.pop(var, None)
 
 
-def ensure_python_version(version: str) -> str:
-    """
-    Ensure specific Python version is installed using pyenv.
-    Returns the python command to use.
-    """
-    try:
-        subprocess.run(
-            [f"python{version}", "--version"], check=True, capture_output=True
-        )
-        return f"python{version}"
-    except (subprocess.SubprocessError, FileNotFoundError):
-        print(f"Python {version} not found, attempting to install via pyenv...")
-        try:
-            # ensure_build_dependencies()
-
-            pyenv_root = subprocess.run(
-                ["pyenv", "root"], check=True, capture_output=True, text=True
-            ).stdout.strip()
-
-            list_output = subprocess.run(
-                ["pyenv", "install", "--list"],
-                capture_output=True,
-                text=True,
-                check=True,
-            ).stdout
-
-            # Find latest compatible version (e.g. 3.6.15 for version 3.6)
-            available_versions = [
-                v.strip()
-                for v in list_output.split("\n")
-                if v.strip().startswith(f"{version}.")
-            ]
-            if not available_versions:
-                raise RuntimeError(f"No available Python {version}.x versions found")
-
-            full_version = sorted(available_versions)[-1]  # Get latest patch version
-
-            logging.info(f"Installing Python {full_version} using pyenv...")
-
-            # Install Python version using pyenv with verbose output
-            install_result = subprocess.run(
-                ["pyenv", "install", "--skip-existing", "-v", full_version],
-                capture_output=True,
-                text=True,
-            )
-
-            if install_result.returncode != 0:
-                logging.error(f"Python installation failed:\n{install_result.stderr}")
-                raise RuntimeError(f"Failed to install Python {full_version}")
-
-            subprocess.run(["pyenv", "rehash"], check=True)
-            python_path = f"{pyenv_root}/versions/{full_version}/bin/python"
-            subprocess.run([python_path, "--version"], check=True)
-
-            return python_path
-
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Failed to install Python {version} using pyenv: {e}")
 
 
 def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
@@ -232,7 +174,7 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     venv_path = repo_dir / ".venv"
 
     try:
-        python_cmd = ensure_python_version(python_version)
+        python_cmd = f"python{python_version}"  # ensure_python_version(python_version)
         subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True)
 
         pip_path = venv_path / "bin" / "pip"
