@@ -70,17 +70,18 @@ def run_agents(research_prompt, planning_prompt, model):
 def activate_venv(repo_dir: Path):
     """
     Context manager to activate and deactivate virtual environment.
-    Uses source activate/deactivate commands.
+    Directly executes python from venv instead of using source activate.
     """
     print(f"\nActivating venv from directory: {os.getcwd()}")
     print(f"Repo directory: {repo_dir}")
 
     # Use absolute path to ensure we get the correct .venv
     venv_path = (repo_dir / ".venv").resolve()
-    activate_script = venv_path / "bin" / "activate"
+    venv_bin = venv_path / "bin"
+    venv_python = venv_bin / "python"
 
     print(f"Venv path: {venv_path}")
-    print(f"Activate script: {activate_script}")
+    print(f"Venv python: {venv_python}")
     
     print("\nBefore activation:")
     print(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
@@ -88,25 +89,33 @@ def activate_venv(repo_dir: Path):
     print(f"Current Python: {subprocess.getoutput('which python')}")
     print(f"Current Python version: {subprocess.getoutput('python --version')}")
 
+    if not venv_python.exists():
+        raise RuntimeError(f"Python executable not found in virtual environment: {venv_python}")
+
+    # Save original environment
+    old_env = dict(os.environ)
+    old_path = os.environ.get('PATH', '')
+    
     try:
-        # Source the activate script
-        subprocess.run(f"source {activate_script}", shell=True, check=True, executable="/bin/bash")
+        # Update environment variables
+        os.environ['VIRTUAL_ENV'] = str(venv_path)
+        os.environ['PATH'] = f"{venv_bin}:{old_path}"
+        
+        # Unset PYTHONHOME if set
+        os.environ.pop('PYTHONHOME', None)
 
         print("\nAfter activation:")
         print(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
         print(f"New PATH: {os.environ.get('PATH')}")
         print(f"New Python: {subprocess.getoutput('which python')}")
-        print(f"New Python version: {subprocess.getoutput('python --version')}")
+        print(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
         
         yield
+
     finally:
-        print("\nDeactivating virtual environment:")
-        # Run deactivate command
-        subprocess.run("deactivate", shell=True, check=True, executable="/bin/bash")
-        
-        print(f"Restored VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
-        print(f"Restored PATH: {os.environ['PATH']}")
-        print(f"Restored Python: {subprocess.getoutput('which python')}")
+        # Restore original environment
+        os.environ.clear()
+        os.environ.update(old_env)
 
 
 def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
