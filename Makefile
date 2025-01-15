@@ -77,18 +77,7 @@ aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
 
 repo-sizes:
-	@echo "Repository sizes (excluding .venv directories):"
-	@du -sh repos/*/ 2>/dev/null | grep -v ".venv" || echo "No repositories found"
-	@echo "Virtual environment sizes:"
-	@du -sh repos/venvs/*/ 2>/dev/null || echo "No virtual environments found"
 	@echo "Total size of repos/ directory:"
 	@du -sh repos/
-	@echo "Total size excluding virtual environments:"
-	@repo_size=0; \
-	for dir in repos/*/; do \
-		if [[ $$dir != *"venvs"* ]]; then \
-			size=$$(du -s "$$dir" | cut -f1); \
-			repo_size=$$((repo_size + size)); \
-		fi \
-	done; \
-	echo "$$(numfmt --to=iec-i --suffix=B $$repo_size)"
+	@echo "Total size of virtual environments:"
+	@du -sh repos/venvs/
