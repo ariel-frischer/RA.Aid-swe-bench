@@ -205,19 +205,26 @@ def get_completed_instances(out_dname):
     return done_instances
 
 
-def get_remaining_tasks(dataset, done_instances, filter_repos=None):
+def get_remaining_tasks(dataset, done_instances, filter_repos=None, only_tasks=None):
     """Get shuffled list of remaining tasks to process
     
     Args:
         dataset: The SWE-bench dataset
         done_instances: Set of already processed instance IDs
         filter_repos: Optional list of repo names to filter for (e.g. ["matplotlib/matplotlib"])
+        only_tasks: Optional list of specific task IDs to process (e.g. ["scikit-learn__scikit-learn-10297"])
     """
     remaining_instances = [
         task for task in dataset if task["instance_id"] not in done_instances
     ]
     
-    if filter_repos:
+    if only_tasks:
+        remaining_instances = [
+            task for task in remaining_instances 
+            if task["instance_id"] in only_tasks
+        ]
+        print(f"Filtered to {len(remaining_instances)} specific tasks: {only_tasks}")
+    elif filter_repos:
         remaining_instances = [
             task for task in remaining_instances 
             if any(repo in task["repo"] for repo in filter_repos)
@@ -233,11 +240,15 @@ def generate_predictions(dataset, out_dname, repo_manager):
     """Generate predictions with parallel processing and result tracking"""
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
-    # filter_repos = ["matplotlib/matplotlib"]  # Add repos to filter for here
-    filter_repos = ["scikit-learn/scikit-learn"]  # Add repos to filter for here
-        
-    # filter_repos = [""]
-    remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos)
+    
+    # Specify specific tasks to process, comment out to process all tasks
+    only_tasks = ["scikit-learn__scikit-learn-10297"]
+    # only_tasks = None  # Process all tasks
+    
+    # Only used if only_tasks is None
+    filter_repos = ["scikit-learn/scikit-learn"]
+    
+    remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos, only_tasks)
 
     def scatter(task):
         return process_task(task, out_dname, repo_manager)
