@@ -154,25 +154,22 @@ def setup_legacy_venv(repo_dir: Path, python_version: str) -> None:
     venv_path = repo_dir / ".venv"
 
     try:
-        # Initialize pyenv shell integration
-        pyenv_init = subprocess.run(
-            ["pyenv", "init", "-"], 
-            check=True, 
-            capture_output=True, 
+        # Get pyenv root and construct path to Python 3.6.15
+        pyenv_root = subprocess.run(
+            ["pyenv", "root"],
+            check=True,
+            capture_output=True,
             text=True
-        ).stdout
-
-        # Create a shell script with pyenv initialization
-        shell_script = f"""
-            eval "$({pyenv_init})"
-            pyenv shell 3.6.15
-            python -m venv {str(venv_path)}
-            pyenv shell --unset
-        """
+        ).stdout.strip()
         
-        # Run the shell script
+        python_path = Path(pyenv_root) / "versions" / "3.6.15" / "bin" / "python"
+        
+        if not python_path.exists():
+            raise RuntimeError(f"Python 3.6.15 not found at {python_path}")
+
+        # Use the full Python path directly
         subprocess.run(
-            ["bash", "-c", shell_script],
+            [str(python_path), "-m", "venv", str(venv_path)],
             check=True
         )
 
