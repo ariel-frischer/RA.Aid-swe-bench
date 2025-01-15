@@ -48,31 +48,35 @@ def analyze_version_differences():
         for repo, versions in sorted(repo_versions.items()):
             print(f"\nRepository: {repo}")
             
-            # Get versions from constants
-            print("Versions from constants:")
-            for version in sorted(versions):
-                constant_version = get_constant_python_version(repo, version)
-                print(f"  {version}: Python {constant_version}")
-            
             # Clone and detect versions
             repo_path = temp_path / repo.split("/")[-1]
             detected_versions: Dict[str, str] = {}
-            
+            matches = 0
+            total = 0
+    
             try:
-                print("\nDetected versions from commits:")
+                print("\nAnalyzing commits:")
                 repo_obj = Repo.clone_from(f"https://github.com/{repo}", str(repo_path))
-                
+        
                 for commit, version in repo_commits[repo].items():
+                    total += 1
                     try:
+                        # Get version from constants for this repo+version
+                        constant = get_constant_python_version(repo, version)
+                
+                        # Detect version from commit
                         repo_obj.git.checkout(commit)
                         detected = detect_python_version(repo_path)
                         detected_versions[commit] = detected
-                        constant = get_constant_python_version(repo, version)
-                        
+                
                         match = "✓" if detected == constant else "✗"
-                        print(f"  {commit} ({version})")
-                        print(f"    Detected: Python {detected}")
-                        print(f"    Constant: Python {constant}  {match}")
+                        if detected == constant:
+                            matches += 1
+                    
+                        print(f"\n  Commit: {commit}")
+                        print(f"  Repository version: {version}")
+                        print(f"  Constants Python: {constant}")
+                        print(f"  Detected Python: {detected}  {match}")
                         
                     except Exception as e:
                         print(f"  Error checking {commit}: {e}")
@@ -84,11 +88,9 @@ def analyze_version_differences():
                     shutil.rmtree(repo_path)
             
             print("\nSummary for this repo:")
-            matches = sum(1 for commit, version in repo_commits[repo].items()
-                         if detected_versions.get(commit) == 
-                         get_constant_python_version(repo, version))
-            total = len(repo_commits[repo])
             print(f"Matching versions: {matches}/{total}")
+            if total > 0:
+                print(f"Match rate: {(matches/total)*100:.1f}%")
 
 
 if __name__ == "__main__":
