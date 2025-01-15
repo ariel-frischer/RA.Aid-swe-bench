@@ -6,7 +6,7 @@ import shutil
 from git import Repo
 from collections import defaultdict
 from datasets import load_dataset
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, Optional, Set
 
 from .dataset_constants import MAP_VERSION_TO_INSTALL
 from .uv_utils import detect_python_version
