@@ -1,7 +1,6 @@
 """Module for handling UV virtual environment setup and package installation."""
 
 import os
-import platform
 from pathlib import Path
 import logging
 import subprocess
