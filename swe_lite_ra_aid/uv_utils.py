@@ -127,45 +127,45 @@ def uv_pip_install(repo_dir: Path, args: List[str]) -> None:
 
 
 
-            # Save current environment variables
-            saved_env = {}
-            env_vars = [
-                "PYTHON_CONFIGURE_OPTS",
-                "CC",
-                "CXX",
-                "CFLAGS",
-                "CPPFLAGS",
-                "LDFLAGS",
-                "PKG_CONFIG_PATH",
-            ]
-            for var in env_vars:
-                if var in os.environ:
-                    saved_env[var] = os.environ[var]
+    # Save current environment variables
+    saved_env = {}
+    env_vars = [
+        "PYTHON_CONFIGURE_OPTS",
+        "CC",
+        "CXX",
+        "CFLAGS",
+        "CPPFLAGS",
+        "LDFLAGS",
+        "PKG_CONFIG_PATH",
+    ]
+    for var in env_vars:
+        if var in os.environ:
+            saved_env[var] = os.environ[var]
 
-            try:
-                # Set environment variables for legacy Python builds
-                os.environ.update(
-                    {
-                        "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
-                        "CC": "gcc-10",
-                        "CXX": "g++-10",
-                        "CFLAGS": "-O2 -pipe -fPIC",
-                        "CPPFLAGS": "-O2 -pipe -fPIC",
-                        "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
-                        "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig",
-                    }
-                )
+    try:
+        # Set environment variables for legacy Python builds
+        os.environ.update(
+            {
+                "PYTHON_CONFIGURE_OPTS": "--with-openssl-rpath=auto --enable-shared",
+                "CC": "gcc-10",
+                "CXX": "g++-10",
+                "CFLAGS": "-O2 -pipe -fPIC",
+                "CPPFLAGS": "-O2 -pipe -fPIC",
+                "LDFLAGS": "-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now",
+                "PKG_CONFIG_PATH": "/usr/lib/openssl-1.1/pkgconfig",
+            }
+        )
 
-                # Let the rest of the function run with modified environment
-                yield
+        # Let the rest of the function run with modified environment
+        yield
 
-            finally:
-                # Restore previous environment variables
-                for var in env_vars:
-                    if var in saved_env:
-                        os.environ[var] = saved_env[var]
-                    else:
-                        os.environ.pop(var, None)
+    finally:
+        # Restore previous environment variables
+        for var in env_vars:
+            if var in saved_env:
+                os.environ[var] = saved_env[var]
+            else:
+                os.environ.pop(var, None)
 
 
 def ensure_python_version(version: str) -> str:
