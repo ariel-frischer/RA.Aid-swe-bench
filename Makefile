@@ -84,4 +84,4 @@ repo-sizes:
 	@echo "Total size of repos/ directory:"
 	@du -sh repos/
 	@echo "Total size excluding virtual environments:"
-	@du -sh `find repos -type d -not -path "*/venvs/*" -not -path "*/\.*"`
+	@du -sh $(shell find repos -type d -not -path "*/venvs/*" -not -path "*/.venv*" -not -path "*/\.*" -maxdepth 1)
