@@ -162,7 +162,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             line = ''.join(current_line)
             output.append(line + '\n')
             current_line.clear()
-            logger.info(line)  # Stream to console
+            print(line)  # Stream ra-aid output directly
         else:
             current_line.append(c)
 
