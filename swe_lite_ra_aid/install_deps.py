@@ -18,12 +18,13 @@ import platform
 import subprocess
 import logging
 from typing import List
+from .logger import logger
 
 
 def ensure_build_dependencies():
     """Ensure all required build dependencies are installed on the system."""
 
-    print("ensure_build_dependencies()")
+    logger.info("ensure_build_dependencies()")
 
     def is_package_installed(package: str) -> bool:
         try:
@@ -43,16 +44,16 @@ def ensure_build_dependencies():
             # First check if yay is installed
             subprocess.run(["which", "yay"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            print("Installing yay (AUR helper)...")
+            logger.info("Installing yay (AUR helper)...")
             subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "yay"], check=True)
 
         print(f"Installing {package} from AUR...")
         subprocess.run(["yay", "-S", "--noconfirm", package], check=True)
 
     if platform.system() == "Linux":
-        print(f"system={platform.system}")
+        logger.debug(f"system={platform.system}")
         if os.path.exists("/etc/arch-release"):  # Arch-based systems
-            print("os.path exists")
+            logger.debug("os.path exists")
             required_packages = [
                 "base-devel",
                 "openssl",
@@ -78,7 +79,7 @@ def ensure_build_dependencies():
             ]
 
             if missing_packages:
-                print(
+                logger.info(
                     f"Installing missing build dependencies: {', '.join(missing_packages)}"
                 )
                 try:
@@ -91,7 +92,7 @@ def ensure_build_dependencies():
 
             # Install gcc10 from AUR if not already installed
             if not is_package_installed("gcc10"):
-                print("gcc10 not installed")
+                logger.info("gcc10 not installed")
                 try:
                     install_from_aur("gcc10")
                 except subprocess.CalledProcessError as e:
@@ -108,7 +109,7 @@ def ensure_build_dependencies():
             )
             return f"python{version}"
         except (subprocess.SubprocessError, FileNotFoundError):
-            print(f"Python {version} not found, attempting to install via pyenv...")
+            logger.info(f"Python {version} not found, attempting to install via pyenv...")
             try:
                 # ensure_build_dependencies()
 

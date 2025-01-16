@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
+from .logger import logger
 
 
 def handle_result_file(
@@ -21,22 +22,22 @@ def handle_result_file(
     )
 
     json_content = json.dumps(content, indent=4)
-    print(f"Writing to {attempt_fname} with content length: {len(json_content)}")
+    logger.info(f"Writing to {attempt_fname} with content length: {len(json_content)}")
 
     try:
         attempt_fname.write_text(json_content)
         if not attempt_fname.exists():
-            print(f"ERROR: File {attempt_fname} does not exist after write attempt!")
+            logger.error(f"File {attempt_fname} does not exist after write attempt!")
             return False, None, 0, attempt_fname
 
-        print(f"Successfully wrote to {attempt_fname}")
-        print(f"File size: {attempt_fname.stat().st_size} bytes")
+        logger.info(f"Successfully wrote to {attempt_fname}")
+        logger.debug(f"File size: {attempt_fname.stat().st_size} bytes")
 
         edited_files = content.get("edited_files", [])
         return True, str(attempt_fname), len(edited_files), attempt_fname
 
     except Exception as e:
-        print(f"Error writing to {attempt_fname}: {str(e)}")
+        logger.error(f"Error writing to {attempt_fname}: {str(e)}")
         return False, None, 0, None
 
 
@@ -121,5 +122,5 @@ def save_trajectory(
         out_dname / f"traj_{task['instance_id']}_attempt{attempt}_{timestamp}.txt"
     )
     traj_fname.write_text(trajectory_output)
-    print(f"Saved trajectory to {traj_fname}")
+    logger.info(f"Saved trajectory to {traj_fname}")
     return traj_fname
