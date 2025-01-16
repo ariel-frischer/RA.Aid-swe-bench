@@ -141,7 +141,10 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
 * [X] Add ra-aid version to predictions file
 * [X] Fix `uv pip install` in wrong root project `.venv` location.
 * [X] Improve `setup_venv_and_deps` with `--seed` flag.
-* [ ] Invalid environment setup: https://github.com/ariel-frischer/RA.Aid-swe-bench/issues/4
+* [X] Invalid environment setup: https://github.com/ariel-frischer/RA.Aid-swe-bench/issues/4
+* [X] Fixed bug with symlinking incorrect .venv.
+* [X] Fixed bug with .venv activation for ra-aid subprocess, now ra-aid shell commands use correct python virtual env/python version.
+* [X] Setup pyenv venv handling for instances where python < 3.7 is needed
 * [ ] Logging setup needed.
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
 * [X] Add error message to prediction files as new field for improved tracking.
