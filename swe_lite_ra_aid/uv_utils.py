@@ -43,7 +43,7 @@ def uv_venv(
 
     # Temporarily unset VIRTUAL_ENV to avoid interference
     old_venv = os.environ.pop("VIRTUAL_ENV", None)
-    print(f"repo_dir={repo_dir}")
+    logger.debug(f"repo_dir={repo_dir}")
     try:
         cmd = [
             "uv",
@@ -58,7 +58,7 @@ def uv_venv(
 
         # Get Python version from constants
         python_version = get_python_version(repo_name, repo_version)
-        print(f"python_version from constants={python_version}")
+        logger.debug(f"python_version from constants={python_version}")
 
         # Try specified Python version first
         if python_version:
@@ -72,7 +72,7 @@ def uv_venv(
 
         try:
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            print(result.stdout)
+            logger.debug(result.stdout)
         except subprocess.CalledProcessError as e:
             error_msg = (
                 f"UV venv creation failed with exit code {e.returncode}\n"
@@ -108,20 +108,20 @@ def setup_uv_venv(
     repo_dir: Path, repo_name: str, repo_version: str, force_venv: bool
 ) -> None:
     """Setup virtual environment using uv for Python >=3.7"""
-    print("\nSETUP_UV_VENV:")
-    print(f"repo_dir: {repo_dir}")
-    print(f"repo_name: {repo_name}")
-    print(f"repo_version: {repo_version}")
-    print(f"force_venv: {force_venv}")
+    logger.debug("\nSETUP_UV_VENV:")
+    logger.debug(f"repo_dir: {repo_dir}")
+    logger.debug(f"repo_name: {repo_name}")
+    logger.debug(f"repo_version: {repo_version}")
+    logger.debug(f"force_venv: {force_venv}")
     
     venv_path = repo_dir / ".venv"
-    print(f"venv_path: {venv_path}")
+    logger.debug(f"venv_path: {venv_path}")
     
     if venv_path.exists() and not force_venv:
-        print(f"Virtual environment already exists at {venv_path}")
+        logger.info(f"Virtual environment already exists at {venv_path}")
         return
 
-    print("\nRemoving VIRTUAL_ENV from environment")
+    logger.debug("\nRemoving VIRTUAL_ENV from environment")
     old_venv = os.environ.pop("VIRTUAL_ENV", None)
     try:
         cmd = [
@@ -136,16 +136,16 @@ def setup_uv_venv(
         ]
 
         python_version = get_python_version(repo_name, repo_version)
-        print(f"Using Python version: {python_version}")
+        logger.debug(f"Using Python version: {python_version}")
         cmd.extend(["--python", python_version])
 
-        print(f"\nRunning UV command: {' '.join(cmd + [str(venv_path)])}")
+        logger.debug(f"\nRunning UV command: {' '.join(cmd + [str(venv_path)])}")
         try:
             result = subprocess.run(
                 cmd + [str(venv_path)], check=True, capture_output=True, text=True
             )
-            print("\nUV command output:")
-            print(result.stdout)
+            logger.debug("\nUV command output:")
+            logger.debug(result.stdout)
         except subprocess.CalledProcessError as e:
             error_msg = (
                 f"UV venv creation failed with exit code {e.returncode}\n"
@@ -153,12 +153,12 @@ def setup_uv_venv(
                 f"Stdout: {e.stdout}\n"
                 f"Stderr: {e.stderr}"
             )
-            print(f"\nERROR: {error_msg}")
+            logger.error(f"\nERROR: {error_msg}")
             raise RuntimeError(error_msg) from e
 
     finally:
         if old_venv:
-            print(f"\nRestoring VIRTUAL_ENV: {old_venv}")
+            logger.debug(f"\nRestoring VIRTUAL_ENV: {old_venv}")
             os.environ["VIRTUAL_ENV"] = old_venv
 
 

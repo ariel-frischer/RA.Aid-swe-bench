@@ -53,7 +53,7 @@ def run_agents(research_prompt, planning_prompt, model):
         web_research_enabled=config["web_research_enabled"],
         config=config,
     )
-    print(f"research_result={research_result}")
+    logger.debug(f"research_result={research_result}")
 
     # Run planning agent
     planning_result = run_planning_agent(
@@ -63,7 +63,7 @@ def run_agents(research_prompt, planning_prompt, model):
         hil=config["hil"],
         config=config,
     )
-    print(f"planning_result={planning_result}")
+    logger.debug(f"planning_result={planning_result}")
 
     return research_result, planning_result
 
@@ -126,7 +126,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     If STREAM_OUTPUT is True, streams output to console while capturing.
     Returns tuple of (trajectory_output, returncode) if successful, else None.
     """
-    print("\nStarting RA.Aid...")
+    logger.info("\nStarting RA.Aid...")
 
     cmd = [
         "ra-aid",
