@@ -30,6 +30,9 @@ install:
 run:
 	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL)
 
+run-min:
+	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
+
 # Default log level is INFO if not specified
 LOG_LEVEL ?= INFO
 
