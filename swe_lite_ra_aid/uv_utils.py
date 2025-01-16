@@ -252,7 +252,7 @@ def setup_venv_and_deps(
         logger.debug(f"\nChanged directory to: {os.getcwd()}")
         
         python_version = get_python_version(repo_name, repo_version)
-        logger.debug(f"python_version from constants: {python_version}")
+        logger.info(f"Hardcoded python_version from constants.py: {python_version}")
 
         # Parse version to compare
         major, minor = map(int, python_version.split(".")[:2])
