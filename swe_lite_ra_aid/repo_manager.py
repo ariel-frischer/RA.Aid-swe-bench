@@ -68,7 +68,7 @@ class RepoManager:
         cache_path = self.cache_root / safe_name
 
         logger.debug(f"Converted to safe name: {safe_name}")
-        # print(f"Full cache path: {cache_path}")
+        # logger.debug(f"Full cache path: {cache_path}")
 
         return cache_path
 
