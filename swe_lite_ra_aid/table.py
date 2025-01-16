@@ -6,6 +6,7 @@ from collections import Counter, defaultdict
 
 from dump import dump
 from utils import choose_predictions
+from .logger import logger
 
 devin_only = False
 
@@ -72,7 +73,7 @@ for key, count_p in sorted(counts_proposed.items()):
 
     pct_r_of_p = count_r / count_p * 100
 
-    print(
+    logger.info(
         f"| {num} | {model:20} | {count_p:3d} | {pct_p:4.1f}% | {count_r:2d} | {pct_r:4.1f}% |"
         f" {pct_of_all:4.1f}% |"
         # f" {pct_r_of_p:4.1f}%"
@@ -80,17 +81,17 @@ for key, count_p in sorted(counts_proposed.items()):
 
 pct_of_all = num_resolved / num_instances * 100
 
-print(
+logger.info(
     f"| **Total** | | **{num_proposed}** | **100%** | **{num_resolved}** | **100%** |"
     f" **{pct_of_all:4.1f}%** | "
 )
-print()
+logger.info("")
 
 for model in sorted(model_proposed.keys()):
     count_p = model_proposed[model]
     count_r = model_resolved[model]
     pct = count_r * 100 / count_p
-    print(f"| {model:20} | {count_p:3d} | {count_r:2d} |{pct:4.1f}% |")
+    logger.info(f"| {model:20} | {count_p:3d} | {count_r:2d} |{pct:4.1f}% |")
 
 pct = num_resolved * 100 / num_proposed
-print(f"| **Total** | **{num_proposed}** | **{num_resolved}** |**{pct:4.1f}%** |")
+logger.info(f"| **Total** | **{num_proposed}** | **{num_resolved}** |**{pct:4.1f}%** |")

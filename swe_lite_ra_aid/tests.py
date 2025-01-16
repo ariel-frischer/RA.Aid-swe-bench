@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .dump import dump
+from .logger import logger
 from swebench_docker.constants import MAP_REPO_TO_TEST_FRAMEWORK, MAP_VERSION_TO_INSTALL
 from swebench_docker.run_docker import run_docker_evaluation
 from swebench_docker.utils import get_test_directives
@@ -137,7 +138,7 @@ def run_tests(entry, model_patch=None, use_test_patch=False, model_name_or_path=
         log_text = log_fname.read_text()
         log_lines = log_text.splitlines()
         log_lines = [line for line in log_lines if line.startswith(">>>>")]
-        print("\n".join(log_lines))
+        logger.info("\n".join(log_lines))
 
         passed = ">>>>> All Tests Passed" in log_text
 
