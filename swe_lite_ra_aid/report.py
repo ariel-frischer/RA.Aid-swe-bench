@@ -1,12 +1,31 @@
 #!/usr/bin/env python
 
+import argparse
+import json
+import shutil
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from datasets import load_dataset
+from swebench.harness.constants import SWEbenchInstance
+from swebench.harness.grading import (
+    get_eval_report,
+)
+from swebench.harness.test_spec import get_test_specs_from_dataset
+
+from .dump import dump
+from .logger import logger
+from .utils import LITE_DATASET, DATASET_SPLIT, RA_AID_MODEL
+from .utils import (
+    choose_predictions,
+    load_predictions,
+    old,
+)
+
 """
 Evaluation script for RA-AID predictions on SWE-bench tasks.
-"""
 
-from .logger import logger
-
-"""
 Usage:
     # Run basic evaluation on predictions:
     poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
@@ -27,28 +46,6 @@ This script:
 
 The post-evaluation methods starting with: `run_detailed_analysis` is borked and not yet supported legacy code.
 """
-
-import argparse
-import json
-import shutil
-import sys
-from collections import defaultdict
-from pathlib import Path
-
-from datasets import load_dataset
-from swebench.harness.constants import SWEbenchInstance
-from swebench.harness.grading import (
-    get_eval_report,
-)
-from swebench.harness.test_spec import get_test_specs_from_dataset
-
-from .dump import dump
-from .utils import LITE_DATASET, DATASET_SPLIT, RA_AID_MODEL
-from .utils import (
-    choose_predictions,
-    load_predictions,
-    old,
-)
 
 using_dataset = "lite"
 NUM_EVAL_PROCS = 5
