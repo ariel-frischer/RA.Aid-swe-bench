@@ -1,6 +1,7 @@
 """Module for managing git repositories and worktrees."""
 
 import os
+from .logger import logger
 import shutil
 import subprocess
 from pathlib import Path
@@ -20,16 +21,16 @@ class RepoManager:
                        Should be an absolute path to project_root/repos/
         """
         self.cache_root = Path(cache_root).resolve()
-        print(f"Initializing RepoManager with cache root: {self.cache_root}")
+        logger.info(f"Initializing RepoManager with cache root: {self.cache_root}")
         self.cache_root.mkdir(parents=True, exist_ok=True)
         
         # Create venvs directory for storing virtual environments
         self.venvs_root = self.cache_root / "venvs"
         self.venvs_root.mkdir(parents=True, exist_ok=True)
-        print(f"Virtual environments will be stored in: {self.venvs_root}")
+        logger.info(f"Virtual environments will be stored in: {self.venvs_root}")
 
         self.ra_aid_version = self._detect_ra_aid_version()
-        print(f"ra_aid_version={self.ra_aid_version}")
+        logger.debug(f"ra_aid_version={self.ra_aid_version}")
 
     def get_venv_path(self, repo_name: str, setup_commit: str) -> Path:
         """Get path to cached virtual environment directory."""
@@ -52,12 +53,12 @@ class RepoManager:
 
     def get_cached_repo_path(self, repo_name: str) -> Path:
         """Get path where cached repo should be stored."""
-        print(f"\nGetting cached path for repo: {repo_name}")
+        logger.debug(f"Getting cached path for repo: {repo_name}")
 
         # Extract owner/repo part from full URL if needed
         if "github.com/" in repo_name:
             repo_name = repo_name.split("github.com/")[-1]
-            print(f"Extracted from URL: {repo_name}")
+            logger.debug(f"Extracted from URL: {repo_name}")
 
         # Handle both https and git protocols
         repo_name = repo_name.replace("https://", "").replace("git://", "")
@@ -66,7 +67,7 @@ class RepoManager:
         safe_name = repo_name.replace("/", "__")
         cache_path = self.cache_root / safe_name
 
-        print(f"Converted to safe name: {safe_name}")
+        logger.debug(f"Converted to safe name: {safe_name}")
         # print(f"Full cache path: {cache_path}")
 
         return cache_path
@@ -82,34 +83,34 @@ class RepoManager:
             cache_path: Path to cached repository
         """
         venv_path = self.get_venv_path(repo_name, setup_commit)
-        print("\nENSURE_VENV:")
-        print(f"repo_name: {repo_name}")
-        print(f"setup_commit: {setup_commit}")
-        print(f"version: {version}")
-        print(f"cache_path: {cache_path}")
-        print(f"venv_path: {venv_path}")
+        logger.debug("ENSURE_VENV:")
+        logger.debug(f"repo_name: {repo_name}")
+        logger.debug(f"setup_commit: {setup_commit}")
+        logger.debug(f"version: {version}")
+        logger.debug(f"cache_path: {cache_path}")
+        logger.debug(f"venv_path: {venv_path}")
 
         if not (venv_path / ".venv").exists():
-            print("\nSetting up new virtual environment:")
-            print(f"venv_path: {venv_path}")
+            logger.info("\nSetting up new virtual environment:")
+            logger.info(f"venv_path: {venv_path}")
             venv_path.mkdir(parents=True, exist_ok=True)
             
-            print("\nCopying repo contents to venv directory...")
+            logger.info("Copying repo contents to venv directory...")
             import shutil
             for item in cache_path.iterdir():
                 if item.name != ".git":
                     dest = venv_path / item.name
-                    print(f"Copying {item} -> {dest}")
+                    logger.debug(f"Copying {item} -> {dest}")
                     if item.is_dir():
                         shutil.copytree(item, dest, dirs_exist_ok=True)
                     else:
                         shutil.copy2(item, dest)
             
             from .uv_utils import setup_venv_and_deps
-            print("\nCalling setup_venv_and_deps...")
+            logger.info("Calling setup_venv_and_deps...")
             setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
         else:
-            print(f"\nUsing cached virtual environment at {venv_path}")
+            logger.info(f"Using cached virtual environment at {venv_path}")
 
     def ensure_base_repo(self, repo_url: str, setup_commit: str, version: str) -> Tuple[Repo, Path]:
         """
@@ -123,11 +124,11 @@ class RepoManager:
         Returns:
             Tuple of (Repo object, Path to cached repo)
         """
-        print(f"\nEnsuring base repo exists for URL: {repo_url}")
-        print(f"Setup commit: {setup_commit}")
+        logger.info(f"Ensuring base repo exists for URL: {repo_url}")
+        logger.debug(f"Setup commit: {setup_commit}")
 
         repo_name = repo_url.split("github.com/")[-1]
-        print(f"Extracted repo name: {repo_name}")
+        logger.debug(f"Extracted repo name: {repo_name}")
 
         cache_path = self.get_cached_repo_path(repo_name)
 
@@ -136,22 +137,22 @@ class RepoManager:
 
         try:
             if cache_path.exists():
-                print(f"Using cached repo at {cache_path}")
+                logger.info(f"Using cached repo at {cache_path}")
                 try:
                     # Validate the cached repo
                     repo = Repo(cache_path)
                     # Test git operations to ensure repo is valid
                     repo.git.rev_parse("--git-dir")
-                    print("Cached repository is valid")
+                    logger.debug("Cached repository is valid")
                 except Exception as e:
-                    print(f"Cached repository is invalid: {e}")
-                    print("Removing corrupted cache and trying fresh clone")
+                    logger.warning(f"Cached repository is invalid: {e}")
+                    logger.info("Removing corrupted cache and trying fresh clone")
                     shutil.rmtree(cache_path)
                     cache_path.mkdir(parents=True, exist_ok=True)
                     repo = Repo.clone_from(repo_url, str(cache_path))
             else:
                 cache_path.mkdir(parents=True, exist_ok=True)
-                print(f"Cloning {repo_url} to cache at {cache_path}")
+                logger.info(f"Cloning {repo_url} to cache at {cache_path}")
                 repo = Repo.clone_from(repo_url, str(cache_path))
 
             # Checkout correct commit
@@ -199,7 +200,7 @@ class RepoManager:
         """
         repo_name = Path(base_repo.working_dir).name.replace("__", "/")
         venv_path = self.get_venv_path(repo_name, base_commit) / ".venv"
-        print(f"Linking to cached venv at: {venv_path}")
+        logger.debug(f"Linking to cached venv at: {venv_path}")
         worktree_venv = worktree_path / ".venv"
 
         try:
