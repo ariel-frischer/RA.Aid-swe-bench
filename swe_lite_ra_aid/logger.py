@@ -1,7 +1,7 @@
 import logging
 import sys
 
-def setup_logger(log_level=logging.INFO, minimal=False):
+def setup_logger(log_level=logging.INFO):
     """Setup and configure the logger
     
     Args:
@@ -34,5 +34,40 @@ def setup_logger(log_level=logging.INFO, minimal=False):
 
     return logger
 
+class MinimalLogger:
+    def __init__(self, base_logger):
+        self._logger = base_logger
+        self._minimal = False
+        
+    def setLevel(self, level):
+        self._logger.setLevel(level)
+        
+    def set_minimal(self, minimal):
+        self._minimal = minimal
+        for handler in self._logger.handlers:
+            if minimal:
+                handler.setFormatter(logging.Formatter('%(message)s'))
+            else:
+                handler.setFormatter(logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S'
+                ))
+    
+    def debug(self, msg, *args, **kwargs):
+        self._logger.debug(msg, *args, **kwargs)
+        
+    def info(self, msg, *args, **kwargs):
+        self._logger.info(msg, *args, **kwargs)
+        
+    def warning(self, msg, *args, **kwargs):
+        self._logger.warning(msg, *args, **kwargs)
+        
+    def error(self, msg, *args, **kwargs):
+        self._logger.error(msg, *args, **kwargs)
+        
+    def critical(self, msg, *args, **kwargs):
+        self._logger.critical(msg, *args, **kwargs)
+
 # Create and configure the default logger instance
-logger = setup_logger()
+base_logger = setup_logger()
+logger = MinimalLogger(base_logger)

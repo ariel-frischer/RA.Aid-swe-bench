@@ -296,7 +296,8 @@ def parse_args():
 def main():
     try:
         args = parse_args()
-        logger.setLevel(args.log_level, minimal=args.minimal_logger)
+        logger.setLevel(args.log_level)
+        logger.set_minimal(args.minimal_logger)
         
         project_root = Path(__file__).resolve().parent.parent
 
