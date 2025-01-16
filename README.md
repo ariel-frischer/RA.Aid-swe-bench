@@ -63,6 +63,10 @@ Virtual environments are created and cached per repository instance as they are 
 The main workflow consists of:
 
 ### 1. Generate predictions using the RA-AID model:
+
+**Important Notice:**
+This project has the capability of allowing AI agents to execute commands on your computer. Ensure you understand the implications AI running commands dynamically and use this software responsibly.
+
 ```bash
 make run
 # Or for full logger tracing
