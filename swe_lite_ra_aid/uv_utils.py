@@ -7,6 +7,7 @@ import subprocess
 from typing import Optional
 
 from .io_utils import change_directory
+from .logger import logger
 
 
 def get_python_version(repo: str, instance_version: str) -> Optional[str]:
