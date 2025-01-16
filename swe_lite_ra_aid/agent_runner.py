@@ -4,6 +4,8 @@ import os
 import sys
 import uuid
 import logging
+
+logger = logging.getLogger(__name__)
 import subprocess
 from contextlib import contextmanager
 from datetime import datetime
@@ -72,22 +74,22 @@ def activate_venv(repo_dir: Path):
     Context manager to activate and deactivate virtual environment.
     Directly executes python from venv instead of using source activate.
     """
-    print(f"\nActivating venv from directory: {os.getcwd()}")
-    print(f"Repo directory: {repo_dir}")
+    logger.debug(f"Activating venv from directory: {os.getcwd()}")
+    logger.debug(f"Repo directory: {repo_dir}")
 
     # Use absolute path to ensure we get the correct .venv
     venv_path = (repo_dir / ".venv").resolve()
     venv_bin = venv_path / "bin"
     venv_python = venv_bin / "python"
 
-    print(f"Venv path: {venv_path}")
-    print(f"Venv python: {venv_python}")
+    logger.debug(f"Venv path: {venv_path}")
+    logger.debug(f"Venv python: {venv_python}")
     
-    print("\nBefore activation:")
-    print(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
-    print(f"Current PATH: {os.environ.get('PATH')}")
-    print(f"Current Python: {subprocess.getoutput('which python')}")
-    print(f"Current Python version: {subprocess.getoutput('python --version')}")
+    logger.debug("Environment before activation:")
+    logger.debug(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
+    logger.debug(f"Current PATH: {os.environ.get('PATH')}")
+    logger.debug(f"Current Python: {subprocess.getoutput('which python')}")
+    logger.debug(f"Current Python version: {subprocess.getoutput('python --version')}")
 
     if not venv_python.exists():
         raise RuntimeError(f"Python executable not found in virtual environment: {venv_python}")
@@ -104,11 +106,11 @@ def activate_venv(repo_dir: Path):
         # Unset PYTHONHOME if set
         os.environ.pop('PYTHONHOME', None)
 
-        print("\nAfter activation:")
-        print(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
-        print(f"New PATH: {os.environ.get('PATH')}")
-        print(f"New Python: {subprocess.getoutput('which python')}")
-        print(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
+        logger.debug("Environment after activation:")
+        logger.debug(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
+        logger.debug(f"New PATH: {os.environ.get('PATH')}")
+        logger.debug(f"New Python: {subprocess.getoutput('which python')}")
+        logger.debug(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
         
         yield
 
