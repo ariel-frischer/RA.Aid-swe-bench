@@ -1,7 +1,7 @@
 import logging
 import sys
 
-def setup_logger(log_level=logging.INFO):
+def setup_logger(log_level=logging.INFO, minimal=False):
     """Setup and configure the logger
     
     Args:
@@ -21,10 +21,13 @@ def setup_logger(log_level=logging.INFO):
     console_handler.setLevel(log_level)
     
     # Format
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    if minimal:
+        formatter = logging.Formatter('%(message)s')
+    else:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
     console_handler.setFormatter(formatter)
     
     logger.addHandler(console_handler)

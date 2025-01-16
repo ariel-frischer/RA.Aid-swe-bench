@@ -286,12 +286,17 @@ def parse_args():
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Set the logging level"
     )
+    parser.add_argument(
+        "--minimal-logger",
+        action="store_true",
+        help="Use minimal logging format without timestamps"
+    )
     return parser.parse_args()
 
 def main():
     try:
         args = parse_args()
-        logger.setLevel(args.log_level)
+        logger.setLevel(args.log_level, minimal=args.minimal_logger)
         
         project_root = Path(__file__).resolve().parent.parent
 
