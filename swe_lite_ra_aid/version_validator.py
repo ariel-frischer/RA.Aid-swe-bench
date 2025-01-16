@@ -9,6 +9,7 @@ from datasets import load_dataset
 from typing import Dict, Optional, Set
 
 from .dataset_constants import MAP_VERSION_TO_INSTALL
+from .logger import logger
 from .uv_utils import detect_python_version
 
 
