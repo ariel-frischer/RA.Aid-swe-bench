@@ -3,6 +3,7 @@ import os
 import random
 import lox
 import tempfile
+import argparse
 from pathlib import Path
 from .logger import logger
 
@@ -277,8 +278,21 @@ def generate_predictions(dataset, out_dname, repo_manager):
         return
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level"
+    )
+    return parser.parse_args()
+
 def main():
     try:
+        args = parse_args()
+        logger.setLevel(args.log_level)
+        
         project_root = Path(__file__).resolve().parent.parent
 
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")

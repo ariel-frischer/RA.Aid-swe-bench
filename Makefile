@@ -28,7 +28,10 @@ install:
 	poetry install
 
 run:
-	poetry run python -m swe_lite_ra_aid.main
+	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL)
+
+# Default log level is INFO if not specified
+LOG_LEVEL ?= INFO
 
 test:
 	poetry run pytest
