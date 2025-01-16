@@ -39,14 +39,14 @@ def analyze_version_differences():
         repo_versions[repo].add(version)
         repo_commits[repo][commit] = version
     
-    print("\nComparing Python Versions:")
-    print("=" * 80)
+    logger.info("\nComparing Python Versions:")
+    logger.info("=" * 80)
     
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
         for repo, versions in sorted(repo_versions.items()):
-            print(f"\nRepository: {repo}")
+            logger.info(f"\nRepository: {repo}")
             
             # Clone and detect versions
             repo_path = temp_path / repo.split("/")[-1]
@@ -55,7 +55,7 @@ def analyze_version_differences():
             total = 0
     
             try:
-                print("\nAnalyzing commits:")
+                logger.info("\nAnalyzing commits:")
                 repo_obj = Repo.clone_from(f"https://github.com/{repo}", str(repo_path))
         
                 for commit, version in repo_commits[repo].items():
@@ -73,24 +73,24 @@ def analyze_version_differences():
                         if detected == constant:
                             matches += 1
                     
-                        print(f"\n  Commit: {commit}")
-                        print(f"  Repository version: {version}")
-                        print(f"  Constants Python: {constant}")
-                        print(f"  Detected Python: {detected}  {match}")
+                        logger.info(f"\n  Commit: {commit}")
+                        logger.info(f"  Repository version: {version}")
+                        logger.info(f"  Constants Python: {constant}")
+                        logger.info(f"  Detected Python: {detected}  {match}")
                         
                     except Exception as e:
-                        print(f"  Error checking {commit}: {e}")
+                        logger.error(f"  Error checking {commit}: {e}")
                 
             except Exception as e:
-                print(f"Error analyzing repo {repo}: {e}")
+                logger.error(f"Error analyzing repo {repo}: {e}")
             finally:
                 if repo_path.exists():
                     shutil.rmtree(repo_path)
             
-            print("\nSummary for this repo:")
-            print(f"Matching versions: {matches}/{total}")
+            logger.info("\nSummary for this repo:")
+            logger.info(f"Matching versions: {matches}/{total}")
             if total > 0:
-                print(f"Match rate: {(matches/total)*100:.1f}%")
+                logger.info(f"Match rate: {(matches/total)*100:.1f}%")
 
 
 if __name__ == "__main__":

@@ -288,9 +288,9 @@ def save_setup_json_files(result_dir: str, setup_map: Dict, tasks_map: Dict):
     with open(tasks_map_path, "w") as f:
         json.dump(tasks_map, f)
 
-    print("Done with setup.")
-    print(f"setup_map is saved to {setup_map_path}")
-    print(f"tasks_map is saved to {tasks_map_path}")
+    logger.info("Done with setup.")
+    logger.info(f"setup_map is saved to {setup_map_path}")
+    logger.info(f"tasks_map is saved to {tasks_map_path}")
 
 
 def main(
