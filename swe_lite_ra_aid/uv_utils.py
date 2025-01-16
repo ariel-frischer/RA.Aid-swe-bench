@@ -242,26 +242,26 @@ def setup_venv_and_deps(
     - uv for Python >=3.7
     - venv + pip for Python <3.7
     """
-    logger.info("\nSETUP_VENV_AND_DEPS:")
-    logger.info(f"repo_dir: {repo_dir}")
-    logger.info(f"repo_name: {repo_name}")
-    logger.info(f"repo_version: {repo_version}")
-    logger.info(f"force_venv: {force_venv}")
+    logger.debug("\nSETUP_VENV_AND_DEPS:")
+    logger.debug(f"repo_dir: {repo_dir}")
+    logger.debug(f"repo_name: {repo_name}")
+    logger.debug(f"repo_version: {repo_version}")
+    logger.debug(f"force_venv: {force_venv}")
 
     with change_directory(repo_dir):
-        logger.info(f"\nChanged directory to: {os.getcwd()}")
+        logger.debug(f"\nChanged directory to: {os.getcwd()}")
         
         python_version = get_python_version(repo_name, repo_version)
-        logger.info(f"python_version from constants: {python_version}")
+        logger.debug(f"python_version from constants: {python_version}")
 
         # Parse version to compare
         major, minor = map(int, python_version.split(".")[:2])
-        logger.info(f"Parsed version: Python {major}.{minor}")
+        logger.debug(f"Parsed version: Python {major}.{minor}")
 
         if major == 3 and minor < 7:
-            logger.info("\nUsing legacy venv setup (Python < 3.7)")
+            logger.debug("\nUsing legacy venv setup (Python < 3.7)")
             setup_legacy_venv(repo_dir, python_version)
         else:
-            logger.info("\nUsing uv venv setup (Python >= 3.7)")
+            logger.debug("\nUsing uv venv setup (Python >= 3.7)")
             setup_uv_venv(repo_dir, repo_name, repo_version, force_venv)
 

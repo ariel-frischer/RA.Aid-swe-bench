@@ -107,7 +107,7 @@ class RepoManager:
                         shutil.copy2(item, dest)
             
             from .uv_utils import setup_venv_and_deps
-            logger.info("Calling setup_venv_and_deps...")
+            logger.debug("Calling setup_venv_and_deps...")
             setup_venv_and_deps(venv_path, repo_name, version, force_venv=True)
         else:
             logger.info(f"Using cached virtual environment at {venv_path}")
@@ -152,7 +152,7 @@ class RepoManager:
                     repo = Repo.clone_from(repo_url, str(cache_path))
             else:
                 cache_path.mkdir(parents=True, exist_ok=True)
-                logger.info(f"Cloning {repo_url} to cache at {cache_path}")
+                logger.debug(f"Cloning {repo_url} to cache at {cache_path}")
                 repo = Repo.clone_from(repo_url, str(cache_path))
 
             # Checkout correct commit
