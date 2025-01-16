@@ -91,11 +91,11 @@ class RepoManager:
         logger.debug(f"venv_path: {venv_path}")
 
         if not (venv_path / ".venv").exists():
-            logger.info("\nSetting up new virtual environment:")
-            logger.info(f"venv_path: {venv_path}")
+            logger.debug("\nSetting up new virtual environment:")
+            logger.debug(f"venv_path: {venv_path}")
             venv_path.mkdir(parents=True, exist_ok=True)
             
-            logger.info("Copying repo contents to venv directory...")
+            logger.debug("Copying repo contents to venv directory...")
             import shutil
             for item in cache_path.iterdir():
                 if item.name != ".git":
