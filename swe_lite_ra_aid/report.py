@@ -483,11 +483,11 @@ def calculate_costs(predictions, dataset):
 
     if costs:
         recent = [f"{c:.2f}" for c in costs[-5:]]
-        print("recent costs:", ", ".join(recent))
+        logger.info(f"recent costs: {', '.join(recent)}")
         avg_cost = sum(costs) / len(costs)
-        print(f"avg_cost: ${avg_cost:.2f}/instance")
+        logger.info(f"avg_cost: ${avg_cost:.2f}/instance")
         spent = sum(costs)
-        print(f"spent: ${spent:.2f}")
+        logger.info(f"spent: ${spent:.2f}")
 
         num_instances = len(list(dataset))
 
