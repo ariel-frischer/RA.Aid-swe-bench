@@ -52,7 +52,7 @@ DEFAULT_EVAL_RUN_ID = "ra_aid_eval"
 
 def print_evaluation_summary(report_file):
     """Print summary statistics from evaluation report file."""
-    print(f"report_file={report_file}")
+    logger.info(f"report_file={report_file}")
 
     if report_file and Path(report_file).exists():
         report_data = json.loads(Path(report_file).read_text())
@@ -67,10 +67,10 @@ def print_evaluation_summary(report_file):
             "unstopped_instances"
         ]
         
-        print("\nEvaluation Summary:")
+        logger.info("\nEvaluation Summary:")
         for field in summary_fields:
             if field in report_data:
-                print(f"{field}: {report_data[field]}")
+                logger.info(f"{field}: {report_data[field]}")
 
 
 def run_evals(_log_dir, predictions_jsonl, run_id=DEFAULT_EVAL_RUN_ID):
@@ -120,7 +120,7 @@ def create_test_specs(swe_instances):
     """Create test specifications from SWE instances."""
     test_specs = get_test_specs_from_dataset(swe_instances)
     test_spec_dict = {spec.instance_id: spec for spec in test_specs}
-    print(f"Created test specs with {len(test_spec_dict)} entries")
+    logger.info(f"Created test specs with {len(test_spec_dict)} entries")
     return test_spec_dict
 
 
@@ -134,11 +134,11 @@ def process_instance_status(instance_id, eval_result, report_stats):
     try:
         # Handle case where eval_result might be a string or other non-dict
         if isinstance(eval_result, str):
-            print(f"Warning: eval_result for {instance_id} is a string: {eval_result}")
+            logger.warning(f"eval_result for {instance_id} is a string: {eval_result}")
             return
 
         if not isinstance(eval_result, dict):
-            print(f"Warning: eval_result for {instance_id} is not a dictionary, got {type(eval_result)}")
+            logger.warning(f"eval_result for {instance_id} is not a dictionary, got {type(eval_result)}")
             return
 
         # Check FAIL_TO_PASS tests directly instead of using get_resolution_status
@@ -161,14 +161,14 @@ def process_instance_status(instance_id, eval_result, report_stats):
             report_stats["no_apply"].add(instance_id)
 
     except Exception as e:
-        print(f"Error processing instance {instance_id}: {e}")
+        logger.error(f"Error processing instance {instance_id}: {e}")
 
 
 def output_report_stats(report_stats):
     """Output detailed statistics about the evaluation results."""
-    print("\nReport Statistics:")
+    logger.info("\nReport Statistics:")
     for key, value in report_stats.items():
-        print(f"{key}: {len(value)}")
+        logger.info(f"{key}: {len(value)}")
 
     dump(sorted(report_stats["resolved"]))
 
