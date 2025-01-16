@@ -65,6 +65,8 @@ The main workflow consists of:
 ### 1. Generate predictions using the RA-AID model:
 ```bash
 make run
+# Or for full logger tracing
+make run-log
 ```
 This will process each SWE-bench Lite dataset instance with `ra-aid` and generate predictions in the `predictions/ra_aid_predictions` directory.
 Each prediction file holds a `model_patch` showing the full git diff generated after `ra-aid` attempted to solve the problem statement.
@@ -180,7 +182,9 @@ This is useful for:
 * [X] Fixed bug with symlinking incorrect .venv.
 * [X] Fixed bug with .venv activation for ra-aid subprocess, now ra-aid shell commands use correct python virtual env/python version.
 * [X] Setup pyenv venv handling for instances where python < 3.7 is needed
-* [ ] Logging setup needed.
+* [X] Logging setup, 
+* [X] Additional makefile command log level arg handlers.
+
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
 * [X] Add error message to prediction files as new field for improved tracking.
 * [ ] Test results after explaining in the prompt to figure out the test cmd and run python tests.

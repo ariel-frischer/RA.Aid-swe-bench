@@ -24,7 +24,7 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
         repo = Repo.clone_from(f"https://github.com/{repo_url}", str(repo_path))
         
         for setup_commit in sorted(setup_commits):
-            print(f"\nChecking setup commit: {setup_commit}")
+            logger.info(f"\nChecking setup commit: {setup_commit}")
             try:
                 repo.git.checkout(setup_commit)
                 python_version = detect_python_version(repo_path)

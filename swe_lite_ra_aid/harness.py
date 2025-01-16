@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 import lox
+from .logger import logger
 from aider.coders import Coder
 from aider.io import InputOutput
 from aider.models import Model, register_litellm_models
@@ -55,7 +56,7 @@ def checkout_repo(git_tempdir, entry):
     repo_url = github_url + entry["repo"]
     commit = entry["base_commit"]
 
-    print(repo_url, commit)
+    logger.info(f"Cloning {repo_url} at commit {commit}")
 
     checkout_repo_url_commit(git_tempdir, repo_url, commit)
 
@@ -91,7 +92,7 @@ def show_problems(dataset):
     """
     for inst, entry in dataset.items():
         problem = entry["problem_statement"].splitlines()[0]
-        print(f"{inst}: {problem}")
+        logger.info(f"{inst}: {problem}")
 
 
 def run_pre_existing_tests(entry, git_dname):
@@ -331,8 +332,8 @@ Tell me: which 3-5 files from this repo should I look at to solve the problem?
     if not winner:
         return
 
-    print("\n\nFinal diff:\n")
-    print(winner["model_patch"])
+    logger.info("\n\nFinal diff:\n")
+    logger.info(winner["model_patch"])
 
     # Avoid circular reference when we save to json
     winner = dict(winner)

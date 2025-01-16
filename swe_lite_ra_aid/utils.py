@@ -263,7 +263,7 @@ def choose_pred(inst, all_preds, dnames):
         dname = dnames[i]
 
         if inst not in preds:
-            # print(f"skipping: inst not in preds for {inst}")
+            # logger.info(f"skipping: inst not in preds for {inst}")
             continue
         pred = dict(preds[inst])
         pred["dname"] = Path(dname).name
