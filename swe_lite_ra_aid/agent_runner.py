@@ -163,7 +163,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             line = ''.join(current_line)
             output.append(line + '\n')
             current_line.clear()
-            print(line)  # Stream to console
+            logger.info(line)  # Stream to console
         else:
             current_line.append(c)
 
@@ -180,12 +180,12 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         if current_line:
             line = ''.join(current_line)
             output.append(line)
-            print(line, end='')
+            logger.info(line.rstrip())
 
     def handle_stderr_stream(process, error_output):
         """Handle streaming stderr output line by line."""
         for line in process.stderr:
-            print(line, end="", file=sys.stderr)
+            logger.error(line.rstrip())
             error_output.append(line)
 
     def create_result_object(returncode, stdout, stderr):
@@ -218,13 +218,13 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
                     cmd, cwd=repo_dir, text=True, capture_output=True, check=False, timeout=TIMEOUT
                 )
 
-        print(f"Current working directory after: {os.getcwd()}")
+        logger.debug(f"Current working directory after: {os.getcwd()}")
 
         if not STREAM_OUTPUT:
             # Print output only if we didn't stream it
-            print(stdout)
+            logger.info(stdout)
             if stderr:
-                print(stderr)
+                logger.error(stderr)
 
         if result.returncode != 0:
             logging.error("ra-aid returned non-zero exit code.")
