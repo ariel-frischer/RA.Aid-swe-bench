@@ -194,11 +194,11 @@ def process_single_prediction(prediction, test_spec):
     if instance_id not in test_spec:
         return None, None
         
-    print(f"\nProcessing instance: {instance_id}")
+    logger.info(f"\nProcessing instance: {instance_id}")
     instance_log_path = get_instance_log_path(instance_id)
     
     if not instance_log_path.exists():
-        print(f"Warning: Log file not found at {instance_log_path}")
+        logger.warning(f"Log file not found at {instance_log_path}")
         return instance_id, {
             "patch_exists": False,
             "patch_successfully_applied": False,
@@ -252,7 +252,7 @@ def get_report(dataset, _log_dir, predictions_jsonl, _model_name_or_path):
 
     except Exception as e:
         import traceback
-        print(f"Error generating report: {e}")
+        logger.error(f"Error generating report: {e}")
         traceback.print_exc()
         return dict()
 
@@ -332,7 +332,7 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
         run_evals(str(log_dir), predictions_jsonl, run_id)
 
         model_name_or_path = list(predictions.values())[0]["model_name_or_path"]
-        print(f"model_name_or_path={model_name_or_path}")
+        logger.info(f"model_name_or_path={model_name_or_path}")
         
         # get_report is currently WIP/broken
         # report = get_report(
@@ -371,7 +371,7 @@ def combine_jsonl_logs(predictions, model_name_or_path):
         from_fname = list(from_fname.glob(f"{inst}.*.log"))
         assert len(from_fname) <= 1, from_fname
         if not len(from_fname):
-            print("Missing", pred["dname"], inst)
+            logger.warning(f"Missing {pred['dname']} {inst}")
             continue
         from_fname = from_fname[0]
         to_fname = log_dir / f"{inst}.{model_name_or_path}.eval.log"
@@ -398,7 +398,7 @@ def setup_output_directory(model_name_or_path):
 def process_single_eval_result(instance_id, eval_result, report_stats):
     """Process a single evaluation result and update report statistics."""
     if not isinstance(eval_result, dict):
-        print(f"Warning: eval_result for {instance_id} is not a dictionary")
+        logger.warning(f"eval_result for {instance_id} is not a dictionary")
         return
 
     # Track basic stats
@@ -433,30 +433,30 @@ def process_report_statistics(report, counts):
     }
 
     if not isinstance(report, dict):
-        print(f"Warning: report is not a dictionary, got {type(report)}")
+        logger.warning(f"report is not a dictionary, got {type(report)}")
         return report_stats, 0, 0
 
     for instance_id, eval_result in report.items():
         try:
             process_single_eval_result(instance_id, eval_result, report_stats)
         except Exception as e:
-            print(f"Error processing instance {instance_id}: {e}")
+            logger.error(f"Error processing instance {instance_id}: {e}")
             continue
 
     # Update counts
     for key, value in report_stats.items():
         counts[key] = len(value)
 
-    print("\nReport Statistics:")
+    logger.info("\nReport Statistics:")
     for key, value in counts.items():
-        print(f"{key}: {value}")
+        logger.info(f"{key}: {value}")
 
     total = len(report)
     missing_logs = total - counts["with_logs"] if total > 0 else 0
 
     if total:
         percent = counts["resolved"] * 100 / total
-        print(f"\nResolved percentage: {percent:.1f}%")
+        logger.info(f"\nResolved percentage: {percent:.1f}%")
 
     return report_stats, total, missing_logs
 
@@ -469,7 +469,7 @@ def analyze_missing_runs(total, missing_logs, counts):
         should_count = total - need_to_be_run
         dump(should_count)
         percent_of_should = counts["resolved"] * 100 / should_count
-        print(f"{percent_of_should=:.1f}")
+        logger.info(f"{percent_of_should=:.1f}")
     return need_to_be_run
 
 
@@ -492,8 +492,8 @@ def calculate_costs(predictions, dataset):
         num_instances = len(list(dataset))
 
         expected_cost = num_instances * avg_cost
-        print(f"expected_cost: ${expected_cost:.2f}")
-        print()
+        logger.info(f"expected_cost: ${expected_cost:.2f}")
+        logger.info("")
 
 
 def analyze_gold_files(predictions):
@@ -578,20 +578,20 @@ def display_gold_stats(stats, total):
 
     if stats["total_with_gold_attr"]:
         pct_added = stats["total_added_gold"] / stats["total_with_gold_attr"] * 100
-        print(f"pct_added_gold: {pct_added:.1f}%")
+        logger.info(f"pct_added_gold: {pct_added:.1f}%")
 
     if stats["total_added_gold"]:
         pct_added_gold_resolved = (
             stats["gold_resolved"] / stats["total_added_gold"] * 100
         )
-        print(f"pct_added_gold_resolved: {pct_added_gold_resolved:.1f}%")
-        print()
+        logger.info(f"pct_added_gold_resolved: {pct_added_gold_resolved:.1f}%")
+        logger.info("")
 
     dump(stats["total_with_added"])
     if total > 0:  # Add check for zero
         pct_with_added = stats["total_with_added"] / total * 100
         dump(pct_with_added)
-    print()
+    logger.info("")
 
     dump(stats["total_plausible"])
     dump(stats["resolved_plausible"])
@@ -605,7 +605,7 @@ def display_gold_stats(stats, total):
         pct_plausible = stats["total_plausible"] / total * 100
         dump(pct_plausible)
     else:
-        print("No total instances found - cannot calculate percentage plausible")
+        logger.warning("No total instances found - cannot calculate percentage plausible")
 
 
 def run_detailed_analysis(dnames: list, dataset, model_name_or_path: str = "ra_aid_selected_predictions"):
@@ -617,12 +617,12 @@ def run_detailed_analysis(dnames: list, dataset, model_name_or_path: str = "ra_a
         dataset: Loaded SWE-bench dataset
         model_name_or_path: Name of the model/prediction set
     """
-    print("Running run_detailed_analysis")
+    logger.info("Running run_detailed_analysis")
     _preds_dir = setup_output_directory(model_name_or_path)
 
     predictions = choose_predictions(dnames, model_name_or_path, copy_md=True)
     if not predictions:
-        print("No predictions")
+        logger.warning("No predictions")
         return
     dump(len(predictions))
 
@@ -633,7 +633,7 @@ def run_detailed_analysis(dnames: list, dataset, model_name_or_path: str = "ra_a
     results_json.write_text(json.dumps(report, indent=4))
 
     counts = defaultdict(int, [(k, len(v)) for k, v in report.items()])
-    print(f"counts={counts}")
+    logger.info(f"counts={counts}")
     total, missing_logs = process_report_statistics(report, counts)
 
     _need_to_be_run = analyze_missing_runs(total, missing_logs, counts)
