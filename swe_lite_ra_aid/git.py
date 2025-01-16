@@ -1,4 +1,5 @@
 from git import Repo
+from .logger import logger
 
 
 def diff_versus_commit(git_dname, commit) -> str:
@@ -27,7 +28,7 @@ def checkout_repo(git_tempdir, entry):
     repo_url = github_url + entry["repo"]
     setup_commit = entry["environment_setup_commit"]
 
-    print(f"Cloning {repo_url} at environment setup commit {setup_commit}")
+    logger.info(f"Cloning {repo_url} at environment setup commit {setup_commit}")
     return checkout_repo_url_commit(git_tempdir, repo_url, setup_commit)
 
 
