@@ -179,7 +179,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         if current_line:
             line = ''.join(current_line)
             output.append(line)
-            logger.info(line.rstrip())
+            print(line.rstrip())  # Stream final line directly
 
     def handle_stderr_stream(process, error_output):
         """Handle streaming stderr output line by line."""
