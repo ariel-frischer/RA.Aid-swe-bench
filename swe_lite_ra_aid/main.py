@@ -242,8 +242,8 @@ def generate_predictions(dataset, out_dname, repo_manager):
     done_instances = get_completed_instances(out_dname)
     
     # Specify specific tasks to process, comment out to process all tasks
-    only_tasks = ["django__django-14155"]
-    # only_tasks = None  # Process all tasks
+    # only_tasks = ["django__django-14155"]
+    only_tasks = None  # Process all tasks
     
     # Only used if only_tasks is None
     # filter_repos = ["scikit-learn/scikit-learn"]
