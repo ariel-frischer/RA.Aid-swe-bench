@@ -1,6 +1,7 @@
 """Analyze SWE-bench Lite dataset for unique setup commits and Python versions per repository."""
 
 import shutil
+from .logger import logger
 import tempfile
 from collections import defaultdict
 from datasets import load_dataset
@@ -18,7 +19,7 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
     repo_name = repo_url.split("/")[-1]
     repo_path = temp_dir / repo_name
     
-    print(f"\nCloning {repo_url} to analyze {len(setup_commits)} setup commits...")
+    logger.info(f"\nCloning {repo_url} to analyze {len(setup_commits)} setup commits...")
     try:
         repo = Repo.clone_from(f"https://github.com/{repo_url}", str(repo_path))
         
@@ -30,12 +31,12 @@ def clone_and_analyze_repo(repo_url: str, setup_commits: Set[str], temp_dir: Pat
                 if python_version:
                     python_versions.add(python_version)
                     commit_versions[setup_commit] = python_version
-                    print(f"Found Python {python_version} for commit {setup_commit}")
+                    logger.info(f"Found Python {python_version} for commit {setup_commit}")
             except Exception as e:
-                print(f"Error checking commit {setup_commit}: {e}")
+                logger.error(f"Error checking commit {setup_commit}: {e}")
                 
     except Exception as e:
-        print(f"Error cloning/analyzing repo {repo_url}: {e}")
+        logger.error(f"Error cloning/analyzing repo {repo_url}: {e}")
     finally:
         if repo_path.exists():
             shutil.rmtree(repo_path)
@@ -70,8 +71,8 @@ def analyze_setup_commits():
             repo_python_versions[repo].update(versions)
             repo_commit_versions[repo].update(commit_versions)
 
-    print("\nRepository Setup Commit Analysis:")
-    print("=" * 80)
+    logger.info("\nRepository Setup Commit Analysis:")
+    logger.info("=" * 80)
 
     sorted_repos = sorted(
         repo_setup_commits.items(), key=lambda x: len(x[1]), reverse=True
@@ -84,46 +85,46 @@ def analyze_setup_commits():
         )
         commit_versions = repo_commit_versions[repo]
 
-        print(f"\nRepository: {repo}")
-        print(f"Number of unique setup commits: {num_commits}")
-        print("Setup commits, their Python versions and instance counts:")
+        logger.info(f"\nRepository: {repo}")
+        logger.info(f"Number of unique setup commits: {num_commits}")
+        logger.info("Setup commits, their Python versions and instance counts:")
         repo_total = 0
         for commit in sorted(setup_commits):
             version = commit_versions.get(commit, "unknown")
             count = commit_counts[repo][commit]
             repo_total += count
-            print(f"  - {commit}: Python {version} ({count} instances)")
-        print(f"Total instances for this repo: {repo_total}")
+            logger.info(f"  - {commit}: Python {version} ({count} instances)")
+        logger.info(f"Total instances for this repo: {repo_total}")
 
-        print(f"Unique Python versions detected: {len(python_versions)}")
+        logger.info(f"Unique Python versions detected: {len(python_versions)}")
         for version in python_versions:
-            print(f"  - Python {version}")
+            logger.info(f"  - Python {version}")
 
-    print("\nSummary:")
-    print("=" * 80)
-    print(f"Total repositories: {len(repo_setup_commits)}")
-    print(
+    logger.info("\nSummary:")
+    logger.info("=" * 80)
+    logger.info(f"Total repositories: {len(repo_setup_commits)}")
+    logger.info(
         f"Repositories with multiple setup commits: "
         f"{sum(1 for commits in repo_setup_commits.values() if len(commits) > 1)}"
     )
-    print(
+    logger.info(
         f"Repositories with single setup commit: "
         f"{sum(1 for commits in repo_setup_commits.values() if len(commits) == 1)}"
     )
-    print(f"Repositories with Python version detected: {len(repo_python_versions)}")
+    logger.info(f"Repositories with Python version detected: {len(repo_python_versions)}")
     
     total_unique_commits = sum(len(commits) for commits in repo_setup_commits.values())
-    print(f"\nTotal instances across all repos: {total_commit_instances}")
-    print(f"Total unique setup commits: {total_unique_commits}")
-    print(f"Average instances per unique commit: {total_commit_instances/total_unique_commits:.2f}")
+    logger.info(f"\nTotal instances across all repos: {total_commit_instances}")
+    logger.info(f"Total unique setup commits: {total_unique_commits}")
+    logger.info(f"Average instances per unique commit: {total_commit_instances/total_unique_commits:.2f}")
 
     all_versions = set()
     for versions in repo_python_versions.values():
         all_versions.update(versions)
-    print(f"Total unique Python versions detected: {len(all_versions)}")
-    print("All Python versions:")
+    logger.info(f"Total unique Python versions detected: {len(all_versions)}")
+    logger.info("All Python versions:")
     for version in sorted(all_versions):
-        print(f"  - Python {version}")
+        logger.info(f"  - Python {version}")
 
 
 if __name__ == "__main__":

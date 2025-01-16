@@ -1,5 +1,6 @@
 import json
 import traceback
+from .logger import logger
 
 
 def cvt(s):
@@ -23,7 +24,7 @@ def dump(*vals):
     vals = [cvt(v) for v in vals]
     has_newline = sum(1 for v in vals if "\n" in v)
     if has_newline:
-        print("%s:" % vars)
-        print(", ".join(vals))
+        logger.info("%s:" % vars)
+        logger.info(", ".join(vals))
     else:
-        print("%s:" % vars, ", ".join(vals))
+        logger.info("%s: %s" % (vars, ", ".join(vals)))

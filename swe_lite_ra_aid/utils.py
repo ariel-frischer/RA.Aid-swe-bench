@@ -88,7 +88,7 @@ def load_predictions(paths):
             raise err
 
         if "instance_id" not in pred:
-            print("Skipping json without instance_id", fname)
+            logger.warning("Skipping json without instance_id %s", fname)
             continue
 
         inst = pred["instance_id"]
@@ -239,7 +239,7 @@ def old(fname):
     now = now.strftime("%y%m%d-%H%M%S")
     to = old_dname / f"{fname.name}.{now}"
 
-    print(to, fname)
+    logger.info("Moving %s to %s", fname, to)
 
     fname.rename(to)
 
