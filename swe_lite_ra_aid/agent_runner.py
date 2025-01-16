@@ -1,12 +1,10 @@
 """Module for handling RA-AID agent configuration and execution."""
 
 import os
+import subprocess
 import sys
 import uuid
 import logging
-
-logger = logging.getLogger(__name__)
-import subprocess
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +12,8 @@ from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
 from .config import RA_AID_AIDER_MODEL, RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
+
+logger = logging.getLogger(__name__)
 
 
 def initialize_model():
