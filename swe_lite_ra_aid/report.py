@@ -346,9 +346,9 @@ def run_evals_on_dname(dname, dataset, run_id=DEFAULT_EVAL_RUN_ID):
         report = {"resolved": set()}
         predictions = update_pred_json(predictions, report)
     else:
-        print("All predictions already evaluated")
+        logger.info("All predictions already evaluated")
         report_file = Path(f"{RA_AID_MODEL}.{run_id}.json")
-        print(f"Current report_file path: {report_file}")
+        logger.info(f"Current report_file path: {report_file}")
         print_evaluation_summary(report_file)
 
     return predictions_jsonl, log_dir
