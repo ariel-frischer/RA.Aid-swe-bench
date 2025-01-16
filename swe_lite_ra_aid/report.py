@@ -2,9 +2,11 @@
 
 """
 Evaluation script for RA-AID predictions on SWE-bench tasks.
+"""
 
 from .logger import logger
 
+"""
 Usage:
     # Run basic evaluation on predictions:
     poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
