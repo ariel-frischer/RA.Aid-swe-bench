@@ -4,6 +4,7 @@ import random
 import lox
 import tempfile
 from pathlib import Path
+from .logger import logger
 
 from swe_lite_ra_aid.utils import load_predictions
 from .git import files_in_patch, stage_and_get_patch
@@ -44,7 +45,7 @@ def process_single_attempt(task, _attempt, repo_manager):
         base_repo, task["base_commit"], task["environment_setup_commit"]
     )
 
-    print(f"Using worktree at: {worktree_path}")
+    logger.info(f"Using worktree at: {worktree_path}")
 
     try:
         with change_directory(worktree_path):
@@ -61,22 +62,22 @@ def process_single_attempt(task, _attempt, repo_manager):
             trajectory_output, _returncode = run_ra_aid(worktree_path, planning_prompt)
 
             if not trajectory_output:
-                print("No output from RA.Aid")
+                logger.warning("No output from RA.Aid")
                 return None, [], None, None
 
             model_patch = stage_and_get_patch(worktree_path)
 
             if not model_patch:
-                print("❌ No changes made by RA.Aid")
+                logger.warning("❌ No changes made by RA.Aid")
                 return None, [], None, trajectory_output
 
             edited_files = files_in_patch(model_patch)
-            print(f"edited_files={edited_files}")
+            logger.debug(f"edited_files={edited_files}")
 
             return model_patch, edited_files, None, trajectory_output
 
     except Exception as e:
-        print(f"Error in process_single_attempt: {str(e)}")
+        logger.error(f"Error in process_single_attempt: {str(e)}")
         raise
     finally:
         repo_manager.cleanup_worktree(base_repo, worktree_path)
@@ -90,9 +91,9 @@ def ra_aid_prediction(task, out_dname, repo_manager):
     max_edited_files = 0
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
-        print("=" * 60)
-        print(f"Attempt {attempt} for {task['instance_id']}")
-        print("=" * 60)
+        logger.info("=" * 60)
+        logger.info(f"Attempt {attempt} for {task['instance_id']}")
+        logger.info("=" * 60)
 
         try:
             with tempfile.TemporaryDirectory() as git_tempdir:
@@ -101,7 +102,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 model_patch, edited_files, research_result, trajectory_output = (
                     process_single_attempt(task, attempt, repo_manager)
                 )
-                print("Successfully completed process_single_attempt")
+                logger.info("Successfully completed process_single_attempt")
 
                 traj_fname = save_trajectory(
                     out_dname, task, attempt, trajectory_output
@@ -137,7 +138,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
 
         except Exception as e:
             error_msg = f"Error processing {task['instance_id']}: {str(e)}"
-            print(error_msg)
+            logger.error(error_msg)
             
             result = create_result_dict(
                 task,
@@ -156,11 +157,11 @@ def ra_aid_prediction(task, out_dname, repo_manager):
             )
 
     if winner_file:
-        print(
+        logger.info(
             f"Winner file selected: {winner_file} with {max_edited_files} edited files"
         )
     else:
-        print("No successful attempts with edited files")
+        logger.warning("No successful attempts with edited files")
 
     return {
         "output_files": output_files,
@@ -177,7 +178,7 @@ def process_task(task, out_dname, repo_manager):
         except json.JSONDecodeError:
             task = {"raw_input": task}
 
-    print(f"\nProcessing task {task.get('instance_id', 'unknown')}")
+    logger.info(f"\nProcessing task {task.get('instance_id', 'unknown')}")
 
     try:
         result = ra_aid_prediction(task, out_dname, repo_manager)
@@ -188,7 +189,7 @@ def process_task(task, out_dname, repo_manager):
             "winner_file": result["winner_file"],
         }
     except Exception as e:
-        print(f"Error processing task {task.get('instance_id')}: {str(e)}")
+        logger.error(f"Error processing task {task.get('instance_id')}: {str(e)}")
         return {"id": task["id"], "instance_id": task["instance_id"], "error": str(e)}
 
 
@@ -200,8 +201,8 @@ def get_completed_instances(out_dname):
         for inst, pred in done_preds.items()
         if pred.get("model_patch") and pred.get("edited_files")
     }
-    print(f"Found {len(done_instances)} completed predictions")
-    print(f"Skipping {len(done_instances)} already processed instances")
+    logger.info(f"Found {len(done_instances)} completed predictions")
+    logger.info(f"Skipping {len(done_instances)} already processed instances")
     return done_instances
 
 
@@ -223,16 +224,16 @@ def get_remaining_tasks(dataset, done_instances, filter_repos=None, only_tasks=N
             task for task in remaining_instances 
             if task["instance_id"] in only_tasks
         ]
-        print(f"Filtered to {len(remaining_instances)} specific tasks: {only_tasks}")
+        logger.info(f"Filtered to {len(remaining_instances)} specific tasks: {only_tasks}")
     elif filter_repos:
         remaining_instances = [
             task for task in remaining_instances 
             if any(repo in task["repo"] for repo in filter_repos)
         ]
-        print(f"Filtered to {len(remaining_instances)} instances from repos: {filter_repos}")
+        logger.info(f"Filtered to {len(remaining_instances)} instances from repos: {filter_repos}")
         
     random.shuffle(remaining_instances)
-    print(f"Processing {len(remaining_instances)} remaining instances")
+    logger.info(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
 
 
@@ -269,10 +270,10 @@ def generate_predictions(dataset, out_dname, repo_manager):
                 process_task(task, out_dname, repo_manager)
 
         if MAX_THREADS > 1:
-            print(f"Running {MAX_THREADS} threads.")
+            logger.info(f"Running {MAX_THREADS} threads.")
             gather()
     except KeyboardInterrupt:
-        print("\nGracefully shutting down...")
+        logger.warning("\nGracefully shutting down...")
         return
 
 
@@ -287,12 +288,12 @@ def main():
 
         generate_predictions(dataset, out_dname, repo_manager)
 
-        print(f"Predictions saved to {out_dname}")
+        logger.info(f"Predictions saved to {out_dname}")
     except KeyboardInterrupt:
-        print("\nProgram terminated by user")
+        logger.warning("\nProgram terminated by user")
         return 1
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return 1
     return 0
 
