@@ -16,6 +16,13 @@ help:
 	@echo "  eval            - Run evaluation on predictions in ra_aid_predictions directory"
 	@echo "  eval-post       - Run detailed post-evaluation analysis (WIP/Legacy)"
 	@echo "  aider           - Run aider with auto-lint in current directory"
+	@echo "  install-pythons - Install all required Python versions using pyenv"
+	@echo "  repo-sizes     - Show sizes of cached repositories and virtual environments"
+
+install-pythons:
+	pyenv install --skip-existing 3.5.10
+	pyenv install --skip-existing 3.6.15
+	pyenv rehash
 
 install:
 	poetry install
@@ -68,3 +75,9 @@ eval-post:
 
 aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
+
+repo-sizes:
+	@echo "Total size of repos/ directory:"
+	@du -sh repos/
+	@echo "Total size of virtual environments:"
+	@du -sh repos/venvs/

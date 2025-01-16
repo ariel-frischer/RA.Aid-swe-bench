@@ -41,7 +41,22 @@ git clone https://github.com/ariel-frischer/RA.Aid-swe-bench
 cd swe-lite-ra-aid
 
 poetry install
+
+# Before running predictions some instances may need legacy python versions
+# Install required legacy Python versions (<3.7) using pyenv
+make install-pythons
 ```
+
+### Python Version Management
+
+As instances are running, different repositories need different python versions, even for the same repo `environment_setup_commit` may be different and so we need to accurate install all needed python versions.
+Using `uv` is preferred during runtime it automatically installs the necessary python versions but only supports >=3.7. 
+
+1. **Legacy Python Versions (<3.7)**: These versions are installed using `pyenv` via the `make install-pythons` command. This is required for processing older repository versions.
+
+2. **Modern Python Versions (>=3.7)**: These are handled automatically by `uv` during runtime. No manual installation needed.
+
+Virtual environments are created and cached per repository instance as they are processed, making subsequent runs faster.
 
 ## Usage
 
@@ -132,6 +147,26 @@ SWE bench generates detailed logs during evaluation in the `logs/` directory:
   - Patch application results
   - Environment setup details
   - Error messages if any
+
+## Debugging and Development
+
+### Filtering Tasks
+
+When running predictions, you can filter which tasks to process by modifying these variables in `swe_lite_ra_aid/main.py`:
+
+```python
+# Process only specific task instances by ID
+only_tasks = ["scikit-learn__scikit-learn-10297"]  # or None to process all
+
+# Filter by repository name (only used if only_tasks is None)
+filter_repos = ["scikit-learn/scikit-learn"]  # or None for all repos
+```
+
+This is useful for:
+- Debugging specific task instances
+- Testing changes with a single repository
+- Reducing processing time during development
+- Investigating failures for particular tasks
 
 ## Problems/Improvements
 
