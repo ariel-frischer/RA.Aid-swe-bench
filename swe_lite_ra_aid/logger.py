@@ -20,14 +20,11 @@ def setup_logger(log_level=logging.INFO):
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
     
-    # Format
-    if minimal:
-        formatter = logging.Formatter('%(message)s')
-    else:
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
+    # Format with default full logging
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     console_handler.setFormatter(formatter)
     
     logger.addHandler(console_handler)
