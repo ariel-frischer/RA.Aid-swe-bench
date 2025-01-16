@@ -5,10 +5,15 @@ from pathlib import Path
 TIMEOUT = 45 * 60  # 45 minutes
 
 # RA-AID Configuration
+
+# Note Deepseek V3 currently is really bad with ra-aid Langgraph tool calls
+# Although its cheaper, results should be much worse (compared to Sonnet 3.5),
+# it doesn't seem to run any shell tool commands either.
 # RA_AID_PROVIDER = "openrouter"
 # RA_AID_MODEL = "deepseek/deepseek-chat"
 RA_AID_PROVIDER = "anthropic"
 RA_AID_MODEL = "claude-3-5-sonnet-20241022"
+
 RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
 
