@@ -105,12 +105,12 @@ def run_tests(entry, model_patch=None, use_test_patch=False, model_name_or_path=
     if model_patch and use_test_patch:
         # Make sure the model_patch does not disturb the repo's tests
         # when doing acceptance testing with the `test_patch`.
-        print("=" * 30)
-        print(model_patch)
+        logger.debug("=" * 30)
+        logger.debug(model_patch)
         model_patch = remove_patches_to_tests(model_patch)
-        print("=" * 30)
-        print(model_patch)
-        print("=" * 30)
+        logger.debug("=" * 30)
+        logger.debug(model_patch)
+        logger.debug("=" * 30)
 
     entry_instance = {
         "repo": entry["repo"],
