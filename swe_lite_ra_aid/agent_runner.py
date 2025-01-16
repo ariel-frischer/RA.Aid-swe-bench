@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-import sys
 import uuid
 import logging
 from contextlib import contextmanager
