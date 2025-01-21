@@ -18,6 +18,7 @@ TIMEOUT = 45 * 60  # 45 minutes
 # Using sonnet 3.5 with openrouter should have less rate limiting issues
 RA_AID_PROVIDER = "openrouter"
 RA_AID_MODEL = "anthropic/claude-3.5-sonnet"
+# RA_AID_MODEL = "deepseek/deepseek-r1"
 
 RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
