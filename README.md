@@ -77,7 +77,7 @@ Each prediction file holds a `model_patch` showing the full git diff generated a
 This `model_patch` will be used later by `swe-bench` to evaluate if the prediction solved the problem statement.
 
 * You may want to modify `MAX_THREADS` which determines how many agents run in parallel located in `swe_lite_ra_aid/config.py`.
-* The `RepoManager` handles cloning, dependency installation, and caching for each problem repo.
+* The `RepoManager` handles cloning, dependency installation, and caching venvs for each problem repo.
 
 ### 2. Evaluate predictions and generate a report:
 

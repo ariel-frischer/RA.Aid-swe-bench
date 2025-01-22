@@ -28,7 +28,8 @@ install:
 	poetry install
 
 run:
-	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
+	# poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
+	uv run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
 
 run-log:
 	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL)
@@ -74,7 +75,8 @@ reset-eval:
 	poetry run python fix_prediction_files.py --reset-eval
 
 eval:
-	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
+	# poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
+	uv run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 
 eval-post:
 	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
