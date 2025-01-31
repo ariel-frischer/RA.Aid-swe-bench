@@ -191,6 +191,8 @@ This is useful for:
 
 * [ ] Add proper .env file handling. At the moment the SHELL env config is used and can effect aider runtime.
 * [X] Add error message to prediction files as new field for improved tracking.
+* [ ] Add expert model/provider + research model/provider + planner model/provider to config.py
+  * [ ] Add fields to prediction.json for each to properly track them.
 * [ ] Test results after explaining in the prompt to figure out the test cmd and run python tests.
 * [ ] Perhaps moving prediction files to another folder like OLD is better than checking it's `evaluated` field. Will require refactoring of `run_evals_on_dname`.
 * [ ] We are not calculating costs for each attempt. Need a way to extract accurate costs in predictions json then compile them in evaluation.

@@ -10,7 +10,13 @@ from pathlib import Path
 from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
-from .config import RA_AID_AIDER_MODEL, RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
+from .config import (
+    RA_AID_AIDER_MODEL,
+    RA_AID_PROVIDER,
+    RA_AID_MODEL,
+    STREAM_OUTPUT,
+    TIMEOUT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +89,7 @@ def activate_venv(repo_dir: Path):
 
     logger.debug(f"Venv path: {venv_path}")
     logger.debug(f"Venv python: {venv_python}")
-    
+
     logger.debug("Environment before activation:")
     logger.debug(f"Current VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
     logger.debug(f"Current PATH: {os.environ.get('PATH')}")
@@ -91,26 +97,30 @@ def activate_venv(repo_dir: Path):
     logger.debug(f"Current Python version: {subprocess.getoutput('python --version')}")
 
     if not venv_python.exists():
-        raise RuntimeError(f"Python executable not found in virtual environment: {venv_python}")
+        raise RuntimeError(
+            f"Python executable not found in virtual environment: {venv_python}"
+        )
 
     # Save original environment
     old_env = dict(os.environ)
-    old_path = os.environ.get('PATH', '')
-    
+    old_path = os.environ.get("PATH", "")
+
     try:
         # Update environment variables
-        os.environ['VIRTUAL_ENV'] = str(venv_path)
-        os.environ['PATH'] = f"{venv_bin}:{old_path}"
-        
+        os.environ["VIRTUAL_ENV"] = str(venv_path)
+        os.environ["PATH"] = f"{venv_bin}:{old_path}"
+
         # Unset PYTHONHOME if set
-        os.environ.pop('PYTHONHOME', None)
+        os.environ.pop("PYTHONHOME", None)
 
         logger.debug("Environment after activation:")
         logger.debug(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
         logger.debug(f"New PATH: {os.environ.get('PATH')}")
         logger.debug(f"New Python: {subprocess.getoutput('which python')}")
-        logger.debug(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
-        
+        logger.debug(
+            f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}"
+        )
+
         yield
 
     finally:
@@ -126,6 +136,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     Returns tuple of (trajectory_output, returncode) if successful, else None.
     """
     logger.info("\nStarting RA.Aid...")
+    logger.info(f"\nPrompt: \n {prompt}")
 
     cmd = [
         "ra-aid",
@@ -156,11 +167,11 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
 
     def process_char(c, current_line, output):
         """Process a single character from stdout stream."""
-        if c == '\r':  # Carriage return
+        if c == "\r":  # Carriage return
             current_line.clear()
-        elif c == '\n':  # Newline
-            line = ''.join(current_line)
-            output.append(line + '\n')
+        elif c == "\n":  # Newline
+            line = "".join(current_line)
+            output.append(line + "\n")
             current_line.clear()
             print(line)  # Stream ra-aid output directly
         else:
@@ -174,10 +185,10 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             if not char:
                 break
             process_char(char, current_line, output)
-        
+
         # Flush any remaining content
         if current_line:
-            line = ''.join(current_line)
+            line = "".join(current_line)
             output.append(line)
             print(line.rstrip())  # Stream final line directly
 
@@ -203,7 +214,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             if STREAM_OUTPUT:
                 process = create_streaming_process(cmd, repo_dir)
                 process.timeout = TIMEOUT
-                
+
                 handle_stdout_stream(process, output)
                 handle_stderr_stream(process, error_output)
 
@@ -214,7 +225,12 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             else:
                 # Just capture output without streaming
                 result = subprocess.run(
-                    cmd, cwd=repo_dir, text=True, capture_output=True, check=False, timeout=TIMEOUT
+                    cmd,
+                    cwd=repo_dir,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                    timeout=TIMEOUT,
                 )
 
         logger.debug(f"Current working directory after: {os.getcwd()}")
@@ -235,7 +251,9 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         logging.error(f"ra-aid error: {e}")
         return None
 
-    trajectory_output = result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
+    trajectory_output = result.stdout + (
+        f"\nSTDERR:\n{result.stderr}" if result.stderr else ""
+    )
     return trajectory_output, str(result.returncode)
 
 
@@ -254,11 +272,13 @@ def create_result_dict(
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": RA_AID_FULL_MODEL,
         "ra_aid_editor": RA_AID_AIDER_MODEL,
-        "ra_aid_version": repo_manager.ra_aid_version if repo_manager else DEFAULT_RA_AID_VERSION,
+        "ra_aid_version": repo_manager.ra_aid_version
+        if repo_manager
+        else DEFAULT_RA_AID_VERSION,
         "is_winner": False,  # Default to False, will be updated by winner selection logic
         "resolved": False,  # Default to False, will be updated during evaluation
         "evaluated": False,  # Default to False, will be updated during evaluation
-        "errors": []  # Array to store any errors that occur
+        "errors": [],  # Array to store any errors that occur
     }
     if trajectory_file:
         result["trajectory_file"] = str(trajectory_file)
