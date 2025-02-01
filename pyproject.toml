@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.9,<3.13"
 dependencies = [
     # "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@dev",
-    "ra-aid @ git+https://github.com/ai-christianson/RA.Aid.git",
+    "ra-aid @ git+https://github.com/ai-christianson/RA.Aid.git@master",
     # "datasets @ git+https://github.com/huggingface/datasets.git@7a1a84b5ea3a1fbe67884b339a7a081ce450f824",
     "datasets @ git+https://github.com/huggingface/datasets.git",
     "gitpython <=3.1.44",
@@ -17,28 +17,11 @@ dependencies = [
     "swebench >=2.1.7,<3.0.0",
 ]
 
-[tool.poetry]
-name = "swe-lite-ra-aid"
-version = "0.1.0"
-description = "SWE Bench Lite for ra-aid agent"
-authors = ["Ariel Frischer <arielfrischer@gmail.com>"]
-readme = "README.md"
-packages = [{include = "swe_lite_ra_aid"}]
-
-[tool.poetry.dependencies]
-python = ">=3.9,<3.13"
-# ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "0c39166172010d218c7396766880e809e8520042" }
-ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "dd8b9c0d308e7a280a0496f142ed8b0c03cfa8cc" }
-# ra-aid = { git = "https://github.com/ariel-frischer/RA.Aid.git", branch = "dev"}
-# datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main", rev="7a1a84b5ea3a1fbe67884b339a7a081ce450f824" }
-datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main" }
-gitpython = "<=3.1.44"
-lox = "^0.12.0"
-swebench = "^2.1.7"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-black = "^23.12.1"
+[project.optional-dependencies]
+dev = [
+    "pytest @ ^7.0",
+    "black @ ^23.12.1",
+]
 
 [tool.black]
 line-length = 120

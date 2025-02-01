@@ -2,7 +2,7 @@
 
 help:
 	@echo "Available commands:"
-	@echo "  install          - Install project dependencies using Poetry"
+	@echo "  install          - Install project dependencies using uv"
 	@echo "  run             - Run the main prediction script to generate new predictions"
 	@echo "  test            - Run tests using pytest"
 	@echo "  clean           - Remove Python cache files and bytecode"
@@ -18,6 +18,7 @@ help:
 	@echo "  aider           - Run aider with auto-lint in current directory"
 	@echo "  install-pythons - Install all required Python versions using pyenv"
 	@echo "  repo-sizes     - Show sizes of cached repositories and virtual environments"
+	@echo "  sync             - Run uv sync --all-extras --all-groups"
 
 install-pythons:
 	pyenv install --skip-existing 3.5.10
@@ -25,20 +26,22 @@ install-pythons:
 	pyenv rehash
 
 install:
-	poetry install
+	uv install
+
+sync:
+	uv sync --all-extras --all-groups
 
 run:
-	# poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
 	uv run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL) --minimal-logger
 
 run-log:
-	poetry run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL)
+	uv run python -m swe_lite_ra_aid.main --log-level=$(LOG_LEVEL)
 
 # Default log level is INFO if not specified
 LOG_LEVEL ?= INFO
 
 test:
-	poetry run pytest
+	uv run pytest
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -63,23 +66,23 @@ clean-logs:
 	rm -rf logs/*
 
 format:
-	poetry run black .
+	uv run black .
 
 check:
-	poetry run ruff check --fix .
+	uv run ruff check --fix .
 
 fix-predictions:
-	poetry run python fix_prediction_files.py
+	uv run python fix_prediction_files.py
 
 reset-eval:
-	poetry run python fix_prediction_files.py --reset-eval
+	uv run python fix_prediction_files.py --reset-eval
 
 eval:
-	# poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 	uv run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions
 
 eval-post:
-	poetry run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
+	uv run python -m swe_lite_ra_aid.report predictions/ra_aid_predictions --post-eval
+
 
 aider:
 	aider --no-suggest-shell-commands --lint-cmd 'make check' --auto-lint
@@ -89,3 +92,4 @@ repo-sizes:
 	@du -sh repos/
 	@echo "Total size of virtual environments:"
 	@du -sh repos/venvs/
+

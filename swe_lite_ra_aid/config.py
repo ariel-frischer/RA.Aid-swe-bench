@@ -17,18 +17,20 @@ TIMEOUT = 45 * 60  # 45 minutes
 # RA_AID_MODEL = "claude-3-5-sonnet-20241022"
 
 # Using sonnet 3.5 with openrouter should have less rate limiting issues
-RA_AID_PROVIDER = "openrouter"
-# RA_AID_PROVIDER = "openai"
+# RA_AID_PROVIDER = "openrouter"
+RA_AID_PROVIDER = "openai"
 # RA_AID_MODEL = "anthropic/claude-3.5-sonnet"
 # RA_AID_MODEL = "deepseek/deepseek-r1"
-# RA_AID_MODEL = "o3-mini"
-RA_AID_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
+RA_AID_MODEL = "o3-mini"
+# RA_AID_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
 
 RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
 # RA_AID_FULL_MODEL = "anthropic/claude-3-5-sonnet-20241022"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
-RESEARCH_PROVIDER = "openrouter"
-RESEARCH_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
+# RESEARCH_PROVIDER = "openrouter"
+# RESEARCH_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
+RESEARCH_PROVIDER = "openai"
+RESEARCH_MODEL = "o3-mini"
 EXPERT_PROVIDER = "anthropic"
 EXPERT_MODEL = "claude-3-5-sonnet-20241022"
 

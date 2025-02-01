@@ -12,9 +12,8 @@ Streamlined interface for running the RA-AID agent on the SWE Bench dataset. It'
 ## Requirements
 
 - Python >=3.9, <3.13
-- Poetry for this project's dependency management
-- RA-AID ^0.12.0 (must have `ra-aid` cli path working in the running shell)
 - uv for fast dependency installation for each attempt
+- RA-AID ^0.13.0 (must have `ra-aid` cli path working in the running shell)
 
 ### Environment Variables
 
@@ -40,7 +39,8 @@ Set them in your SHELL, .env support is not implemented yet.
 git clone https://github.com/ariel-frischer/RA.Aid-swe-bench
 cd swe-lite-ra-aid
 
-poetry install
+uv venv
+uv install
 
 # Before running predictions some instances may need legacy python versions
 # Install required legacy Python versions (<3.7) using pyenv
