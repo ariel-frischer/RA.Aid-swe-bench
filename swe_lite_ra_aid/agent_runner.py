@@ -16,6 +16,10 @@ from .config import (
     RA_AID_MODEL,
     STREAM_OUTPUT,
     TIMEOUT,
+    RESEARCH_PROVIDER,
+    RESEARCH_MODEL,
+    EXPERT_PROVIDER,
+    EXPERT_MODEL,
 )
 
 logger = logging.getLogger(__name__)
@@ -97,9 +101,7 @@ def activate_venv(repo_dir: Path):
     logger.debug(f"Current Python version: {subprocess.getoutput('python --version')}")
 
     if not venv_python.exists():
-        raise RuntimeError(
-            f"Python executable not found in virtual environment: {venv_python}"
-        )
+        raise RuntimeError(f"Python executable not found in virtual environment: {venv_python}")
 
     # Save original environment
     old_env = dict(os.environ)
@@ -117,9 +119,7 @@ def activate_venv(repo_dir: Path):
         logger.debug(f"New VIRTUAL_ENV: {os.environ.get('VIRTUAL_ENV')}")
         logger.debug(f"New PATH: {os.environ.get('PATH')}")
         logger.debug(f"New Python: {subprocess.getoutput('which python')}")
-        logger.debug(
-            f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}"
-        )
+        logger.debug(f"New Python version: {subprocess.getoutput(f'{venv_python} --version')}")
 
         yield
 
@@ -136,19 +136,24 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     Returns tuple of (trajectory_output, returncode) if successful, else None.
     """
     logger.info("\nStarting RA.Aid...")
-    logger.info(f"\nPrompt: \n {prompt}")
+    # logger.info(f"\nPrompt: \n {prompt}")
 
     cmd = [
         "ra-aid",
         "--cowboy-mode",
+        # "--verbose",
+        "--research-provider",
+        RESEARCH_PROVIDER,
+        "--research-model",
+        RESEARCH_MODEL,
         "--provider",
         RA_AID_PROVIDER,
         "--model",
         RA_AID_MODEL,
         "--expert-provider",
-        RA_AID_PROVIDER,
+        EXPERT_PROVIDER,
         "--expert-model",
-        RA_AID_MODEL,
+        EXPERT_MODEL,
         "-m",
         prompt,
     ]
@@ -214,14 +219,21 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
             if STREAM_OUTPUT:
                 process = create_streaming_process(cmd, repo_dir)
                 process.timeout = TIMEOUT
+                from .config import PROCESS_CHARS
 
-                handle_stdout_stream(process, output)
-                handle_stderr_stream(process, error_output)
-
-                process.wait()
-                stdout = "".join(output)
-                stderr = "".join(error_output)
-                result = create_result_object(process.returncode, stdout, stderr)
+                if PROCESS_CHARS:
+                    handle_stdout_stream(process, output)
+                    handle_stderr_stream(process, error_output)
+                    process.wait()
+                else:
+                    stdout_raw, stderr_raw = process.communicate(timeout=TIMEOUT)
+                    output.append(stdout_raw)
+                    if stdout_raw:
+                        print(stdout_raw)
+                    if stderr_raw:
+                        error_output.extend(stderr_raw.splitlines(keepends=True))
+                        print(stderr_raw)
+                result = create_result_object(process.returncode, "".join(output), "".join(error_output))
             else:
                 # Just capture output without streaming
                 result = subprocess.run(
@@ -251,15 +263,11 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         logging.error(f"ra-aid error: {e}")
         return None
 
-    trajectory_output = result.stdout + (
-        f"\nSTDERR:\n{result.stderr}" if result.stderr else ""
-    )
+    trajectory_output = result.stdout + (f"\nSTDERR:\n{result.stderr}" if result.stderr else "")
     return trajectory_output, str(result.returncode)
 
 
-def create_result_dict(
-    task, model_patch, edited_files, attempt, trajectory_file=None, repo_manager=None
-):
+def create_result_dict(task, model_patch, edited_files, attempt, trajectory_file=None, repo_manager=None):
     """Create standardized result dictionary"""
     from .config import RA_AID_FULL_MODEL, DEFAULT_RA_AID_VERSION
 
@@ -272,9 +280,7 @@ def create_result_dict(
         "timestamp": datetime.now().isoformat(),
         "ra_aid_model": RA_AID_FULL_MODEL,
         "ra_aid_editor": RA_AID_AIDER_MODEL,
-        "ra_aid_version": repo_manager.ra_aid_version
-        if repo_manager
-        else DEFAULT_RA_AID_VERSION,
+        "ra_aid_version": repo_manager.ra_aid_version if repo_manager else DEFAULT_RA_AID_VERSION,
         "is_winner": False,  # Default to False, will be updated by winner selection logic
         "resolved": False,  # Default to False, will be updated during evaluation
         "evaluated": False,  # Default to False, will be updated during evaluation

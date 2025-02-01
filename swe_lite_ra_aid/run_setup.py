@@ -1,4 +1,3 @@
-
 # Copied over from (MIT License):
 # https://github.com/yuntongzhang/SWE-bench/blob/main/harness/run_setup.py
 
@@ -12,12 +11,13 @@ from multiprocessing import Pool
 from os.path import join as pjoin
 from typing import Dict, Optional, Tuple, List
 
-from constants import (
+from .dataset_constants import (
     KEY_INSTANCE_ID,
     MAP_REPO_TO_INSTALL,
     MAP_VERSION_TO_INSTALL,
     MAP_REPO_TO_TEST_FRAMEWORK,
 )
+
 from context_manager import ExecWrapper
 from utils import (
     clone_repo,
@@ -27,9 +27,7 @@ from utils import (
     get_test_directives,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("run_setup")
 
 
@@ -76,9 +74,7 @@ def remove_conda_env_and_dir(env_name: str):
         shutil.rmtree(env_dir)
 
 
-def create_conda_env(
-    repo_full: str, version: str, repo_path: str, env_name: str, instance: Dict
-):
+def create_conda_env(repo_full: str, version: str, repo_path: str, env_name: str, instance: Dict):
     """
     Create a conda environment for the repo.
 
@@ -112,9 +108,7 @@ def create_conda_env(
     # is done once per version, which means there are duplicated execs
     if repo_full in MAP_REPO_TO_INSTALL:
         install_cmd = MAP_REPO_TO_INSTALL[repo_full]
-        logger.info(
-            f"[{env_name}] Running custom install command for {repo_full}: {install_cmd}"
-        )
+        logger.info(f"[{env_name}] Running custom install command for {repo_full}: {install_cmd}")
         exec_wrapper(install_cmd, shell=True)
 
     # (2) get install information
@@ -139,9 +133,7 @@ def create_conda_env(
         # Make sure to deactivate so that we can remove the environment.
         # This is necessary if we are running the setup script multiple times.
         cmd = f"source {activate_path} {env_name} && echo 'activate successful' && python -m pip install -r {path_to_reqs} ; source {deactivate_path}"
-        logger.info(
-            f"[{env_name}] Installing dependencies for {env_name}; Command: {cmd}"
-        )
+        logger.info(f"[{env_name}] Installing dependencies for {env_name}; Command: {cmd}")
         exec_wrapper(cmd, shell=True)
         os.remove(path_to_reqs)
 
@@ -155,9 +147,7 @@ def create_conda_env(
             exec_wrapper(cmd.split(" "))
             # Install dependencies
             cmd = f"{conda_bin_path} env update -f {path_to_reqs}"
-            logger.info(
-                f"[{env_name}] Installing dependencies for {env_name}; Command: {cmd}"
-            )
+            logger.info(f"[{env_name}] Installing dependencies for {env_name}; Command: {cmd}")
             exec_wrapper(cmd.split(" "))
         else:
             # `conda env create` based installation
@@ -180,9 +170,7 @@ def create_conda_env(
         # Make sure to deactivate so that we can remove the environment.
         # This is necessary if we are running the setup script multiple times.
         cmd = f"source {activate_path} {env_name} && python -m pip install {pip_packages} ; source {deactivate_path}"
-        logger.info(
-            f"[{env_name}] Installing pip packages for {env_name}; Command: {cmd}"
-        )
+        logger.info(f"[{env_name}] Installing pip packages for {env_name}; Command: {cmd}")
         exec_wrapper(cmd, shell=True)
 
 
@@ -216,9 +204,7 @@ def collect_test_exec_cmd(repo_full: str, task_instance: Dict) -> str:
     return test_cmd
 
 
-def setup_one_repo_version(
-    repo_full: str, repo_path: str, version: str, env_name: str, task: Dict
-):
+def setup_one_repo_version(repo_full: str, repo_path: str, version: str, env_name: str, task: Dict):
     """
     Main entry for setting up one repo+version combination.
     Put all logic in one function so it's easy to parallelize.
@@ -229,15 +215,11 @@ def setup_one_repo_version(
         env_name: name of the conda environment to create.
         task: Dict containing task instance.
     """
-    logger.info(
-        f"[{env_name}] ======= Start setting up for {repo_full} {version} ======="
-    )
+    logger.info(f"[{env_name}] ======= Start setting up for {repo_full} {version} =======")
     clone_repo(repo_full, repo_path)
     logger.info(f"[{env_name}] Cloned {repo_full} to {repo_path}")
     create_conda_env(repo_full, version, repo_path, env_name, task)
-    logger.info(
-        f"[{env_name}] Created conda environment {env_name} for {repo_full} {version}"
-    )
+    logger.info(f"[{env_name}] Created conda environment {env_name} for {repo_full} {version}")
     # "install" and "pre_install" steps are per task;
     # we don't do them here, but instead collects the commands and write them out;
     # this has already been done at a previous step
@@ -399,23 +381,17 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.realpath(__file__))
     root_dir = os.path.dirname(script_dir)
     # we always read from this file, so put this as a default instead of required
-    default_tasks_file = pjoin(
-        root_dir, "data", "test-00000-of-00001-dc7762b94638c186.parquet"
-    )
+    default_tasks_file = pjoin(root_dir, "data", "test-00000-of-00001-dc7762b94638c186.parquet")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--log_dir", type=str, help="Path to log directory", required=True
-    )
+    parser.add_argument("--log_dir", type=str, help="Path to log directory", required=True)
     parser.add_argument(
         "--swe_bench_tasks",
         type=str,
         help="Path to SWE-bench task instances file",
         default=default_tasks_file,
     )
-    parser.add_argument(
-        "--testbed", type=str, help="Path to testbed directory", required=True
-    )
+    parser.add_argument("--testbed", type=str, help="Path to testbed directory", required=True)
     parser.add_argument(
         "--result_dir",
         type=str,

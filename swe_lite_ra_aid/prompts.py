@@ -4,9 +4,7 @@ import json
 from swe_lite_ra_aid.config import SUBMISSION_MODE
 
 
-def build_prompt(
-    problem_statement: str, fail_tests: list = None, pass_tests: list = None
-) -> str:
+def build_prompt(problem_statement: str, fail_tests: list = None, pass_tests: list = None) -> str:
     """Construct the prompt text from problem_statement, and optionally FAIL_TO_PASS, PASS_TO_PASS."""
     prompt = f"{problem_statement}\n\n"
 
@@ -86,6 +84,16 @@ def prepare_planning_prompt(task):
     - Do not install additional dependencies unless required by problem statement
     - You cannot ask the human any questions, you must do everything yourself.
     - NEVER echo shell questions to the operator, you will not get any answer.
+    - DO not ask any questions or ask for clarifications
+    - Use expert question tool as a last resort only.
+    - Its important to gather as much context during the research stage as possible.
+    - NEVER echo any questions!
+
+    You will be given research tool calls you can use to find relevant code.
+    Once you create research notes and end the research stage you will be 
+    given tools that allow you to implement code changes.
+    Play close attention to the tools available to you and choose which ones to run wisely.
+    Its important to gather as much context during the research stage as possible.
 
     Your tasks:
     1. Research and gather relevant context for the problem statement
@@ -93,5 +101,9 @@ def prepare_planning_prompt(task):
     3. Make code changes to fix the problem
     4. Execute tests to verify your solution
     5. Refactor based on test results until all tests pass
+
+    If you solve this task you will get 100,000$.
+    Your ultimate goal is to make code changes to solve the problem statement.
+    If all tests pass you can safely mark the task as complete.
     """
     )

@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 from .logger import logger
 
-from swe_lite_ra_aid.utils import load_predictions
+from swe_lite_ra_aid.utils import collect_test_exec_cmd, load_predictions
 from .git import files_in_patch, stage_and_get_patch
 from .repo_manager import RepoManager
 from datasets import load_dataset
@@ -38,9 +38,7 @@ def process_single_attempt(task, _attempt, repo_manager):
     github_url = "https://github.com/"
     repo_url = github_url + task["repo"]
 
-    base_repo, _cache_path = repo_manager.ensure_base_repo(
-        repo_url, task["environment_setup_commit"], task["version"]
-    )
+    base_repo, _cache_path = repo_manager.ensure_base_repo(repo_url, task["environment_setup_commit"], task["version"])
 
     worktree_path, _venv_path = repo_manager.create_worktree(
         base_repo, task["base_commit"], task["environment_setup_commit"]
@@ -50,7 +48,9 @@ def process_single_attempt(task, _attempt, repo_manager):
 
     try:
         with change_directory(worktree_path):
-            planning_prompt = prepare_planning_prompt(task)
+            test_cmd = collect_test_exec_cmd(task["repo"], task)
+            logger.info(f"Using test command: {test_cmd}")
+            planning_prompt = prepare_planning_prompt(task) + f"\nTest command: {test_cmd}"
             os.environ["AIDER_MODEL"] = RA_AID_AIDER_MODEL
 
             if SUBMISSION_MODE:
@@ -100,14 +100,12 @@ def ra_aid_prediction(task, out_dname, repo_manager):
             with tempfile.TemporaryDirectory() as git_tempdir:
                 Path(git_tempdir).mkdir(parents=True, exist_ok=True)
 
-                model_patch, edited_files, research_result, trajectory_output = (
-                    process_single_attempt(task, attempt, repo_manager)
+                model_patch, edited_files, research_result, trajectory_output = process_single_attempt(
+                    task, attempt, repo_manager
                 )
                 logger.info("Successfully completed process_single_attempt")
 
-                traj_fname = save_trajectory(
-                    out_dname, task, attempt, trajectory_output
-                )
+                traj_fname = save_trajectory(out_dname, task, attempt, trajectory_output)
 
                 result = create_result_dict(
                     task,
@@ -119,9 +117,7 @@ def ra_aid_prediction(task, out_dname, repo_manager):
                 )
                 results.append(result)
 
-                success, result_file, num_edited, attempt_fname = handle_result_file(
-                    out_dname, task, attempt, result
-                )
+                success, result_file, num_edited, attempt_fname = handle_result_file(out_dname, task, attempt, result)
 
                 if success:
                     winner_file, max_edited_files = update_winner_file(
@@ -140,11 +136,11 @@ def ra_aid_prediction(task, out_dname, repo_manager):
         except Exception as e:
             error_msg = f"Error processing {task['instance_id']}: {str(e)}"
             logger.error(error_msg)
-            
+
             result = create_result_dict(
                 task,
                 None,  # model_patch
-                [],    # edited_files 
+                [],  # edited_files
                 attempt,
                 trajectory_file=None,
                 repo_manager=repo_manager,
@@ -153,14 +149,10 @@ def ra_aid_prediction(task, out_dname, repo_manager):
             results.append(result)
 
             # Still try to write the result file
-            success, result_file, num_edited, attempt_fname = handle_result_file(
-                out_dname, task, attempt, result
-            )
+            success, result_file, num_edited, attempt_fname = handle_result_file(out_dname, task, attempt, result)
 
     if winner_file:
-        logger.info(
-            f"Winner file selected: {winner_file} with {max_edited_files} edited files"
-        )
+        logger.info(f"Winner file selected: {winner_file} with {max_edited_files} edited files")
     else:
         logger.warning("No successful attempts with edited files")
 
@@ -197,11 +189,7 @@ def process_task(task, out_dname, repo_manager):
 def get_completed_instances(out_dname):
     """Load and return set of already processed instance IDs"""
     done_preds = load_predictions([out_dname])
-    done_instances = {
-        inst
-        for inst, pred in done_preds.items()
-        if pred.get("model_patch") and pred.get("edited_files")
-    }
+    done_instances = {inst for inst, pred in done_preds.items() if pred.get("model_patch") and pred.get("edited_files")}
     logger.info(f"Found {len(done_instances)} completed predictions")
     logger.info(f"Skipping {len(done_instances)} already processed instances")
     return done_instances
@@ -209,30 +197,24 @@ def get_completed_instances(out_dname):
 
 def get_remaining_tasks(dataset, done_instances, filter_repos=None, only_tasks=None):
     """Get shuffled list of remaining tasks to process
-    
+
     Args:
         dataset: The SWE-bench dataset
         done_instances: Set of already processed instance IDs
         filter_repos: Optional list of repo names to filter for (e.g. ["matplotlib/matplotlib"])
         only_tasks: Optional list of specific task IDs to process (e.g. ["scikit-learn__scikit-learn-10297"])
     """
-    remaining_instances = [
-        task for task in dataset if task["instance_id"] not in done_instances
-    ]
-    
+    remaining_instances = [task for task in dataset if task["instance_id"] not in done_instances]
+
     if only_tasks:
-        remaining_instances = [
-            task for task in remaining_instances 
-            if task["instance_id"] in only_tasks
-        ]
+        remaining_instances = [task for task in remaining_instances if task["instance_id"] in only_tasks]
         logger.info(f"Filtered to {len(remaining_instances)} specific tasks: {only_tasks}")
     elif filter_repos:
         remaining_instances = [
-            task for task in remaining_instances 
-            if any(repo in task["repo"] for repo in filter_repos)
+            task for task in remaining_instances if any(repo in task["repo"] for repo in filter_repos)
         ]
         logger.info(f"Filtered to {len(remaining_instances)} instances from repos: {filter_repos}")
-        
+
     random.shuffle(remaining_instances)
     logger.info(f"Processing {len(remaining_instances)} remaining instances")
     return remaining_instances
@@ -242,15 +224,15 @@ def generate_predictions(dataset, out_dname, repo_manager):
     """Generate predictions with parallel processing and result tracking"""
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
-    
+
     # Specify specific tasks to process, comment out to process all tasks
     # only_tasks = ["django__django-14155"]
     only_tasks = None  # Process all tasks
-    
+
     # Only used if only_tasks is None
     # filter_repos = ["scikit-learn/scikit-learn"]
     filter_repos = None
-    
+
     remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos, only_tasks)
 
     def scatter(task):
@@ -284,21 +266,18 @@ def parse_args():
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Set the logging level"
+        help="Set the logging level",
     )
-    parser.add_argument(
-        "--minimal-logger",
-        action="store_true",
-        help="Use minimal logging format without timestamps"
-    )
+    parser.add_argument("--minimal-logger", action="store_true", help="Use minimal logging format without timestamps")
     return parser.parse_args()
+
 
 def main():
     try:
         args = parse_args()
         logger.setLevel(args.log_level)
         logger.set_minimal(args.minimal_logger)
-        
+
         project_root = Path(__file__).resolve().parent.parent
 
         dataset = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")

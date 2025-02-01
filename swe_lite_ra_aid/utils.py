@@ -1,9 +1,13 @@
 import datetime
 import json
+import re
 import shutil
 from pathlib import Path
+from typing import Dict
 
 from datasets import load_dataset
+
+from swe_lite_ra_aid.dataset_constants import MAP_REPO_TO_TEST_FRAMEWORK, NON_TEST_EXTS
 
 from .dump import dump  # noqa: F401
 from .logger import logger
@@ -18,6 +22,7 @@ LITE_DATASET_FNAME = LITE_DATASET.replace("/", "--") + ".json"
 DATASET_SPLIT = "test"
 # Default model name for predictions, used as part of eval json filename
 RA_AID_MODEL = "ra-aid-model"
+
 
 def dump_dataset(dataset, fname):
     entries = list(dataset)
@@ -50,7 +55,6 @@ def get_lite_dataset():
 
 
 def get_dataset(dataset, fname):
-
     fname = Path(fname)
     if fname.exists():
         dataset = json.loads(fname.read_text())
@@ -95,7 +99,6 @@ def load_predictions(paths):
         inst = pred["instance_id"]
         pred["json_fname"] = str(fname)
         predictions[inst] = pred
-
 
     return predictions
 
@@ -171,10 +174,11 @@ def pick_winner_aider(results):
     if results:
         return results[0]
 
+
 def deprecated_pick_winner(results):
     """
     Select best prediction from multiple results based on model_patch and edited_files.
-    
+
     DEPRECATED: Use pick_winner() instead which selects based on is_winner flag.
 
     Args:
@@ -185,20 +189,18 @@ def deprecated_pick_winner(results):
     """
     # First try to find results with both model_patch and edited_files
     valid_results = [r for r in results if r.get("model_patch") and r.get("edited_files")]
-    
+
     if valid_results:
         # Return the result with the most edited files
         return max(valid_results, key=lambda r: len(r.get("edited_files", [])))
-    
+
     # If no results have both, try to find any with just a model_patch
     patch_results = [r for r in results if r.get("model_patch")]
     if patch_results:
         return patch_results[0]
-        
+
     # Last resort - return first result if any exist
     return results[0] if results else None
-
-
 
 
 def pick_winner(results):
@@ -215,9 +217,10 @@ def pick_winner(results):
     winners = [r for r in results if r.get("is_winner", False)]
     if winners:
         return winners[0]
-    
+
     # Last resort - return first result if any exist
     return results[0] if results else None
+
 
 def old(fname):
     """
@@ -270,6 +273,48 @@ def choose_pred(inst, all_preds, dnames):
         results.append(pred)
 
     return pick_winner(results)
+
+
+def get_test_directives(instance: dict) -> list:
+    """
+    Get test directives from the test_patch of a task instance
+
+    Args:
+        instance (dict): task instance
+    Returns:
+        directives (list): List of test directives
+    """
+    # For seq2seq code repos, testing command is fixed
+    if instance["repo"] == "swe-bench/humaneval":
+        return ["test.py"]
+
+    # Get test directives from test patch and remove non-test files
+    diff_pat = r"diff --git a/.* b/(.*)"
+    test_patch = instance["test_patch"]
+    directives = re.findall(diff_pat, test_patch)
+    directives = [d for d in directives if not any(d.endswith(ext) for ext in NON_TEST_EXTS)]
+
+    # For Django tests, remove extension + "tests/" prefix and convert slashes to dots (module referencing)
+    if instance["repo"] == "django/django":
+        directives_transformed = []
+        for d in directives:
+            d = d[: -len(".py")] if d.endswith(".py") else d
+            d = d[len("tests/") :] if d.startswith("tests/") else d
+            d = d.replace("/", ".")
+            directives_transformed.append(d)
+        directives = directives_transformed
+
+    return directives
+
+
+def collect_test_exec_cmd(repo_full: str, task_instance: Dict) -> str:
+    """
+    For a task instance, collect a list of instructions for running tests.
+    """
+    test_type = MAP_REPO_TO_TEST_FRAMEWORK[repo_full]
+    test_directives = get_test_directives(task_instance)
+    test_cmd = f"{test_type} {' '.join(test_directives)}"
+    return test_cmd
 
 
 def choose_predictions(dnames, model_name_or_path=None, copy_md=False):

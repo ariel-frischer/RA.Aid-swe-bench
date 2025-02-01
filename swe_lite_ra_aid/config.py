@@ -1,4 +1,5 @@
 """Configuration constants for RA-AID."""
+
 from pathlib import Path
 
 # Timeout Configuration (in seconds)
@@ -16,15 +17,20 @@ TIMEOUT = 45 * 60  # 45 minutes
 # RA_AID_MODEL = "claude-3-5-sonnet-20241022"
 
 # Using sonnet 3.5 with openrouter should have less rate limiting issues
-# RA_AID_PROVIDER = "openrouter"
-RA_AID_PROVIDER = "openai"
+RA_AID_PROVIDER = "openrouter"
+# RA_AID_PROVIDER = "openai"
 # RA_AID_MODEL = "anthropic/claude-3.5-sonnet"
 # RA_AID_MODEL = "deepseek/deepseek-r1"
-RA_AID_MODEL = "o3-mini"
+# RA_AID_MODEL = "o3-mini"
+RA_AID_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
 
-# RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
-RA_AID_FULL_MODEL = "anthropic/claude-3-5-sonnet-20241022"
+RA_AID_FULL_MODEL = f"{RA_AID_PROVIDER}/{RA_AID_MODEL}"
+# RA_AID_FULL_MODEL = "anthropic/claude-3-5-sonnet-20241022"
 RA_AID_AIDER_MODEL = RA_AID_FULL_MODEL  # Use same model for aider
+RESEARCH_PROVIDER = "openrouter"
+RESEARCH_MODEL = "qwen/qwen-2.5-coder-32b-instruct"
+EXPERT_PROVIDER = "anthropic"
+EXPERT_MODEL = "claude-3-5-sonnet-20241022"
 
 # Whether to stream ra-aid output to console while capturing
 # Unfortunately the aider streaming portion is borked but we need to capture STDOUT for trajectory_output file generation.
@@ -52,3 +58,4 @@ DEFAULT_RA_AID_VERSION = "ra-aid 0.12.1"
 SUBMISSION_MODE = True
 if SUBMISSION_MODE:
     MAX_ATTEMPTS = 1
+PROCESS_CHARS = True

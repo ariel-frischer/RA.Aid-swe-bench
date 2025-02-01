@@ -8,8 +8,10 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9,<3.13"
 dependencies = [
-    "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@dev",
-    "datasets @ git+https://github.com/huggingface/datasets.git@7a1a84b5ea3a1fbe67884b339a7a081ce450f824",
+    # "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@dev",
+    "ra-aid @ git+https://github.com/ai-christianson/RA.Aid.git",
+    # "datasets @ git+https://github.com/huggingface/datasets.git@7a1a84b5ea3a1fbe67884b339a7a081ce450f824",
+    "datasets @ git+https://github.com/huggingface/datasets.git",
     "gitpython <=3.1.44",
     "lox >=0.12.0,<0.13.0",
     "swebench >=2.1.7,<3.0.0",
@@ -26,8 +28,10 @@ packages = [{include = "swe_lite_ra_aid"}]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
 # ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "0c39166172010d218c7396766880e809e8520042" }
-ra-aid = { git = "https://github.com/ariel-frischer/RA.Aid.git", branch = "dev"}
-datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main", rev="7a1a84b5ea3a1fbe67884b339a7a081ce450f824" }
+ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "dd8b9c0d308e7a280a0496f142ed8b0c03cfa8cc" }
+# ra-aid = { git = "https://github.com/ariel-frischer/RA.Aid.git", branch = "dev"}
+# datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main", rev="7a1a84b5ea3a1fbe67884b339a7a081ce450f824" }
+datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main" }
 gitpython = "<=3.1.44"
 lox = "^0.12.0"
 swebench = "^2.1.7"
