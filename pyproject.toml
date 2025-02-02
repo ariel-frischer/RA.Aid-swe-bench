@@ -1,6 +1,6 @@
 [project]
 name = "swe-lite-ra-aid"
-version = "0.1.0"
+version = "0.1.1"
 description = "SWE Bench Lite for ra-aid agent"
 authors = [
     {name = "Ariel Frischer", email = "arielfrischer@gmail.com"},
