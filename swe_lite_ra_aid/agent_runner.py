@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 from ra_aid.agent_utils import run_planning_agent, run_research_agent
 from ra_aid.llm import initialize_llm
-from .config import RA_AID_AIDER_MODEL, RA_AID_PROVIDER, RA_AID_MODEL, STREAM_OUTPUT, TIMEOUT
+from .config import RA_AID_AIDER_MODEL, RA_AID_PROVIDER, RA_AID_MODEL, RA_AID_EXPERT_PROVIDER, RA_AID_EXPERT_MODEL, STREAM_OUTPUT, TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -135,9 +135,9 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         "--model",
         RA_AID_MODEL,
         "--expert-provider",
-        RA_AID_PROVIDER,
+        RA_AID_EXPERT_PROVIDER,
         "--expert-model",
-        RA_AID_MODEL,
+        RA_AID_EXPERT_MODEL,
         "-m",
         prompt,
     ]
