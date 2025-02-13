@@ -8,8 +8,8 @@ packages = [{include = "swe_lite_ra_aid"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-ra-aid = { git = "https://github.com/ai-christianson/RA.Aid.git", branch = "master", rev = "0c39166172010d218c7396766880e809e8520042" }
-datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main", rev= "7a1a84b5ea3a1fbe67884b339a7a081ce450f824" }
+ra-aid = { path = "/home/user/workspace/ra-aid", develop = true }
+datasets = { git = "https://github.com/huggingface/datasets.git", branch = "main", rev= "3a4e74a9ace62ecd5c9cde7dcb6bcabd65cc7857" }
 gitpython = "<=3.1.44"
 lox = "^0.12.0"
 swebench = "^2.1.7"
