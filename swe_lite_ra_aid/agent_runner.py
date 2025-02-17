@@ -141,7 +141,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
     cmd = [
         "ra-aid",
         "--cowboy-mode",
-        "--verbose",
+        # "--verbose",
         "--research-provider",
         RESEARCH_PROVIDER,
         "--research-model",
