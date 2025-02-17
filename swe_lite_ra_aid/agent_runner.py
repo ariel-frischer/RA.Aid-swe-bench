@@ -129,7 +129,7 @@ def activate_venv(repo_dir: Path):
         os.environ.update(old_env)
 
 
-def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
+def run_ra_aid(repo_dir: Path, prompt: str, test_cmd: str = "") -> Optional[tuple[str, str]]:
     """
     Call ra-aid with the given prompt in the activated virtual environment.
     If STREAM_OUTPUT is True, streams output to console while capturing.
@@ -142,6 +142,7 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         "ra-aid",
         "--cowboy-mode",
         # "--verbose",
+        "--experimental-fallback-handler",
         "--research-provider",
         RESEARCH_PROVIDER,
         "--research-model",
@@ -154,9 +155,12 @@ def run_ra_aid(repo_dir: Path, prompt: str) -> Optional[tuple[str, str]]:
         EXPERT_PROVIDER,
         "--expert-model",
         EXPERT_MODEL,
-        "-m",
-        prompt,
     ]
+
+    if test_cmd:
+        cmd.extend(["--auto-test", "--test-cmd", f"{test_cmd}"])
+
+    cmd.extend(["-m", prompt])
 
     def create_streaming_process(cmd, cwd):
         """Create a subprocess with streaming output configuration."""

@@ -547,8 +547,8 @@ wheels = [
 
 [[package]]
 name = "datasets"
-version = "3.3.1.dev0"
-source = { git = "https://github.com/huggingface/datasets.git#de062f0552a810c52077543c1169c38c1f0c53fc" }
+version = "3.3.2.dev0"
+source = { git = "https://github.com/huggingface/datasets.git#a2e17c4c885e0360168e904b8347b78ad7afe3f4" }
 dependencies = [
     { name = "aiohttp" },
     { name = "dill" },
@@ -1352,7 +1352,7 @@ wheels = [
 
 [[package]]
 name = "langchain"
-version = "0.3.18"
+version = "0.3.19"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1367,9 +1367,9 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/23/612d99c74889f672fe349f43a458a42e449650ebd57073b9e96e0b6b2253/langchain-0.3.18.tar.gz", hash = "sha256:311ac227a995545ff7c3f74c7767930c5349edef0b39f19d3105b86d39316b69", size = 10223807 }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/cf/a064ef27d5f3154491c85783590a25d7ae22340cddedf9bf47496044e4eb/langchain-0.3.19.tar.gz", hash = "sha256:b96f8a445f01d15d522129ffe77cc89c8468dbd65830d153a676de8f6b899e7b", size = 10224228 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/93/83/a4b41a1cf8b22fd708104d50edf98b720aa28647d3083d83b8348927a786/langchain-0.3.18-py3-none-any.whl", hash = "sha256:1a6e629f02a25962aa5b16932e8f073248104a66804ed5af1f78618ad7c1d38d", size = 1010321 },
+    { url = "https://files.pythonhosted.org/packages/18/7d/0f4cc3317634195381f87c5d90268f29b9a31fda62aa7a7f36a1c27b06f3/langchain-0.3.19-py3-none-any.whl", hash = "sha256:1e16d97db9106640b7de4c69f8f5ed22eeda56b45b9241279e83f111640eff16", size = 1010630 },
 ]
 
 [[package]]
@@ -1714,7 +1714,7 @@ wheels = [
 
 [[package]]
 name = "modal"
-version = "0.73.51"
+version = "0.73.52"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1732,9 +1732,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/d0/ef9322bc8fc653e1b24422287b108ca9a0cd489b59691b77082c4ee6a840/modal-0.73.51.tar.gz", hash = "sha256:497d115ae92b46b65f0b8d2391465e327cd67f05ef11aa3cbc5f74f184cbefae", size = 468049 }
+sdist = { url = "https://files.pythonhosted.org/packages/66/2a/77900d416276ebb5abf02777c74dfd873f2f29ff2752045dbe7d49f97330/modal-0.73.52.tar.gz", hash = "sha256:29fbb97292bd6f6fd933dd134279f8ffaeff6d0471323346e4ade405c5273fc3", size = 467832 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/a3/57bccda40048ad4feae34f60ee7a88b57f5d7e0162c7bba51f7c16d90b85/modal-0.73.51-py3-none-any.whl", hash = "sha256:fb173b405ed139666657580a2ffee313004b84643585052bdfa7447acf2df599", size = 534085 },
+    { url = "https://files.pythonhosted.org/packages/8a/1f/12120579569dd42e3dc5c3df002cedaa56bdfd1b20b03f629fac8676f20d/modal-0.73.52-py3-none-any.whl", hash = "sha256:cc54cc30e58d2e8943c1a8597f639de2449b6e017f1e96daf9e5e59d633791dc", size = 533923 },
 ]
 
 [[package]]
@@ -2765,7 +2765,7 @@ wheels = [
 [[package]]
 name = "ra-aid"
 version = "0.14.1"
-source = { git = "https://github.com/ariel-frischer/RA.Aid.git?rev=fallback-tools#81354df48b2ff32998bdc8b5421acf044223fe92" }
+source = { git = "https://github.com/ariel-frischer/RA.Aid.git?rev=swe-bench#4bddec38c1acd58b20f24ca2cf030bbb2a810d6f" }
 dependencies = [
     { name = "aider-chat" },
     { name = "fastapi" },
@@ -3458,7 +3458,7 @@ requires-dist = [
     { name = "gitpython", specifier = "<=3.1.44" },
     { name = "lox", specifier = ">=0.12.0,<0.13.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "ra-aid", git = "https://github.com/ariel-frischer/RA.Aid.git?rev=fallback-tools" },
+    { name = "ra-aid", git = "https://github.com/ariel-frischer/RA.Aid.git?rev=swe-bench" },
     { name = "swebench", specifier = ">=2.1.7,<3.0.0" },
 ]
 

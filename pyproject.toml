@@ -9,7 +9,8 @@ readme = "README.md"
 requires-python = ">=3.9,<3.13"
 dependencies = [
     # "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@dev",
-    "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@fallback-tools",
+    # "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@fallback-tools",
+    "ra-aid @ git+https://github.com/ariel-frischer/RA.Aid.git@swe-bench",
     # "ra-aid @ git+https://github.com/ai-christianson/RA.Aid.git@master",
     # "datasets @ git+https://github.com/huggingface/datasets.git@7a1a84b5ea3a1fbe67884b339a7a081ce450f824",
     "datasets @ git+https://github.com/huggingface/datasets.git",
@@ -20,8 +21,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    # "pytest @ ^7.0",
-    # "black @ ^23.12.1",
     "pytest>=7.0.0",                                                                            
      "black>=23.12.1",    
 ]

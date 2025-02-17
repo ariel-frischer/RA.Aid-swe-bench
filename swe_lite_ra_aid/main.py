@@ -60,7 +60,7 @@ def process_single_attempt(task, _attempt, repo_manager):
             os.environ["AIDER_PRETTY"] = "false"
             os.environ["AIDER_STREAM"] = "false"
 
-            trajectory_output, _returncode = run_ra_aid(worktree_path, planning_prompt)
+            trajectory_output, _returncode = run_ra_aid(worktree_path, planning_prompt, test_cmd)
 
             if not trajectory_output:
                 logger.warning("No output from RA.Aid")
