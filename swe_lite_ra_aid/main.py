@@ -18,6 +18,8 @@ from .config import (
     MAX_ATTEMPTS,
     MAX_THREADS,
     SUBMISSION_MODE,
+    FILTER_REPOS,
+    ONLY_TASKS,
 )
 from .agent_runner import (
     create_result_dict,
@@ -243,15 +245,13 @@ def generate_predictions(dataset, out_dname, repo_manager):
     setup_directories(out_dname, REPOS_DNAME)
     done_instances = get_completed_instances(out_dname)
     
-    # Specify specific tasks to process, comment out to process all tasks
-    # only_tasks = ["django__django-14155"]
-    only_tasks = None  # Process all tasks
-    
-    # Only used if only_tasks is None
-    # filter_repos = ["scikit-learn/scikit-learn"]
-    filter_repos = None
-    
-    remaining_instances = get_remaining_tasks(dataset, done_instances, filter_repos, only_tasks)
+    # Get remaining tasks using configuration from config.py
+    remaining_tasks = get_remaining_tasks(
+        dataset, 
+        done_instances,
+        filter_repos=FILTER_REPOS,
+        only_tasks=ONLY_TASKS
+    )
 
     def scatter(task):
         return process_task(task, out_dname, repo_manager)
@@ -264,7 +264,7 @@ def generate_predictions(dataset, out_dname, repo_manager):
         gather = process_task_lox.gather
 
     try:
-        for task in remaining_instances:
+        for task in remaining_tasks:
             if MAX_THREADS > 1:
                 scatter(task)
             else:
