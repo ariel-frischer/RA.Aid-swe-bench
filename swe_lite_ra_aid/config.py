@@ -14,6 +14,7 @@ TIMEOUT = 45 * 60  # 45 minutes
 
 RA_AID_PROVIDER = "anthropic"
 RA_AID_MODEL = "claude-3-5-sonnet-20241022"
+RA_AID_TEMPERATURE = 1.0
 
 # Expert model configuration
 RA_AID_EXPERT_PROVIDER = "openai"
